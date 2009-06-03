@@ -1,6 +1,7 @@
+#labels Featured
 #屏幕截图
 
-= 以下为LiteBook的屏幕截图 =
+= 以下为 LiteBook 的屏幕截图 =
 
 ==截图一（Windows XP）＝＝
 
