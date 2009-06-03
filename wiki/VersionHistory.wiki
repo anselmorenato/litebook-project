@@ -1,0 +1,14 @@
+#labels Featured
+#版本历史
+
+= 版本历史 =
+
+==2009-6-3 v1.21发布==
+
+  * 增加面向ubuntu 8.04的版本，也就是支持GLIBC 2.7的版本
+
+  * 重写了配置类，以增加程序的兼容性
+
+  * 增加关闭文件的快捷键：Ctrl+Z
+
+  * 将网站搬到http://code.google.com/p/litebook-project/
