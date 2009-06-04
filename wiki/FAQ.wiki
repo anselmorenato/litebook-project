@@ -8,18 +8,18 @@
           * Windows版是在C:\Documents and Settings\【USER】\Application Data下，这里的【USER】是你Windows的登录名
           * Linux版的litebook.ini是在litebook的目录下
 
-  # === 为什么我无法打开ZIP/RAR中UMD/JAR/ZIP/RAR？ ===
+  * === 为什么我无法打开ZIP/RAR中UMD/JAR/ZIP/RAR？ ===
   目前LiteBook暂不支持，不过计划在将来支持打开ZIP/RAR文件中UMD和JAR文件
 
 
-  # === LiteBook是开源软件吗？ ===
+  * === LiteBook是开源软件吗？ ===
   是的，只不过目前软件刚刚写完，源代码还挺难看，计划在将来整理后公布。
 
-  # === LiteBook是免费软件吗？ ===  
+  * === LiteBook是免费软件吗？ ===  
   是的，你无需为使用它而支付任何费用。
 
-  # === 能不能在将来的版本中增加xxx功能？ ===
+  * === 能不能在将来的版本中增加xxx功能？ ===
   如果你有新的功能需求，请发信到litebook.author@gmail.com。我会尽力，但是无法保证每个要求都能得到满足
 
-  # === 我发现一个Bug ===
+  * === 我发现一个Bug ===
   请先升级到最新版看看Bug是否已经修复，如果没有的话，请写信到litebook.author@gmail.com，包括你的操作系统及版本，Litebook的版本，错误情况描述等等，越具体越好。
