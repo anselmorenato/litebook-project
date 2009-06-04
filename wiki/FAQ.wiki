@@ -10,7 +10,7 @@
           * Linux版的litebook.ini是在litebook的目录下
 
   * === 为什么我无法打开ZIP/RAR中UMD/JAR/ZIP/RAR？ ===
-  目前LiteBook暂不支持，不过计划在将来支持打开ZIP/RAR文件中UMD和JAR文件
+  目前的版本暂不支持，不过计划在将来支持打开ZIP/RAR文件中UMD和JAR文件
 
   * === litebook是开源软件吗？ ===
   是的，只不过目前软件刚刚写完，源代码还挺难看，计划在将来整理后公布。
