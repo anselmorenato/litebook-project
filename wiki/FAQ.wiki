@@ -1,7 +1,7 @@
 #常见问题
 
 = 常见问题 =
-* === 启动LiteBook 时报错怎么办？ ===
+* === 启动litebook 时报错怎么办？ ===
   请尝试如下办法：
   * 如果是Windows 绿色版无法运行，那么请安装Microsoft VC++ 2008 Redistrbute运行库。在微软的网站或是本网站都可以下载。
   * 删除litebook.ini后重新运行，litebook.ini的位置：
