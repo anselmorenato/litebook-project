@@ -9,7 +9,7 @@
 
   * 修正LoadFile函数内的一个Bug
 
-  * 增加鼠标控制功能（仅For Windows版）
+  * 增加鼠标控制功能，详情参见帮助（仅For Windows版）
 
   * 将ESC注册为全局性热键，按一下ESC会最小化窗口，再按一下窗口还原（仅For Windows版）
 
