@@ -3,6 +3,10 @@
 
 = 版本历史 =
 
+==2009-6-16 源代码发布==
+
+  * 请从SVN中Checkout
+
 ==2009-6-12 v1.31发布(Only for Windows version)==
 
   * 修正一个在载入某些Unicode编码的文件时，显示不完全的Bug，此Bug仅在Windows版发现，强烈推荐升级。
