@@ -1,4 +1,4 @@
-﻿LiteBook for Windows ver1.3 帮助
+﻿LiteBook for Windows ver1.4 帮助
 (c)2009 Hu Jun	
 
 
@@ -15,11 +15,13 @@
 
 	打开/关闭自动翻页：	回车键
 	打开/关闭全屏显示：	Tab键
+	打开/关闭工具栏：	Ctrl+T
 	最小化/恢复：		ESC
 
 	打开文件：		Ctrl+O
 	打开当前文件列表：	Ctrl+L
 	关闭当前文件：		Ctrl+Z
+	选项：			Alt+O
 	加入收藏夹：		Ctrl+D
 	打开收藏夹：		Ctrl+M
 	
@@ -28,6 +30,9 @@
 	查找:			Ctrl+F
 	查找下一个：		F3
 	查找上一个：		F4
+	过滤HTML标记：	Shift+H
+	转换为繁体字：	Shift+F
+	转换为简体字：	Shift+J
 
 	显示本帮助：		F1
 

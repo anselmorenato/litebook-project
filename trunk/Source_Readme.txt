@@ -19,7 +19,7 @@
 3. LiteBook的配置文件
     LiteBook的配置文件名是litebook.ini，位置是
         * Windows版是在C:\Documents and Settings\【USER】\Application Data下，这里的【USER】是你Windows的登录名
-        * Linux版的litebook.ini是在litebook的目录下 
+        * Linux版的文件名是.litebook.ini是在运行用户的HOME目录下 
     
 		
 4. 授权
