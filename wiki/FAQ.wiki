@@ -33,6 +33,9 @@
   * === litebook是用什么语言写的？ ===  
   python+wxpython
 
+  * === 能不能在将来的版本中增加 行间距/当前行高亮/页边距/全行下划线 功能？ ===
+  可以的。不过短期内无法实现，因为litebook目前用的是wxpython里面最简单的文本控件，这些“花哨”的功能都不支持。而稍微高级一点的文本控件性能又太差，在载入大文件的时候太慢。所以我将来打算自己对这个简单文本控件做些扩展，从而支持这些功能，但那个工作量不小，所以litebook短期内还是以消除当前功能中的Bug为主。
+
   * === 能不能在将来的版本中增加xxx功能？ ===
   优先推荐你使用Google Code的[http://code.google.com/p/litebook-project/issues/list Issues系统]，其次也可以发信到litebook.author@gmail.com。我会尽力，但是无法保证每个要求都能得到满足。
 
