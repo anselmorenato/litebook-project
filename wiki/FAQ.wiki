@@ -12,6 +12,12 @@
   * === 为什么我无法打开ZIP/RAR中UMD/JAR/ZIP/RAR？ ===
   目前的版本暂不支持，不过计划在将来支持打开ZIP/RAR文件中UMD和JAR文件
 
+  * === LiteBook目前支持哪些操作系统 ===
+  LiteBook目前在如下平台上提供能够直接运行的软件包：
+    * Windows XP/Vista/7
+    * Ubuntu 8.04/8.10
+  理论上，LiteBook可以以源码的形式运行在其他Linux软件平台上，但需要安装一些第三方的软件包。所需软件包的列表，请参见源代码中的Readme文件。
+
   * === litebook是开源软件吗？ ===
   是的，源代码已经放进SVN。
 
