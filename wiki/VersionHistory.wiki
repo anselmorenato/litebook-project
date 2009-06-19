@@ -4,7 +4,7 @@
 = 版本历史 =
 
 ==2009-6-17 Update FAQ==
-常见问题更新 FAQ
+[http://code.google.com/p/litebook-project/wiki/FAQ 常见问题(FAQ)更新]
 
 ==2009-6-17 v1.4发布==
   * 增加隐藏工具栏的功能(Ctrl+T)
