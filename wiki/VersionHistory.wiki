@@ -3,7 +3,7 @@
 
 = 版本历史 =
 
-==2009-6-17 Update FAQ==
+==2009-6-17 FAQ Updated==
 [http://code.google.com/p/litebook-project/wiki/FAQ 常见问题(FAQ)更新]
 
 ==2009-6-17 v1.4发布==
