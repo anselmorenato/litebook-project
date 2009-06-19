@@ -7,8 +7,8 @@
       * 如果是Windows 绿色版无法运行，那么请安装Microsoft VC++ 2008 Redistrbute运行库。在微软的网站或是本网站都可以下载。
       * 删除litebook.ini后重新运行，litebook.ini的位置：
           * Windows版是在C:\Documents and Settings\【USER】\Application Data下，这里的【USER】是你Windows的登录名
-          *1.4版之前 Linux版的名称也是litebook.ini，在litebook的目录下
-          *1.4版之后 Linux版的名称为改为.litebook.ini，存放在用户的HOME目录下，这样修改之后每个Linux用户都可以和Windows版一样，有自己独立的配置文件了。
+          * 1.4版之前 Linux版的名称也是litebook.ini，在litebook的目录下
+          * 1.4版之后 Linux版的名称为改为.litebook.ini，存放在用户的HOME目录下，这样修改之后每个Linux用户都可以和Windows版一样，有自己独立的配置文件了。
 
   * === 为什么我无法打开ZIP/RAR中UMD/JAR/ZIP/RAR？ ===
   目前的版本暂不支持，不过计划在将来支持打开ZIP/RAR文件中UMD和JAR文件
