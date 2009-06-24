@@ -1,6 +1,8 @@
-#labels Featured,Phase-Requirements
-#Todo List of litebook
+#summary Todo List of litebook
+#labels Featured,Phase-Requirements,Phase-Support
 
+
+<wiki:toc/>
 = litebook计划在将来的版本中实现的功能列表 =
 
 == 短期目标 ==
