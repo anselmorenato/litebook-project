@@ -1,2 +1,2 @@
-LiteBookLatestVerion----1.5
-LiteBookDownloadUrl----http://code.google.com/p/litebook-project/downloads/list
+litebooklatestverion----1.5 <br>
+litebookdownloadurl----http://code.google.com/p/litebook-project/downloads/list
