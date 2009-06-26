@@ -69,6 +69,12 @@ from chardet.universaldetector import UniversalDetector
 import subprocess
 import thread
 import hashlib
+import urllib
+try:
+    from agw import hyperlink as hl
+except ImportError: # if it's not there locally, try the wxPython lib.
+    import wx.lib.agw.hyperlink as hl
+
 # begin wxGlade: extracode
 # end wxGlade
 
@@ -76,6 +82,7 @@ import hashlib
 (ReadTimeAlert,EVT_ReadTimeAlert)=wx.lib.newevent.NewEvent()
 (ScrollDownPage,EVT_ScrollDownPage)=wx.lib.newevent.NewEvent()
 (GetPosEvent,EVT_GetPos)=wx.lib.newevent.NewEvent()
+(VerCheckEvent,EVT_VerCheck)=wx.lib.newevent.NewEvent()
 
 
 zh_dict={
@@ -1354,7 +1361,8 @@ BookMarkList=[]
 ThemeList=[]
 BookDB=[]
 Ticking=True
-Version='1.4 GLIBC2.7'
+Version='1.5 GLIBC2.7'
+I_Version=1.5 # this is used to check updated version
 
 def cur_file_dir():
     #获取脚本路径
@@ -1476,7 +1484,8 @@ def readConfigFile():
         GlobalConfig['MaxBookDB']=50
         GlobalConfig['MaxOpenedFiles']=5
         GlobalConfig['RemindInterval']=60
-        GlobalConfig['EnableSidebarPreview']=True        
+        GlobalConfig['EnableSidebarPreview']=True 
+        GlobalConfig['VerCheckOnStartup']=True       
         return
     GlobalConfig['ConfigDir']=cur_file_dir()
     try:
@@ -1525,6 +1534,11 @@ def readConfigFile():
         GlobalConfig['EnableSidebarPreview']=config.getboolean('settings','EnableSidebarPreview')
     except:
         GlobalConfig['EnableSidebarPreview']=True
+    
+    try:
+        GlobalConfig['VerCheckOnStartup']=config.getboolean('settings','VerCheckOnStartup')
+    except:
+        GlobalConfig['VerCheckOnStartup']=True    
     
 
 
@@ -1639,6 +1653,7 @@ def writeConfigFile(lastpos):
     config.set('settings','MaxBookDB',unicode(GlobalConfig['MaxBookDB']))
     config.set('settings','RemindInterval',unicode(GlobalConfig['RemindInterval']))
     config.set('settings','EnableSidebarPreview',unicode(GlobalConfig['EnableSidebarPreview']))
+    config.set('settings','VerCheckOnStartup',unicode(GlobalConfig['VerCheckOnStartup']))
     # save opened files
     config.add_section('LastOpenedFiles')
     i=0
@@ -1713,6 +1728,33 @@ def UpdateOpenedFileList(filename,ftype,zfile=''):
     OpenedFileList.insert(0,fi)
     if OpenedFileList.__len__()>GlobalConfig['MaxOpenedFiles']:
         OpenedFileList.pop()
+
+def VersionCheck(os):
+    try:
+        f=urllib.urlopen("http://code.google.com/p/litebook-project/wiki/UrlChecking")
+    except:
+        return False
+    for line in f:
+        if line.find('litebookwin')<>-1:
+            line=line.strip()
+            p=re.compile('<.*?>',re.S)
+            line=p.sub('',line)
+            info=line.split(' ')
+            found_1=False
+            found_2=False
+            for word in info:
+                if word.find('litebook'+os+'latestversion')<>-1:
+                    latest_ver=word.split('----')[1]
+                    found_1=True
+                if word.find('litebook'+os+'downloadurl')<>-1 :
+                    download_url=word.split('----')[1]
+                    found_2=True
+            if found_1==False or found_2==False:
+                f.close()
+                return False
+            else:
+                f.close()
+                return (latest_ver,'http://'+download_url)
 
 
 
@@ -2306,6 +2348,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.frame_1_menubar.Append(wxglade_tmp_menu, u"收藏(&V)")
         wxglade_tmp_menu = wx.Menu()
         wxglade_tmp_menu.Append(401, u"简明帮助(&B)\tF1", u"简明帮助", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(403, u"检查更新(&C)", u"在线检查是否有更新的版本", wx.ITEM_NORMAL)
         wxglade_tmp_menu.Append(402, u"关于(&A)", u"关于本程序", wx.ITEM_NORMAL)
         self.frame_1_menubar.Append(wxglade_tmp_menu, u"帮助(&H)")
         self.SetMenuBar(self.frame_1_menubar)
@@ -2356,6 +2399,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.Bind(wx.EVT_MENU, self.Menu302, id=302)
         self.Bind(wx.EVT_MENU, self.Menu401, id=401)
         self.Bind(wx.EVT_MENU, self.Menu402, id=402)
+        self.Bind(wx.EVT_MENU, self.Menu403, id=403)
         self.Bind(wx.EVT_MENU, self.Menu501, id=501)
         self.Bind(wx.EVT_MENU, self.Menu502, id=502)        
         self.Bind(wx.EVT_TOOL, self.Menu101, id=11)
@@ -2383,6 +2427,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.Bind(EVT_ReadTimeAlert,self.ReadTimeAlert)
         self.Bind(EVT_ScrollDownPage,self.scrolldownpage)
         self.Bind(EVT_GetPos,self.getPos)
+        self.Bind(EVT_VerCheck,self.DisplayVerCheck)
         self.Bind(wx.EVT_SPLITTER_DCLICK,self.OnSplitterDClick,self.window_1)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected,self.list_ctrl_1)
         self.list_ctrl_1.Bind(wx.EVT_CHAR,self.OnDirChar)        
@@ -2471,6 +2516,10 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActive, self.list_ctrl_1)        
         self.itemDataMap={}
         wx.lib.mixins.listctrl.ColumnSorterMixin.__init__(self,3)
+        
+        #if enabled, check version update
+        if GlobalConfig['VerCheckOnStartup']:
+            self.version_check_thread=VersionCheckThread(self,False)        
         
         
 
@@ -2698,6 +2747,10 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 
         # Then we call wx.AboutBox giving it that info object
         wx.AboutBox(info)
+
+    def Menu403(self, event): # wxGlade: MyFrame.<event_handler>
+        self.version_check_thread=VersionCheckThread(self)    
+    
     def Menu501(self, event):
         if self.toolbar_visable:
             self.frame_1_toolbar.Hide()
@@ -3588,6 +3641,11 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             return
         event.Skip()
 
+    def DisplayVerCheck(self,event):
+        dlg=VerCheckDialog(event.imsg,event.iurl)
+        dlg.ShowModal()
+        dlg.Destroy()    
+
 
 class MyOpenFileDialog(wx.Dialog,wx.lib.mixins.listctrl.ColumnSorterMixin):
     global GlobalConfig
@@ -4174,6 +4232,8 @@ class OptionDialog(wx.Dialog):
         self.button_11 = wx.Button(self.notebook_1_pane_1, -1, u"背景颜色")
         self.label_5 = wx.StaticText(self.notebook_1_pane_2, -1, u"启动：")
         self.checkbox_1 = wx.CheckBox(self.notebook_1_pane_2, -1, u"自动载入上次阅读的文件")
+        self.label_5_copy = wx.StaticText(self.notebook_1_pane_2, -1, u"启动：")
+        self.checkbox_VerCheck = wx.CheckBox(self.notebook_1_pane_2, -1, u"检查更新")               
         self.label_1 = wx.StaticText(self.notebook_1_pane_2, -1, u"自动翻页间隔（秒）：")
         self.text_ctrl_1 = wx.TextCtrl(self.notebook_1_pane_2, -1, "")
         self.label_1_copy = wx.StaticText(self.notebook_1_pane_2, -1, u"连续阅读提醒时间（分钟）：")
@@ -4216,6 +4276,7 @@ class OptionDialog(wx.Dialog):
         self.text_ctrl_4.Refresh()
         txt=self.text_ctrl_4.GetValue()
         self.text_ctrl_4.SetValue(txt)
+        self.checkbox_VerCheck.SetValue(GlobalConfig['VerCheckOnStartup'])
         #append drop down list
         for t in ThemeList:
             self.combo_box_1.Append(t['name'])
@@ -4237,6 +4298,8 @@ class OptionDialog(wx.Dialog):
         sizer_1_copy = wx.BoxSizer(wx.HORIZONTAL)
         sizer_1 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_10 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_10_copy = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_10_copy_1 = wx.BoxSizer(wx.HORIZONTAL)        
         sizer_6 = wx.BoxSizer(wx.VERTICAL)
         sizer_11 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_7 = wx.BoxSizer(wx.HORIZONTAL)
@@ -4263,6 +4326,11 @@ class OptionDialog(wx.Dialog):
         sizer_10.Add(self.checkbox_1, 0, 0, 0)
         sizer_9.Add(sizer_10, 0, wx.EXPAND, 0)
         sizer_9.Add((20, 20), 0, 0, 0)
+        sizer_10_copy_1.Add(self.label_5_copy, 0, 0, 0)
+        sizer_10_copy_1.Add(self.checkbox_VerCheck, 0, 0, 0)
+        sizer_10_copy.Add(sizer_10_copy_1, 0, wx.EXPAND, 0)
+        sizer_9.Add(sizer_10_copy, 0, wx.EXPAND, 0)
+        sizer_9.Add((20, 20), 0, 0, 0)        
         sizer_1.Add(self.label_1, 0, wx.ALIGN_BOTTOM, 0)
         sizer_1.Add(self.text_ctrl_1, 0, 0, 0)
         sizer_9.Add(sizer_1, 0, wx.EXPAND, 0)
@@ -4404,6 +4472,7 @@ class OptionDialog(wx.Dialog):
         GlobalConfig['CurBColor']=self.text_ctrl_4.GetBackgroundColour()
         GlobalConfig['LoadLastFile']=self.checkbox_1.GetValue()            
         GlobalConfig['EnableSidebarPreview']=self.checkbox_Preview.GetValue()
+        GlobalConfig['VerCheckOnStartup']=self.checkbox_VerCheck.GetValue()
         
         try:
             GlobalConfig['AutoScrollInterval']=float(self.text_ctrl_1.GetValue())*1000
@@ -4564,6 +4633,43 @@ class DisplayPosThread():
                 wx.PostEvent(self.win, evt)
             time.sleep(0.5)
 
+
+class VersionCheckThread():
+
+    def __init__(self,win,notify=True):
+        self.win=win
+        self.running=True
+        thread.start_new_thread(self.run, (notify,))
+
+    def stop(self):
+        self.running=False
+
+
+    def run(self,notify):
+        global I_Version
+        upgrade=False
+        r=VersionCheck('linux')
+        url=''
+        if not r:
+            msg=u'版本检查过程中出错！'
+        else:
+            ver_f=float(r[0])
+            if ver_f>I_Version:
+                msg=u'LiteBook ver'+r[0]+u' 已经发布！'
+                url=r[1]
+                upgrade=True
+            else:
+                msg=u'你使用的LiteBook已经是最新版本了。'
+        
+        if not notify and not upgrade:
+            return
+        else:
+            evt=VerCheckEvent(imsg = msg, iurl = url)
+            #print "dididi"
+            wx.PostEvent(self.win, evt)
+
+
+
 class AutoCountThread():
 
     def __init__(self,win):
@@ -4645,6 +4751,54 @@ class PreviewFrame(wx.Frame):
 
 # end of class PreviewFrame
 
+class VerCheckDialog(wx.Dialog):
+    def __init__(self,msg,url):
+        #begin wxGlade: VerCheckDialog.__init__
+        #kwds["style"] = wx.DEFAULT_DIALOG_STYLE
+        wx.Dialog.__init__(self,None,-1)
+        if url<>'':
+            self.label_1 = hl.HyperLinkCtrl(self, wx.ID_ANY,msg,URL=url)
+        else:
+            self.label_1 = wx.StaticText(self, -1, msg)
+        self.button_1 = wx.Button(self, -1, " OK ")
+        self.Bind(wx.EVT_BUTTON,self.OnOK,self.button_1)
+        self.__set_properties()
+        self.__do_layout()
+        # end wxGlade
+
+    def __set_properties(self):
+        # begin wxGlade: VerCheckDialog.__set_properties
+        self.SetTitle(u"检查更新")
+        # end wxGlade
+
+    def __do_layout(self):
+        # begin wxGlade: VerCheckDialog.__do_layout
+        sizer_1 = wx.BoxSizer(wx.VERTICAL)
+        sizer_2 = wx.BoxSizer(wx.VERTICAL)
+        sizer_3 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_2_copy = wx.BoxSizer(wx.VERTICAL)
+        sizer_3_copy = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_2_copy.Add((200, 40), 0, wx.EXPAND, 0)
+        sizer_3_copy.Add((20, 20), 1, wx.EXPAND, 0)
+        sizer_3_copy.Add(self.label_1, 0, 0, 0)
+        sizer_3_copy.Add((20, 20), 1, wx.EXPAND, 0)
+        sizer_2_copy.Add(sizer_3_copy, 1, wx.EXPAND, 0)
+        sizer_1.Add(sizer_2_copy, 1, wx.EXPAND, 0)
+        sizer_2.Add((200, 20), 0, wx.EXPAND, 0)
+        sizer_3.Add((20, 20), 1, wx.EXPAND, 0)
+        sizer_3.Add(self.button_1, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_3.Add((20, 20), 1, wx.EXPAND, 0)
+        sizer_2.Add(sizer_3, 1, wx.EXPAND, 0)
+        sizer_2.Add((200, 20), 0, wx.EXPAND, 0)
+        sizer_1.Add(sizer_2, 1, wx.EXPAND, 0)
+        self.SetSizer(sizer_1)
+        sizer_1.Fit(self)
+        self.Layout()
+        # end wxGlade
+
+# end of class VerCheckDialog
+    def OnOK(self,event):
+        self.Destroy()
 
 
 if __name__ == "__main__":
