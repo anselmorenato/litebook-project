@@ -1,2 +1,2 @@
 litebooklatestverion----1.5 <br>
-litebookdownloadurl----http://code.google.com/p/litebook-project/downloads/list
+litebookdownloadurl----code.google.com/p/litebook-project/downloads/list
