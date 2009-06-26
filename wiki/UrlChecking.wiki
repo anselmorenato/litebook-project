@@ -1,2 +1,4 @@
-litebooklatestverion----1.5 <br>
-litebookdownloadurl----code.google.com/p/litebook-project/downloads/list
+litebookwinlatestverion----1.5
+litebooklinuxlatestverion----1.5
+litebookwindownloadurl----code.google.com/p/litebook-project/downloads/list
+litebooklinuxdownloadurl----code.google.com/p/litebook-project/downloads/list
