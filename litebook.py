@@ -1748,7 +1748,6 @@ def VersionCheck(os):
     try:
         f=urllib.urlopen("http://code.google.com/p/litebook-project/wiki/UrlChecking")
     except:
-        print "i am here"
         return False
     for line in f:
         if line.find('litebookwin')<>-1:
