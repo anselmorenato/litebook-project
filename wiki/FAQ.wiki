@@ -1,8 +1,14 @@
-#labels Featured
-#常见问题
+#summary LiteBook 使用常见问题
+#labels Featured,Phase-Support
+
+<wiki:toc/>
+ 
 
 = 常见问题 =
-  * === 启动litebook 时报错怎么办？ ===
+
+== 运行相关 ==
+
+=== 启动litebook 时报错怎么办？ ===
   请尝试如下办法：
       * 如果是Windows 绿色版无法运行，那么请安装Microsoft VC++ 2008 Redistrbute运行库。在微软的网站或是本网站都可以下载。
       * 删除litebook.ini后重新运行，litebook.ini的位置：
@@ -10,14 +16,7 @@
           * 1.4版之前 Linux版的名称也是litebook.ini，在litebook的目录下
           * 1.4版之后 Linux版的名称为改为.litebook.ini，存放在用户的HOME目录下，这样修改之后每个Linux用户都可以和Windows版一样，有自己独立的配置文件了。
 
-  * === 为什么我把Linux版的litebook升级到1.4之后，我的配置都消失了？ ===
-  这是因为1.4版之后，Linux版的配置文件名称改为.litebook.ini，存放在用户的HOME目录下了。所以你只要将原来目录中的litebook.ini拷贝到HOME下，并改为.litebook.ini，就可以实现平滑升级了。
-
-  * === 为什么我无法打开ZIP/RAR中UMD/JAR/ZIP/RAR？ ===
-  目前的版本暂不支持，不过计划在将来支持打开ZIP/RAR文件中UMD和JAR文件<br>
-  2009-06-21更新：回头一想，UMD和JAR本身都已经是压缩格式了，再压缩一遍没什么意思，所以这个功能暂时不打算做了。
-
-  * === 为什么litebook无法在我的操作系统上运行？ ===
+=== 为什么litebook无法在我的操作系统上运行？ ===
    * litebook目前在如下平台上提供能够直接运行的软件包：
     * Windows XP/Vista/7
     * Ubuntu 8.04/8.10
@@ -26,26 +25,41 @@
    * 至于xxBSD就没打算支持，因为那些系统本来就不是用来做桌面应用的。<br>
    * 如果litebook连源码形式都无法在你的操作系统运行的话，那么只有最后一招：你自己Hack吧。<br>
 
-  * === litebook有没有手机版？ ===
-  目前还没有做手机版的打算，因为手机上已经有了不错的看书软件，没必要再去重复劳动了。
+=== 为什么我把Linux版的litebook升级到1.4之后，我的配置都消失了？ ===
+  这是因为1.4版之后，Linux版的配置文件名称改为.litebook.ini，存放在用户的HOME目录下了。所以你只要将原来目录中的litebook.ini拷贝到HOME下，并改为.litebook.ini，就可以实现平滑升级了。
 
-  * === litebook是开源软件吗？ ===
-  是的，源代码已经放进SVN。
+== 使用相关 ==
 
-  * === litebook是免费软件吗？ ===  
-  是的，你无需为使用它而支付任何费用。
+=== 为什么我无法打开ZIP/RAR中UMD/JAR/ZIP/RAR？ ===
+  目前的版本暂不支持，不过计划在将来支持打开ZIP/RAR文件中UMD和JAR文件<br>
+  2009-06-21更新：回头一想，UMD和JAR本身都已经是压缩格式了，再压缩一遍没什么意思，所以这个功能暂时不打算做了。
 
-  * === 你为什么要写这么一个软件？ ===  
-  我平时没事的时候也喜欢在电脑上看看闲书，但是总觉得找不到一个能让我完全满意的看书软件，所以就自己写了一个。
 
-  * === litebook是用什么语言写的？ ===  
-  python+wxpython
+== 功能相关  ==
 
-  * === 能不能在将来的版本中增加 行间距/当前行高亮/页边距/全行下划线 功能？ ===
+=== 能不能在将来的版本中增加 行间距/当前行高亮/页边距/全行下划线 功能？ ===
   可以的。不过短期内无法实现，因为litebook目前用的是wxpython里面最简单的文本控件，这些“花哨”的功能都不支持。而稍微高级一点的文本控件性能又太差，在载入大文件的时候太慢。所以我将来打算自己对这个简单文本控件做些扩展，从而支持这些功能，但那个工作量不小，所以litebook短期内还是以消除当前功能中的Bug为主。
 
-  * === 能不能在将来的版本中增加xxx功能？ ===
+=== 能不能在将来的版本中增加xxx功能？ ===
   优先推荐你使用Google Code的[http://code.google.com/p/litebook-project/issues/list Issues系统]，其次也可以发信到litebook.author@gmail.com。我会尽力，但是无法保证每个要求都能得到满足。
 
-  * === 我发现一个Bug ===
+=== 我发现一个Bug ===
   请先升级到最新版看看Bug是否已经修复，如果没有的话，优先推荐你使用Google Code的[http://code.google.com/p/litebook-project/issues/list Issues系统]，其次也可以写信到litebook.author@gmail.com，包括你的操作系统及版本，litebook的版本，错误情况描述等等，越具体越好。
+  
+  
+== 其它 ==
+=== litebook是免费软件吗？ ===  
+  是的，你无需为使用它而支付任何费用。
+
+=== litebook有没有手机版？ ===
+  目前还没有做手机版的打算，因为手机上已经有了不错的看书软件，没必要再去重复劳动了。
+
+=== litebook是开源软件吗？ ===
+  是的，源代码已经放进SVN。
+
+=== 你为什么要写这么一个软件？ ===  
+  我平时没事的时候也喜欢在电脑上看看闲书，但是总觉得找不到一个能让我完全满意的看书软件，所以就自己写了一个。
+
+=== litebook是用什么语言写的？ ===  
+  python+wxpython
+
