@@ -6,10 +6,10 @@
 = litebook计划在将来的版本中实现的功能列表 =
 
 == 短期目标 ==
-  * 制作For Arch Linux的运行包
-  * 检查更新
-  * [http://code.google.com/p/litebook-project/issues/detail?id=3 阅读历史全部记录]
-  * [http://code.google.com/p/litebook-project/issues/detail?id=5 目录选择侧栏]
+  * 制作For Arch Linux的运行包 
+  * 检查更新 （已在ver1.5中实现）
+  * [http://code.google.com/p/litebook-project/issues/detail?id=3 阅读历史全部记录](已在ver1.51 中实现）
+  * [http://code.google.com/p/litebook-project/issues/detail?id=5 目录选择侧栏]（已在ver1.5中实现）
  
 == 中长期目标 ==
 下面列出的是我对litebook未来发展的一些初步考虑，并不意味着肯定会按照这个列表去做。如果你有什么好的建议，欢迎给我Comments或是email。
