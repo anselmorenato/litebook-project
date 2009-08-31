@@ -6,9 +6,8 @@
 注：本文内容适用于版本1.52或之前。
 
 
-= 文件名和位置 =
+== 文件名和位置 ==
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+  * Windows版是在C:\Documents and Settings\【USER】\Application Data（注意：这是一个隐藏文件夹）下，这里的【USER】是你Windows的登录名
+  * 1.4版之前 Linux版的名称也是litebook.ini，在litebook的目录下
+  * 1.4版之后 Linux版的名称为改为.litebook.ini，存放在用户的HOME目录下，
