@@ -30,12 +30,35 @@
 === BookMark ===
   * 此配置类别里面存放的是已保存的书签
   * xxx是书签的编号，yyy是书签的内容，格式为：文件路径?阅读位置?预览内容；如果是压缩文件（或UMD/JAR格式）的话，那么格式为：压缩文件路径|压缩包内实际文件名?阅读位置?预览内容。
+  * 注：从ver1.51起，此部分内容被litebook.bookdb文件替代，其格式为sqlite3。
 
 === settings ===
   * 此配置类别里面存放的是一般控制选项如下。
-  * showfullscreen：启动时是否自动全屏
+  * showfullscreen：启动时是否自动全屏（刚刚看了一下源码，这个功能居然没有实现，汗。。。）
+  * autoscrollinterval：自动翻页间隔，以毫秒为单位，缺省是12秒
+  * maxopenedfiles：“曾经打开文件”菜单中的文件个数，缺省是5个
+  * enableesc：是否启用ESC作为老板键，only for windows version
+  * maxbookdb：控制"BookDB"中的条目个数
+  * enablesidebarpreview：在文件选择侧边栏中是否启用预览
+  * loadlastfile：启动时是否自动载入上次阅读的文件
+  * remindinterval：阅读时间提醒，单位是分钟，缺省为60分钟
+  * lastdir：记录最后浏览文件的目录
+  * vercheckonstartup：是否在启动时检查版本更新
+  * hashtitle：是否启用文件名作为md5hash的内容，如果否的话，则使用文件内容作。
 
+=== Appearance ===
+  * 此配置类别内存放的是字体颜色显示方案的配置
+  * xxx是方案名，yyy是方案内容，其格式为：字体大小:font family:style:weight:underline:facename:encoding:字体颜色:背景颜色
+  * 方案名为"last"代表最后运行时所使用的显示方案
 
+=== LastOpenedFiles ===
+  * 此配置类别存放的是“曾经打开文件”的菜单内容
+  * xxx是菜单编号，yyy是文件路径，如果是压缩文件（或UMD/JAR格式）的话，那么格式为：压缩文件路径|压缩包内实际文件名
 
+=== LastPosition ===
+  * 此配置类别存放的是最后一次所打开的文件和阅读位置
+  * lastfile:最后打开文件的路径，如果是压缩文件（或UMD/JAR格式）的话，那么格式为：压缩文件路径|压缩包内实际文件名
+  * pos：最后阅读位置
+  
 
 
