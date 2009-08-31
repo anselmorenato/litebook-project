@@ -1,5 +1,5 @@
 #介绍litebook配置文件
-
+《《working in progress》》
 = litebook配置文件详述 =
 
 本文详细描述了litebook配置文件内各个配置项的使用方法。
@@ -8,6 +8,34 @@
 
 == 文件名和位置 ==
 
-  * Windows版是在C:\Documents and Settings\【USER】\Application Data（注意：这是一个隐藏文件夹）下，这里的【USER】是你Windows的登录名
+  * Windows版是在C:\Documents and Settings\【USER】\Application Data（注意：这是一个隐藏文件夹）下，这里的【USER】是你Windows的登录名；文件名是litebook.ini
   * 1.4版之前 Linux版的名称也是litebook.ini，在litebook的目录下
   * 1.4版之后 Linux版的名称为改为.litebook.ini，存放在用户的HOME目录下，
+
+== 配置文件综述 ==
+  * litebook的配置文件是文本文件格式，可以用任意编辑器修改。
+  * 配置文件内容分为几大配置类别，每个配置类别都以"[xxx]"开头，如"[settings]"。
+  * 每个配置类别里面都有很多配置项，配置项的格式都是"xxx = yyy"，xxx是配置项，yyy是配置项的值。每个配置项占一行
+  * 配置文件都是unix换行格式（windows版也是如此），也就是说每行都是以"\n"结尾的。在windows版下最好用支持unix换行格式的编辑器进行修改（如ultraedit,ulipad等等）
+
+
+== 配置项详述 ==
+以下配置项详述按照配置类别展开。
+
+=== BookDB ===
+  * 此配置类别里面存放都是已阅读文件的最后阅读位置。
+  * xxx是文件内容或文件标题的md5值，yyy是最后阅读位置。每一行代表一个文件。
+  * 此大类最多可存放的文件数收[settings]里面的maxbookdb控制，缺省为50个。
+
+=== BookMark ===
+  * 此配置类别里面存放的是已保存的书签
+  * xxx是书签的编号，yyy是书签的内容，格式为：文件路径?阅读位置?预览内容；如果是压缩文件（或UMD/JAR格式）的话，那么格式为：压缩文件路径|压缩包内实际文件名?阅读位置?预览内容。
+
+=== settings ===
+  * 此配置类别里面存放的是一般控制选项如下。
+  * showfullscreen：启动时是否自动全屏
+
+
+
+
+
