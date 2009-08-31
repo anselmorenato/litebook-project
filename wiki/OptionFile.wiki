@@ -1,0 +1,14 @@
+#介绍litebook配置文件
+
+= litebook配置文件详述 =
+
+本文详细描述了litebook配置文件内各个配置项的使用方法。
+注：本文内容适用于版本1.52或之前。
+
+
+= 文件名和位置 =
+
+Add your content here.  Format your content with:
+  * Text in *bold* or _italic_
+  * Headings, paragraphs, and lists
+  * Automatic links to other wiki pages
