@@ -1,5 +1,8 @@
+#labels Featured,Phase-Design
 #介绍litebook配置文件
-《《working in progress》》
+
+<wiki:toc/>
+
 = litebook配置文件详述 =
 
 本文详细描述了litebook配置文件内各个配置项的使用方法。
@@ -60,5 +63,3 @@
   * lastfile:最后打开文件的路径，如果是压缩文件（或UMD/JAR格式）的话，那么格式为：压缩文件路径|压缩包内实际文件名
   * pos：最后阅读位置
   
-
-
