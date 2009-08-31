@@ -54,11 +54,11 @@
   * xxx是方案名，yyy是方案内容，其格式为：字体大小:font family:style:weight:underline:facename:encoding:字体颜色:背景颜色
   * 方案名为"last"代表最后运行时所使用的显示方案
 
-=== LastOpenedFiles ===
+===  LastOpenedFiles  ===
   * 此配置类别存放的是“曾经打开文件”的菜单内容
   * xxx是菜单编号，yyy是文件路径，如果是压缩文件（或UMD/JAR格式）的话，那么格式为：压缩文件路径|压缩包内实际文件名
 
-=== LastPosition ===
+===  LastPosition  ===
   * 此配置类别存放的是最后一次所打开的文件和阅读位置
   * lastfile:最后打开文件的路径，如果是压缩文件（或UMD/JAR格式）的话，那么格式为：压缩文件路径|压缩包内实际文件名
   * pos：最后阅读位置
