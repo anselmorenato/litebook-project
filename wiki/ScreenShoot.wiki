@@ -1,5 +1,5 @@
+#summary 屏幕截图
 #labels Featured
-#屏幕截图
 
 = 屏幕截图 =
 
