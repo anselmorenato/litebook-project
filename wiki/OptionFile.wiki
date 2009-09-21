@@ -1,5 +1,5 @@
+#summary 介绍litebook配置文件
 #labels Featured,Phase-Design
-#介绍litebook配置文件
 
 <wiki:toc/>
 
