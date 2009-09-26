@@ -38,7 +38,7 @@
 
 === settings ===
   * 此配置类别里面存放的是一般控制选项如下。
-  * showfullscreen：启动时是否自动全屏（刚刚看了一下源码，这个功能居然没有实现，汗。。。）
+  * showfullscreen：启动时是否自动全屏（此配置项在ver1.52中被取消）
   * autoscrollinterval：自动翻页间隔，以毫秒为单位，缺省是12秒
   * maxopenedfiles：“曾经打开文件”菜单中的文件个数，缺省是5个
   * enableesc：是否启用ESC作为老板键，only for windows version
