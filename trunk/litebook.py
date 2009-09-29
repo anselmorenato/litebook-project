@@ -1432,6 +1432,7 @@ BookDB=[]
 Ticking=True
 Version='1.53'
 I_Version=1.53 # this is used to check updated version
+SqlCon=None
 
 
 
@@ -2276,13 +2277,13 @@ class ZipFileDialog(wx.Dialog):
     def OnOpen(self, event): # wxGlade: ZipFileDialog.<event_handler>
         item_selected=self.tree_ctrl_1.GetSelections()
         for item in item_selected:
-##            full_name=''
-##            while item<>self.tree_ctrl_1.GetRootItem():
-##                full_name=self.tree_ctrl_1.GetItemText(item)+full_name
-##                item=self.tree_ctrl_1.GetItemParent(item)
-
+            if self.tree_ctrl_1.GetChildrenCount(item)==0:
                 self.selected_files.append(self.tree_ctrl_1.GetPyData(item))
-        self.Destroy()
+        if self.selected_files==[]:
+            event.Skip()
+            return False
+        else:
+            self.Destroy()
 
 
     def OnCancell(self, event): # wxGlade: ZipFileDialog.<event_handler>
@@ -3545,6 +3546,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 
             i=0
             RPos=0
+            pure_file_list=[]
             for filename in file_list:
                 current_path=GlobalConfig['LastDir']+u"\\"+filename
                 if os.path.isdir(current_path)== True:
@@ -3557,34 +3559,35 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                     self.list_ctrl_1.SetItemData(index,index)
                     self.itemDataMap[index]=('\x01'+filename,)
                     i+=1
+                else:
+                    pure_file_list.append(filename)
             RPos+=1
-            for filename in file_list:
+            for filename in pure_file_list:
                 current_path=GlobalConfig['LastDir']+u"\\"+filename
                 rr=filename.rsplit('.',1)
                 if rr.__len__()==1:
                     file_ext=''
                 else:
                     file_ext=rr[1]
-                if os.path.isdir(current_path)== False:
-                    if file_ext=='txt' :
-                        index=self.list_ctrl_1.InsertImageStringItem(sys.maxint,filename,self.file_icon_list['txtfile'])
+                if file_ext=='txt' :
+                    index=self.list_ctrl_1.InsertImageStringItem(sys.maxint,filename,self.file_icon_list['txtfile'])
+                else:
+                    if (file_ext=='htm' or file_ext=='html'):
+                        index=self.list_ctrl_1.InsertImageStringItem(sys.maxint,filename,self.file_icon_list['htmlfile'])
                     else:
-                        if (file_ext=='htm' or file_ext=='html'):
-                            index=self.list_ctrl_1.InsertImageStringItem(sys.maxint,filename,self.file_icon_list['htmlfile'])
+                        if file_ext=='zip' :
+                            index=self.list_ctrl_1.InsertImageStringItem(sys.maxint,filename,self.file_icon_list['zipfile'])
                         else:
-                            if file_ext=='zip' :
-                                index=self.list_ctrl_1.InsertImageStringItem(sys.maxint,filename,self.file_icon_list['zipfile'])
+                            if file_ext=='rar':
+                                index=self.list_ctrl_1.InsertImageStringItem(sys.maxint,filename,self.file_icon_list['rarfile'])
                             else:
-                                if file_ext=='rar':
-                                    index=self.list_ctrl_1.InsertImageStringItem(sys.maxint,filename,self.file_icon_list['rarfile'])
-                                else:
-                                     if file_ext=='jar' :
-                                         index=self.list_ctrl_1.InsertImageStringItem(sys.maxint,filename,self.file_icon_list['jarfile'])
+                                 if file_ext=='jar' :
+                                     index=self.list_ctrl_1.InsertImageStringItem(sys.maxint,filename,self.file_icon_list['jarfile'])
+                                 else:
+                                     if file_ext=='umd':
+                                         index=self.list_ctrl_1.InsertImageStringItem(sys.maxint,filename,self.file_icon_list['umdfile'])
                                      else:
-                                         if file_ext=='umd':
-                                             index=self.list_ctrl_1.InsertImageStringItem(sys.maxint,filename,self.file_icon_list['umdfile'])
-                                         else:
-                                            index=self.list_ctrl_1.InsertImageStringItem(sys.maxint,filename,self.file_icon_list['file'])
+                                        index=self.list_ctrl_1.InsertImageStringItem(sys.maxint,filename,self.file_icon_list['file'])
                 self.list_ctrl_1.SetItemData(index,index)
                 self.itemDataMap[index]=(filename,)
         else:
