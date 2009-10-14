@@ -15,6 +15,7 @@
           * Windows版是在C:\Documents and Settings\【USER】\Application Data（注意：这是一个隐藏文件夹）下，这里的【USER】是你Windows的登录名
           * 1.4版之前 Linux版的名称也是litebook.ini，在litebook的目录下
           * 1.4版之后 Linux版的名称为改为.litebook.ini，存放在用户的HOME目录下，这样修改之后每个Linux用户都可以和Windows版一样，有自己独立的配置文件了。
+      * 如果还不行的话，建议升级到最新版试试。
 
 === 为什么litebook无法在我的操作系统上运行？ ===
    * litebook目前在如下平台上提供能够直接运行的软件包：
@@ -62,4 +63,3 @@
 
 === litebook是用什么语言写的？ ===  
   python+wxpython
-
