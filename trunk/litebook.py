@@ -2375,6 +2375,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
     current_pos=0
     last_pos=0
     last_mouse_event=None
+    UpdateSidebar=False
     SidebarPos=300 # inital postion value for dir sidebar
     def __init__(self,*args, **kwds):
         global GlobalConfig
@@ -2896,12 +2897,12 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             self.list_ctrl_1.SetFocus()
 
     def Menu503(self, event):
-         self.showfullscr=not self.showfullscr
-         self.ShowFullScreen(self.showfullscr,wx.FULLSCREEN_ALL)
-         if self.showfullscr:
-             self.text_ctrl_1.Bind(wx.EVT_CONTEXT_MENU, self.ShowFullScrMenu)
-         else:
-             self.text_ctrl_1.Bind(wx.EVT_CONTEXT_MENU, None)
+        self.showfullscr=not self.showfullscr
+        self.ShowFullScreen(self.showfullscr,wx.FULLSCREEN_ALL)
+        if self.showfullscr:
+            self.text_ctrl_1.Bind(wx.EVT_CONTEXT_MENU, self.ShowFullScrMenu)
+        else:
+            self.text_ctrl_1.Bind(wx.EVT_CONTEXT_MENU, None)
 
     def ShowPopMenu(self,event):
         if not self.showfullscr:
@@ -3573,8 +3574,9 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
     def DirSideBarReload(self):
         """"This function is to reload directory sidebar with GlobalConfig['LastDir']"""
         global GlobalConfig
-        if GlobalConfig['LastDir']==self.LastDir: return
+        if GlobalConfig['LastDir']==self.LastDir and not self.UpdateSidebar: return
         else:
+            self.UpdateSidebar=False
             if ((self.LastDir.__len__()>GlobalConfig['LastDir'].__len__() and not (self.LastDir=='ROOT' and GlobalConfig['LastDir'][1:]==u':\\')))or GlobalConfig['LastDir']==u'ROOT':
                 RestorPos=True
                 if GlobalConfig['LastDir']=='ROOT':
@@ -4737,6 +4739,8 @@ class OptionDialog(wx.Dialog):
         GlobalConfig['LoadLastFile']=self.checkbox_1.GetValue()
         GlobalConfig['EnableESC']=self.checkbox_ESC.GetValue()
         GlobalConfig['VerCheckOnStartup']=self.checkbox_VerCheck.GetValue()
+        if GlobalConfig['ShowAllFileInSidebar']==self.checkbox_5.GetValue():
+            self.GetParent().UpdateSidebar=True
         GlobalConfig['ShowAllFileInSidebar']=not self.checkbox_5.GetValue()
         if GlobalConfig['EnableESC']:
             self.GetParent().RegisterHotKey(1,0,wx.WXK_ESCAPE)
