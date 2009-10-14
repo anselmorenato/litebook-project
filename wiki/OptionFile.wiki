@@ -49,6 +49,7 @@
   * lastdir：记录最后浏览文件的目录
   * vercheckonstartup：是否在启动时检查版本更新
   * hashtitle：是否启用文件名作为md5hash的内容，如果否的话，则使用文件内容作。
+  * showallfileinsidebar: 是否在文件侧边栏中显示所有文件，否则为否的话，只显示已支持格式的文件
 
 === Appearance ===
   * 此配置类别内存放的是字体颜色显示方案的配置
