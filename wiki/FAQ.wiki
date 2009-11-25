@@ -27,7 +27,7 @@
    * 如果litebook连源码形式都无法在你的操作系统运行的话，那么只有最后一招：你自己Hack吧。<br>
 
 === 如何以源码形式运行litebook？ ===
-   * 从官方网站（http://code.google.com/p/litebook-project/）的SVN中获取最新的源代码
+   * 从官方网站 （http://code.google.com/p/litebook-project/） 的SVN中获取最新的源代码
    * 确认你的系统中安装有如下python环境：
       * Python 2.6 （不支持python 3.0）
       * wxpython 2.8.10.1 unicode
