@@ -26,6 +26,22 @@
    * 至于xxBSD就没打算支持，因为那些系统本来就不是用来做桌面应用的。<br>
    * 如果litebook连源码形式都无法在你的操作系统运行的话，那么只有最后一招：你自己Hack吧。<br>
 
+=== 如何以源码形式运行litebook？ ===
+   * 从官方网站(http://code.google.com/p/litebook-project/)的SVN中获取最新的源代码
+   * 确认你的系统中安装有如下python环境：
+      * Python 2.6 （不支持python 3.0）
+      * wxpython 2.8.10.1 unicode
+      * chardet 1.01 (http://chardet.feedparser.org/)
+      * rarfile 1.0 (http://pypi.python.org/pypi/rarfile/1.0) 
+      * 仅Windows版：unrar2(http://code.google.com/p/py-unrar2/)
+      * 仅Linux版：unrar linux版(http://www.rarlab.com)
+    * 在windows下，运行python litebook.py
+    * 在Linux下，运行python litebook-current_linux.py
+
+
+
+
+
 === 为什么我把Linux版的litebook升级到1.4之后，我的配置都消失了？ ===
   这是因为1.4版之后，Linux版的配置文件名称改为.litebook.ini，存放在用户的HOME目录下了。所以你只要将原来目录中的litebook.ini拷贝到HOME下，并改为.litebook.ini，就可以实现平滑升级了。
 
