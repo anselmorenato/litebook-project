@@ -30,7 +30,7 @@
    * 从官方网站 (http://code.google.com/p/litebook-project/) 的SVN中获取最新的源代码
    * 确认你的系统中安装有如下python环境：
       * Python 2.6 （不支持python 3.0）
-      * wxpython 2.8.10.1 unicode
+      * wxpython 2.8.10.1 unicode  (ubuntu/debian下参见http://wiki.wxpython.org/InstallingOnUbuntuOrDebian） 
       * chardet 1.01 (http://chardet.feedparser.org/)
       * rarfile 1.0 (http://pypi.python.org/pypi/rarfile/1.0) 
       * 仅Windows版：unrar2(http://code.google.com/p/py-unrar2/)
