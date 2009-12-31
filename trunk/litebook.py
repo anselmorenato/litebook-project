@@ -1866,7 +1866,11 @@ def UpdateOpenedFileList(filename,ftype,zfile=''):
                     return
     OpenedFileList.insert(0,fi)
     if OpenedFileList.__len__()>GlobalConfig['MaxOpenedFiles']:
-        OpenedFileList.pop()
+        i=0
+        delta=OpenedFileList.__len__()-GlobalConfig['MaxOpenedFiles']
+        while i<delta:
+            OpenedFileList.pop()
+            i+=1
 
 
 def VersionCheck(os):
@@ -2573,6 +2577,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         wxglade_tmp_menu.AppendMenu(wx.NewId(), u"按文件序号顺序打开", wxglade_tmp_menu_sub, "")
         wxglade_tmp_menu_sub = wx.Menu()
         i=1000
+        self.mymenu=wxglade_tmp_menu
+
         for f in OpenedFileList:
             i+=1
             f['MenuID']=i
@@ -4076,11 +4082,11 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
     def UpdateLastFileMenu(self):
         global OpenedFileList
         i=1000
-        total=i+GlobalConfig['MaxOpenedFiles']
+        total=2000
         while i<total:
             i+=1
             try:
-                self.LastFileMenu.Delete(i) # the number of last opened files may less than maxopenedfiles, so need to try first
+                self.LastFileMenu.Remove(i) # the number of last opened files may less than maxopenedfiles, so need to try first
             except:
                 pass
         i=1000
