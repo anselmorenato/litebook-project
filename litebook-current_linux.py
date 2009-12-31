@@ -1363,8 +1363,8 @@ BookMarkList=[]
 ThemeList=[]
 BookDB=[]
 Ticking=True
-Version='1.55 GLIBC2.7'
-I_Version=1.55 # this is used to check updated version
+Version='1.60 LINUX'
+I_Version=1.60 # this is used to check updated version
 
 def cur_file_dir():
     #获取脚本路径
@@ -1456,7 +1456,7 @@ def AnyToUnicode(input_str,coding):
                 coding='GBK'
             output_str=unicode(input_str,coding,errors='replace')
         else:
-            output_str=input_str.decode('utf-8')
+            output_str=input_str.decode('utf-8',"replace")
     else:
         output_str=unicode(input_str,'gbk',errors='replace')
     return output_str
@@ -1490,6 +1490,7 @@ def readConfigFile():
         GlobalConfig['VerCheckOnStartup']=True    
         GlobalConfig['HashTitle']=False  
         GlobalConfig['ShowAllFileInSidebar']=True
+        GlobalConfig['HideToolbar']=False
         return
     GlobalConfig['ConfigDir']=cur_file_dir()
     try:
@@ -1519,6 +1520,10 @@ def readConfigFile():
         GlobalConfig['MaxBookDB']=config.getint('settings','MaxBookDB')
     except:
         GlobalConfig['MaxBookDB']=50
+    try:
+        GlobalConfig['HideToolbar']=config.getboolean('settings','HideToolbar')
+    except:
+        GlobalConfig['HideToolbar']=False    
 
     try:
         GlobalConfig['MaxOpenedFiles']=config.getint('settings','MaxOpenedFiles')
@@ -1552,7 +1557,11 @@ def readConfigFile():
 
     try:
         flist=(config.items('LastOpenedFiles'))
+        i=1
         for f in flist:
+            if i>GlobalConfig['MaxOpenedFiles']: break
+            else:
+                i+=1            
             if f[1].find(u'|')==-1:OpenedFileList.append({'file':f[1],'type':'normal','zfile':''})
             else:
                 (zfile,filename)=f[1].split('|',2)
@@ -1661,6 +1670,7 @@ def writeConfigFile(lastpos):
     config.set('settings','VerCheckOnStartup',unicode(GlobalConfig['VerCheckOnStartup']))
     config.set('settings','HashTitle',unicode(True))
     config.set('settings','ShowAllFileInSidebar',unicode(GlobalConfig['ShowAllFileInSidebar']))
+    config.set('settings','HideToolbar',unicode(GlobalConfig['HideToolbar']))
     # save opened files
     config.add_section('LastOpenedFiles')
     i=0
@@ -1738,9 +1748,6 @@ def UpdateOpenedFileList(filename,ftype,zfile=''):
         SqlCon.commit()
     except:
         return    
-    OpenedFileList.insert(0,fi)
-    if OpenedFileList.__len__()>GlobalConfig['MaxOpenedFiles']:
-        OpenedFileList.pop()
     for x in OpenedFileList:
         if x['file']==filename:
             if x['type']=='normal':
@@ -1750,7 +1757,13 @@ def UpdateOpenedFileList(filename,ftype,zfile=''):
                     return
     OpenedFileList.insert(0,fi)
     if OpenedFileList.__len__()>GlobalConfig['MaxOpenedFiles']:
-        OpenedFileList.pop()
+        i=0
+        delta=OpenedFileList.__len__()-GlobalConfig['MaxOpenedFiles']
+        while i<delta:
+            OpenedFileList.pop()
+            i+=1    
+   
+
 
 
 def VersionCheck(os):
@@ -1783,17 +1796,15 @@ def VersionCheck(os):
 def htmname2uni(htm):
     if htm[1]=='#':
         uc=unichr(int(htm[2:-1]))
-        uc=uc.encode('gbk')
-        uc=uc.decode('gbk')
+
         return uc
     else:
         try:
             uc=unichr(htmlentitydefs.name2codepoint[htm[1:-1]])
-            uc=uc.encode('gbk')
-            uc=uc.decode('gbk')
+
             return uc
         except:
-            return False
+            return htm
 
 
 def htm2txt(inf):
@@ -1872,6 +1883,33 @@ def jarfile_decode(infile):
         i+=1
     return content
 
+def epubfile_decode(infile):
+    #decode epub file,return unicode
+    if not zipfile.is_zipfile(infile):
+        return False
+    zfile=zipfile.ZipFile(infile)
+    i=1
+    content=u''
+    clist=[]
+    for fname in zfile.namelist():
+        fext=os.path.splitext(fname)[1].lower()
+        if fext==".xml" or fext==".html" or fext==".htm":
+            if fname<>'META-INF/container.xml':
+                clist.append(fname)
+    clist=sorted(clist)
+    for fname in clist:
+        fname=fname.decode("GBK","replace")
+        try:
+            txt=zfile.read(fname)
+        except:
+            break
+        
+        try:
+            content+=txt.decode('utf-8','ignore')
+        except:
+            content+=txt.decode('utf-16','ignor')
+
+    return htm2txt(content)
 
 import struct
 import zlib
@@ -2461,7 +2499,11 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         wxglade_tmp_menu.Append(501, u"显示工具栏\tCtrl+T", u"是否显示工具栏", wx.ITEM_CHECK)
         wxglade_tmp_menu.Append(503, u"全屏显示\tCtrl+I", u"全屏显示", wx.ITEM_CHECK)
         wxglade_tmp_menu.Append(502, u"显示文件侧边栏\tAlt+D", u"是否显示文件侧边栏", wx.ITEM_CHECK)
-        wxglade_tmp_menu.Check(501,True)
+        if not GlobalConfig['HideToolbar']:
+            self.toolbar_visable=True
+            wxglade_tmp_menu.Check(501,True)
+        else:
+            self.toolbar_visable=False        
         self.SidebarMenu=wxglade_tmp_menu
         self.frame_1_menubar.Append(wxglade_tmp_menu, u"视图(&T)")        
         wxglade_tmp_menu = wx.Menu()
@@ -2470,6 +2512,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.frame_1_menubar.Append(wxglade_tmp_menu, u"收藏(&V)")
         wxglade_tmp_menu = wx.Menu()
         wxglade_tmp_menu.Append(401, u"简明帮助(&B)\tF1", u"简明帮助", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(404, u"版本更新内容", u"版本更新内容", wx.ITEM_NORMAL)
         wxglade_tmp_menu.Append(403, u"检查更新(&C)", u"在线检查是否有更新的版本", wx.ITEM_NORMAL)
         wxglade_tmp_menu.Append(402, u"关于(&A)", u"关于本程序", wx.ITEM_NORMAL)
         self.frame_1_menubar.Append(wxglade_tmp_menu, u"帮助(&H)")
@@ -2524,6 +2567,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.Bind(wx.EVT_MENU, self.Menu401, id=401)
         self.Bind(wx.EVT_MENU, self.Menu402, id=402)
         self.Bind(wx.EVT_MENU, self.Menu403, id=403)
+        self.Bind(wx.EVT_MENU, self.Menu404, id=404)
         self.Bind(wx.EVT_MENU, self.Menu501, id=501)
         self.Bind(wx.EVT_MENU, self.Menu502, id=502) 
         self.Bind(wx.EVT_MENU, self.Menu503, id=503)       
@@ -2635,6 +2679,9 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         bmp=wx.Bitmap(GlobalConfig['IconDir']+u"/down.png",wx.BITMAP_TYPE_ANY)
         self.dn=self.image_list.Add(bmp)
         self.file_icon_list["down"]=9
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"/epub.png",wx.BITMAP_TYPE_ANY)
+        self.image_list.Add(bmp)
+        self.file_icon_list["epub"]=10       
 
         self.list_ctrl_1.AssignImageList(self.image_list,wx.IMAGE_LIST_SMALL)
         self.list_ctrl_1.InsertColumn(0,u'文件名',width=400)
@@ -2680,6 +2727,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 
 
     def __do_layout(self):
+        global GlobalConfig
         # begin wxGlade: MyFrame.__do_layout
         sizer_1 = wx.BoxSizer(wx.HORIZONTAL)
         #Use splitwindow to add dir sidebar
@@ -2697,6 +2745,12 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.SetSizer(sizer_1)
         sizer_1.Fit(self)
         self.Layout()
+        #Hide the toolbar if it is hidden when litebook exit last time
+        if GlobalConfig['HideToolbar']:
+            self.frame_1_toolbar.Hide()
+            self.SetToolBar(None)
+            self.Refresh()
+            self.Layout()        
         # end wxGlade
 
     def onSize(self, event):
@@ -2717,7 +2771,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         global GlobalConfig
         wildcard = u"文本文件 (*.txt)|*.txt|"     \
            u"HTML文件 (*.htm;*.html)|*.htm;*.html|" \
-           u"电子书 (*.umd;*.jar)|*.umd;*.jar|" \
+           u"电子书 (*.umd;*.jar;*.epub)|*.umd;*.jar;*.epub|" \
            u"所有文件 (*.*)|*.*"
         dlg = wx.FileDialog(
             self, message="Choose a file",
@@ -2869,6 +2923,9 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
     def Menu401(self, event): # wxGlade: MyFrame.<event_handler>
         dlg=HelpDialog(self)
         dlg.ShowModal()
+    def Menu404(self, event): # wxGlade: MyFrame.<event_handler>
+        dlg=HelpDialog(self,mode="versionhistory")
+        dlg.ShowModal()    
     def Menu402(self, event): # wxGlade: MyFrame.<event_handler>
         global Version
         # First we create and fill the info object
@@ -3020,6 +3077,15 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.text_ctrl_1.SetValue(txt)
         self.text_ctrl_1.ShowPosition(pos)
         self.text_ctrl_1.ScrollPages(1)
+        GlobalConfig['CurFont'].SetPointSize(GlobalConfig['CurFont'].GetPointSize()+2)
+        self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
+        GlobalConfig['CurFont'].SetPointSize(GlobalConfig['CurFont'].GetPointSize()-2)
+        self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
+        self.text_ctrl_1.SetForegroundColour(GlobalConfig['CurFColor'])
+        self.text_ctrl_1.SetBackgroundColour(GlobalConfig['CurBColor'])
+        self.text_ctrl_1.Refresh()
+        self.text_ctrl_1.Update()
+        
 
 
 
@@ -3102,27 +3168,45 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                             hashresult=m.hexdigest()
                             fsize=utext.__len__()
                         else:
-                            coding=DetectFileCoding(eachfile)
-                            if coding=='error': return False
-                            try:
-                                file_handler=open(eachfile,'r')
-                                t_buff=file_handler.read()
-                            except:
-                                dlg = wx.MessageDialog(self, eachfile+u' 文件打开错误！',u"错误！",wx.OK|wx.ICON_ERROR)
-                                dlg.ShowModal()
-                                dlg.Destroy()
-                                return False
-                            m=hashlib.md5()
-                            if GlobalConfig['HashTitle']==False:
-                                m.update(t_buff)
-                            else:
+                            if file_ext==".epub":
+                                utext=epubfile_decode(eachfile)
+                                if utext==False:
+                                    dlg = wx.MessageDialog(self, eachfile+u' 文件打开错误！',u"错误！",wx.OK|wx.ICON_ERROR)
+                                    dlg.ShowModal()
+                                    dlg.Destroy()
+                                    return False
+                                m=hashlib.md5()
                                 eachfile=eachfile.encode('gbk')
-                                m.update(os.path.split(eachfile)[1])                             
+                                if GlobalConfig['HashTitle']==False:
+                                    m.update(utext.encode('gbk','ignore'))
+                                else:
+                                    m.update(os.path.split(eachfile)[1])
                                 eachfile=eachfile.decode('gbk')
-                            hashresult=m.hexdigest()
-                            utext=AnyToUnicode(t_buff,coding)
-                            fsize=utext.__len__()
-                            if file_ext=='.htm' or file_ext=='.html':utext=htm2txt(utext)
+                                hashresult=m.hexdigest()
+                                fsize=utext.__len__()
+                            else:
+                                coding=DetectFileCoding(eachfile)
+                                if coding=='error': return False
+                                try:
+                                    file_handler=open(eachfile,'rb')
+                                    t_buff=file_handler.read()
+                                except:
+                                    dlg = wx.MessageDialog(self, eachfile+u' 文件打开错误！',u"错误！",wx.OK|wx.ICON_ERROR)
+                                    dlg.ShowModal()
+                                    dlg.Destroy()
+                                    return False
+                                m=hashlib.md5()
+                                if GlobalConfig['HashTitle']==False:
+                                    m.update(t_buff)
+                                else:
+                                    eachfile=eachfile.encode('gbk')
+                                    m.update(os.path.split(eachfile)[1])
+                                    eachfile=eachfile.decode('gbk')
+                                hashresult=m.hexdigest()
+                                utext=AnyToUnicode(t_buff,coding)
+                                fsize=utext.__len__()
+                                if file_ext=='.htm' or file_ext=='.html':utext=htm2txt(utext)
+                                                          
                     id=utext.__len__()+ii
                     OnScreenFileList.append((eachfile,id,fsize,hashresult))
                     self.text_ctrl_1.Clear()
@@ -3130,6 +3214,14 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                     self.buff+="--------------"+eachfile+"--------------LiteBook-ID:"+unicode(id)+u"\n\n"
                     self.buff+=utext
                     self.text_ctrl_1.SetValue(self.buff)
+                    GlobalConfig['CurFont'].SetPointSize(GlobalConfig['CurFont'].GetPointSize()+2)
+                    self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
+                    GlobalConfig['CurFont'].SetPointSize(GlobalConfig['CurFont'].GetPointSize()-2)
+                    self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
+                    self.text_ctrl_1.SetForegroundColour(GlobalConfig['CurFColor'])
+                    self.text_ctrl_1.SetBackgroundColour(GlobalConfig['CurBColor'])
+                    self.text_ctrl_1.Refresh()
+                    self.text_ctrl_1.Update()                    
                     UpdateOpenedFileList(eachfile,'normal')
                     self.UpdateLastFileMenu()
                     self.frame_1_statusbar.SetStatusText(os.path.split(eachfile)[1])
@@ -3194,6 +3286,15 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                             self.buff+=u"--------------"+zipfilepath+u' | '+eachfile.decode('gbk')+u"--------------LiteBook-ID:"+unicode(id)+u"\n\n"
                             self.buff+=utext
                             self.text_ctrl_1.SetValue(self.buff)
+                            GlobalConfig['CurFont'].SetPointSize(GlobalConfig['CurFont'].GetPointSize()+2)
+                            self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
+                            GlobalConfig['CurFont'].SetPointSize(GlobalConfig['CurFont'].GetPointSize()-2)
+                            self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
+                            self.text_ctrl_1.SetForegroundColour(GlobalConfig['CurFColor'])
+                            self.text_ctrl_1.SetBackgroundColour(GlobalConfig['CurBColor'])
+                            self.text_ctrl_1.Refresh()
+                            self.text_ctrl_1.Update()
+                            
                             UpdateOpenedFileList(eachfile.decode('gbk'),'zip',zipfilepath)
                             current_file=eachfile.decode('gbk')
                         self.GenList(zipfilepath)
@@ -3234,6 +3335,15 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                                 self.buff+=u"--------------"+zipfilepath+u'|'+eachfile+u"--------------LiteBook-ID:"+unicode(id)+u"\n\n"
                                 self.buff+=utext
                                 self.text_ctrl_1.SetValue(self.buff)
+                                GlobalConfig['CurFont'].SetPointSize(GlobalConfig['CurFont'].GetPointSize()+2)
+                                self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
+                                GlobalConfig['CurFont'].SetPointSize(GlobalConfig['CurFont'].GetPointSize()-2)
+                                self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
+                                self.text_ctrl_1.SetForegroundColour(GlobalConfig['CurFColor'])
+                                self.text_ctrl_1.SetBackgroundColour(GlobalConfig['CurBColor'])
+                                self.text_ctrl_1.Refresh()
+                                self.text_ctrl_1.Update()
+                                
                                 UpdateOpenedFileList(eachfile,'rar',zipfilepath)
                                 current_file=eachfile
                             self.GenList(zipfilepath)
@@ -3436,6 +3546,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.text_ctrl_1.SetSelection(pos,pos+self.search_str.__len__())
         self.text_ctrl_1.ShowPosition(pos)
         self.last_search_pos=pos
+        GlobalConfig['HideToolbar']=not self.toolbar_visable
 
     def OpenLastFile(self, event):
         global OpenedFileList
@@ -3461,6 +3572,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         GlobalConfig['CurFontData']=self.text_ctrl_1.GetFont()
         GlobalConfig['CurFColor']=self.text_ctrl_1.GetForegroundColour()
         GlobalConfig['CurBColor']=self.text_ctrl_1.GetBackgroundColour()
+        GlobalConfig['HideToolbar']=not self.toolbar_visable
         writeConfigFile(self.GetCurrentPos()[0])
         event.Skip()
         
@@ -3733,8 +3845,11 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                                      if file_ext=='umd':
                                          index=self.list_ctrl_1.InsertImageStringItem(sys.maxint,filename,self.file_icon_list['umdfile'])
                                      else:
-                                        if GlobalConfig['ShowAllFileInSidebar']:
-                                            index=self.list_ctrl_1.InsertImageStringItem(sys.maxint,filename,self.file_icon_list['file'])
+                                         if file_ext=='epub':
+                                             index=self.list_ctrl_1.InsertImageStringItem(sys.maxint,filename,self.file_icon_list['epub'])
+                                         else:
+                                             if GlobalConfig['ShowAllFileInSidebar']:
+                                                 index=self.list_ctrl_1.InsertImageStringItem(sys.maxint,filename,self.file_icon_list['file'])
 #            self.list_ctrl_1.SetStringItem(index,1,file_size)
 #            self.list_ctrl_1.SetStringItem(index,2,Date_str)
             self.list_ctrl_1.SetItemData(index,index)
@@ -3876,11 +3991,11 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
     def UpdateLastFileMenu(self):
         global OpenedFileList
         i=1000
-        total=i+GlobalConfig['MaxOpenedFiles']
+        total=2000
         while i<total:
             i+=1
             try:
-                self.LastFileMenu.Delete(i) # the number of last opened files may less than maxopenedfiles, so need to try first
+                self.LastFileMenu.Remove(i) # the number of last opened files may less than maxopenedfiles, so need to try first
             except:
                 pass
         i=1000
@@ -3909,7 +4024,7 @@ class MyOpenFileDialog(wx.Dialog,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.bitmap_button_1 = wx.BitmapButton(self, -1, wx.Bitmap(GlobalConfig['IconDir']+u"/folder-up-16x16.png", wx.BITMAP_TYPE_ANY))
         self.bitmap_button_2 = wx.BitmapButton(self, -1, wx.Bitmap(GlobalConfig['IconDir']+u"/dir-tree-16x16.png", wx.BITMAP_TYPE_ANY))
         self.list_ctrl_1 = wx.ListCtrl(self, -1, style=wx.LC_REPORT)
-        self.choice_1 = wx.Choice(self, -1, choices=[u"所有支持的文件格式(*.txt,*.htm,*.html,*.zip,*.rar,*.umd,*.jar)", u"文本文件(*.txt,*.htm,*.html)", u"压缩文件(*.rar,*.zip,*.umd,*.jar)", u"所文件(*.*)"])
+        self.choice_1 = wx.Choice(self, -1, choices=[u"所有支持的文件格式(*.txt,*.htm,*.html,*.zip,*.rar,*.umd,*.jar)", u"文本文件(*.txt,*.htm,*.html)", u"压缩文件(*.rar,*.zip,*.umd,*.jar,*.epub)", u"所有文件(*.*)"])
         self.button_4 = wx.Button(self, -1, u"添加")
         self.button_5 = wx.Button(self, -1, u" 打开")
         self.button_6 = wx.Button(self, -1, u"取消")
@@ -3963,6 +4078,9 @@ class MyOpenFileDialog(wx.Dialog,wx.lib.mixins.listctrl.ColumnSorterMixin):
         bmp=wx.Bitmap(GlobalConfig['IconDir']+u"/down.png",wx.BITMAP_TYPE_ANY)
         self.dn=self.image_list.Add(bmp)
         self.file_icon_list["down"]=9
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"/epub.png",wx.BITMAP_TYPE_ANY)
+        self.image_list.Add(bmp)
+        self.file_icon_list["epub"]=10       
         self.list_ctrl_1.AssignImageList(self.image_list,wx.IMAGE_LIST_SMALL)
         self.list_ctrl_1.InsertColumn(0,u'文件名',width=220)
         self.list_ctrl_1.InsertColumn(1,u'长度')
@@ -4128,14 +4246,24 @@ class MyOpenFileDialog(wx.Dialog,wx.lib.mixins.listctrl.ColumnSorterMixin):
                                      self.list_ctrl_1.SetItemData(index,index)
                                      self.itemDataMap[index]=(filename,os.path.getsize(current_path),Date_str)
                                  else:
-                                     if self.choice_1.GetSelection()==3:
-                                        index=self.list_ctrl_1.InsertImageStringItem(sys.maxint,filename,self.file_icon_list['file'])
-                                        Date_str=time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(os.path.getctime(current_path)))
-                                        file_size=HumanSize(os.path.getsize(current_path))
-                                        self.list_ctrl_1.SetStringItem(index,1,file_size)
-                                        self.list_ctrl_1.SetStringItem(index,2,Date_str)
-                                        self.list_ctrl_1.SetItemData(index,index)
-                                        self.itemDataMap[index]=(filename,os.path.getsize(current_path),Date_str)
+                                     if os.path.splitext(current_path)[1].lower()=='.epub' and self.choice_1.GetSelection()<>1:
+                                         index=self.list_ctrl_1.InsertImageStringItem(sys.maxint,filename,self.file_icon_list['epub'])
+                                         Date_str=time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(os.path.getctime(current_path)))
+                                         file_size=HumanSize(os.path.getsize(current_path))
+                                         self.list_ctrl_1.SetStringItem(index,1,file_size)
+                                         self.list_ctrl_1.SetStringItem(index,2,Date_str)
+                                         self.list_ctrl_1.SetItemData(index,index)
+                                         self.itemDataMap[index]=(filename,os.path.getsize(current_path),Date_str)
+                                     
+                                     else:
+                                         if self.choice_1.GetSelection()==3:
+                                            index=self.list_ctrl_1.InsertImageStringItem(sys.maxint,filename,self.file_icon_list['file'])
+                                            Date_str=time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(os.path.getctime(current_path)))
+                                            file_size=HumanSize(os.path.getsize(current_path))
+                                            self.list_ctrl_1.SetStringItem(index,1,file_size)
+                                            self.list_ctrl_1.SetStringItem(index,2,Date_str)
+                                            self.list_ctrl_1.SetItemData(index,index)
+                                            self.itemDataMap[index]=(filename,os.path.getsize(current_path),Date_str)
         self.text_ctrl_2.SetValue(GlobalConfig['LastDir'])
         self.list_ctrl_1.Focus(RPos)
         self.list_ctrl_1.Select(RPos)
@@ -4504,6 +4632,9 @@ class OptionDialog(wx.Dialog):
         self.checkbox_VerCheck = wx.CheckBox(self.notebook_1_pane_2, -1, u"检查更新")               
         self.label_1 = wx.StaticText(self.notebook_1_pane_2, -1, u"自动翻页间隔（秒）：")
         self.text_ctrl_1 = wx.TextCtrl(self.notebook_1_pane_2, -1, "")
+        self.label_mof = wx.StaticText(self.notebook_1_pane_2, -1, u"最大曾经打开文件菜单数：")
+        self.text_ctrl_mof = wx.TextCtrl(self.notebook_1_pane_2, -1, "")
+        
         self.label_1_copy = wx.StaticText(self.notebook_1_pane_2, -1, u"连续阅读提醒时间（分钟）：")
         self.text_ctrl_1_copy = wx.TextCtrl(self.notebook_1_pane_2, -1, "")
         self.label_1_copy_copy_copy = wx.StaticText(self.notebook_1_pane_2, -1, u"文件选择栏预览：")
@@ -4556,6 +4687,9 @@ class OptionDialog(wx.Dialog):
         self.text_ctrl_1.SetValue(unicode(GlobalConfig['AutoScrollInterval']/1000))
         self.text_ctrl_1_copy.SetValue(unicode(GlobalConfig['RemindInterval']))
         self.checkbox_5.SetValue(not GlobalConfig['ShowAllFileInSidebar'])
+        self.text_ctrl_mof.SetMinSize((30, -1))
+        self.text_ctrl_mof.SetValue(unicode(GlobalConfig['MaxOpenedFiles']))
+        
         # end wxGlade
 
     def __do_layout(self):
@@ -4568,6 +4702,7 @@ class OptionDialog(wx.Dialog):
         sizer_1_copy_copy = wx.BoxSizer(wx.HORIZONTAL)         
         sizer_1_copy = wx.BoxSizer(wx.HORIZONTAL)
         sizer_1 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_mof = wx.BoxSizer(wx.HORIZONTAL)
         sizer_10 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_10_copy = wx.BoxSizer(wx.HORIZONTAL)
         sizer_10_copy_1 = wx.BoxSizer(wx.HORIZONTAL)        
@@ -4617,7 +4752,10 @@ class OptionDialog(wx.Dialog):
         sizer_20.Add(self.label_7, 0, wx.ALIGN_BOTTOM, 0)
         sizer_20.Add(self.checkbox_5, 0, 0, 0)
         sizer_9.Add(sizer_20, 0, wx.EXPAND, 0)
-                
+        sizer_9.Add((20, 20), 0, 0, 0)
+        sizer_mof.Add(self.label_mof, 0, wx.ALIGN_BOTTOM, 0)
+        sizer_mof.Add(self.text_ctrl_mof, 0, 0, 0)
+        sizer_9.Add(sizer_mof, 0, wx.EXPAND, 0)        
         self.notebook_1_pane_2.SetSizer(sizer_9)
         self.notebook_1.AddPage(self.notebook_1_pane_1, u"界面设置")
         self.notebook_1.AddPage(self.notebook_1_pane_2, u"控制设置")
@@ -4758,6 +4896,10 @@ class OptionDialog(wx.Dialog):
         except:
             GlobalConfig['AutoScrollInterval']=12000
         try:
+            GlobalConfig['MaxOpenedFiles']=abs(int(self.text_ctrl_mof.GetValue()))
+        except:
+            GlobalConfig['MaxOpenedFiles']=5        
+        try:
             GlobalConfig['RemindInterval']=abs(int(self.text_ctrl_1_copy.GetValue()))
         except:
             GlobalConfig['RemindInterval']=60
@@ -4779,28 +4921,33 @@ class OptionDialog(wx.Dialog):
 
 
 class HelpDialog(wx.Dialog):
-    def __init__(self, *args, **kwds):
+    def __init__(self, parent,mode="help"):
         # begin wxGlade: HelpDialog.__init__
-        kwds["style"] = wx.DEFAULT_DIALOG_STYLE
-        wx.Dialog.__init__(self, *args, **kwds)
+        #kwds["style"] = wx.DEFAULT_DIALOG_STYLE
+        wx.Dialog.__init__(self,parent,id=-1,title="")
         self.text_ctrl_1 = wx.TextCtrl(self, -1, "", style=wx.TE_MULTILINE|wx.TE_READONLY)
         self.button_1 = wx.Button(self, -1, u"确定")
 
-        self.__set_properties()
+        self.__set_properties(mode)
         self.__do_layout()
         # end wxGlade
         self.Bind(wx.EVT_BUTTON,self.OnOK,self.button_1)
         self.text_ctrl_1.Bind(wx.EVT_CHAR,self.OnKey)
         self.Bind(wx.EVT_ACTIVATE,self.OnWinActive)
 
-    def __set_properties(self):
+    def __set_properties(self,mode):
         # begin wxGlade: HelpDialog.__set_properties
         self.SetTitle(u"帮助")
-        self.text_ctrl_1.SetMinSize((500,400))
+        if mode=="help":self.text_ctrl_1.SetMinSize((500,400))
+        else:
+            self.text_ctrl_1.SetMinSize((700,400))
         self.text_ctrl_1.SetFont(wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.NORMAL, 0, ""))
         # end wxGlade
+        if mode=="help":fname=os.path.dirname(sys.argv[0])+u"\\LiteBook_Readme.txt"
+        else:
+            fname=os.path.dirname(sys.argv[0])+u"\\LiteBook_WhatsNew.txt"        
 #        try:
-        f=open(GlobalConfig['ConfigDir']+u"/LiteBook_Readme.txt",'r')
+        f=open(fname,'r')
         t_buff=f.read()
 #        except:
 #            dlg = wx.MessageDialog(self, u'帮助文件LiteBook_Readme.txt打开错误！',u"错误！",wx.OK|wx.ICON_ERROR)
