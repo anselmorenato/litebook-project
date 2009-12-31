@@ -3,7 +3,7 @@
 1. 需要的Python Module和文件：
     wxPython 2.8.10.1 unicode
     chardet 1.01 (http://chardet.feedparser.org/)
-    rarfile 1.0
+    rarfile 1.0 (http://pypi.python.org/pypi/rarfile/1.0)
     另外
     Windows版：unrar2, http://code.google.com/p/py-unrar2/
     Linux版：unrar linux版，http://www.rarlab.com
