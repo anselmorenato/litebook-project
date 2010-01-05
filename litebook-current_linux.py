@@ -1363,8 +1363,8 @@ BookMarkList=[]
 ThemeList=[]
 BookDB=[]
 Ticking=True
-Version='1.60 LINUX'
-I_Version=1.60 # this is used to check updated version
+Version='1.61 LINUX'
+I_Version=1.61 # this is used to check updated version
 
 def cur_file_dir():
     #获取脚本路径
@@ -3214,14 +3214,6 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                     self.buff+="--------------"+eachfile+"--------------LiteBook-ID:"+unicode(id)+u"\n\n"
                     self.buff+=utext
                     self.text_ctrl_1.SetValue(self.buff)
-                    GlobalConfig['CurFont'].SetPointSize(GlobalConfig['CurFont'].GetPointSize()+2)
-                    self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
-                    GlobalConfig['CurFont'].SetPointSize(GlobalConfig['CurFont'].GetPointSize()-2)
-                    self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
-                    self.text_ctrl_1.SetForegroundColour(GlobalConfig['CurFColor'])
-                    self.text_ctrl_1.SetBackgroundColour(GlobalConfig['CurBColor'])
-                    self.text_ctrl_1.Refresh()
-                    self.text_ctrl_1.Update()                    
                     UpdateOpenedFileList(eachfile,'normal')
                     self.UpdateLastFileMenu()
                     self.frame_1_statusbar.SetStatusText(os.path.split(eachfile)[1])
@@ -3286,14 +3278,6 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                             self.buff+=u"--------------"+zipfilepath+u' | '+eachfile.decode('gbk')+u"--------------LiteBook-ID:"+unicode(id)+u"\n\n"
                             self.buff+=utext
                             self.text_ctrl_1.SetValue(self.buff)
-                            GlobalConfig['CurFont'].SetPointSize(GlobalConfig['CurFont'].GetPointSize()+2)
-                            self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
-                            GlobalConfig['CurFont'].SetPointSize(GlobalConfig['CurFont'].GetPointSize()-2)
-                            self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
-                            self.text_ctrl_1.SetForegroundColour(GlobalConfig['CurFColor'])
-                            self.text_ctrl_1.SetBackgroundColour(GlobalConfig['CurBColor'])
-                            self.text_ctrl_1.Refresh()
-                            self.text_ctrl_1.Update()
                             
                             UpdateOpenedFileList(eachfile.decode('gbk'),'zip',zipfilepath)
                             current_file=eachfile.decode('gbk')
@@ -3335,14 +3319,6 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                                 self.buff+=u"--------------"+zipfilepath+u'|'+eachfile+u"--------------LiteBook-ID:"+unicode(id)+u"\n\n"
                                 self.buff+=utext
                                 self.text_ctrl_1.SetValue(self.buff)
-                                GlobalConfig['CurFont'].SetPointSize(GlobalConfig['CurFont'].GetPointSize()+2)
-                                self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
-                                GlobalConfig['CurFont'].SetPointSize(GlobalConfig['CurFont'].GetPointSize()-2)
-                                self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
-                                self.text_ctrl_1.SetForegroundColour(GlobalConfig['CurFColor'])
-                                self.text_ctrl_1.SetBackgroundColour(GlobalConfig['CurBColor'])
-                                self.text_ctrl_1.Refresh()
-                                self.text_ctrl_1.Update()
                                 
                                 UpdateOpenedFileList(eachfile,'rar',zipfilepath)
                                 current_file=eachfile
@@ -3356,6 +3332,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                     if bk['key']==unicode(hashresult):
                         self.text_ctrl_1.SetSelection(bk['pos'],bk['pos'])
                         self.text_ctrl_1.ShowPosition(bk['pos'])
+                        return
+
 
 
 
