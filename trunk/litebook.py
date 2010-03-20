@@ -5825,9 +5825,10 @@ class Search_Web_Dialog(wx.Dialog):
         weblist=[]
 ##        for row in SqlCur:
 ##            weblist.append(row[0])
-        flist=glob.glob(".\\plugin\\*.py")
+        flist=glob.glob(os.path.dirname(sys.argv[0])+"\\plugin\\*.py")
         for f in flist:
-            weblist.append(f[9:-3])
+            bname=os.path.basename(f)
+            weblist.append(bname[:-3])
         self.sizer_1_staticbox = wx.StaticBox(self, -1, u"搜索小说网站")
         self.label_2 = wx.StaticText(self, -1, u"关键字：    ")
         self.text_ctrl_2 = wx.TextCtrl(self, -1, "")
@@ -5905,7 +5906,7 @@ class web_search_result_dialog(wx.Dialog):
         self.list_ctrl_1.InsertColumn(1,u'作者')
         self.button_1 = wx.Button(self, -1, u" 下载(后台) ")
         self.button_2 = wx.Button(self, -1, u" 取消 ")
-        self.plugin=imp.load_source("plugin",".\\plugin\\"+sitename+".py")
+        self.plugin=imp.load_source("plugin",os.path.dirname(sys.argv[0])+"\\plugin\\"+sitename+".py")
         dlg = wx.ProgressDialog(u"搜索中",
                        u"搜索进行中...",
                        maximum = 100,
