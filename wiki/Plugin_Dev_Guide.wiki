@@ -23,8 +23,8 @@
          *proxyuser: HTTP代理服务器认证用户名，类型unicode
          *proxypass: HTTP代理服务器认证口令，类型unicode
       *此函数返回搜索结果列表，且结果为一个二维嵌套list，r[x]=[bookname,book_index_page_url,authorname]
-      *bookname,book_index_page_url,authorname的类型均为unicode
-      *如果搜索失败的话，则返回None
+         *bookname,book_index_page_url,authorname的类型均为unicode
+         *如果搜索失败的话，则返回None
   
     * GetBook(book_index_page_url,proxyserver='',proxyport=0,proxyuser='',proxypass='')
       *传入参数说明：
@@ -34,7 +34,11 @@
          *proxyuser: HTTP代理服务器认证用户名，类型unicode
          *proxypass: HTTP代理服务器认证口令，类型unicode
       *此函数返回整合后的小说内容，类型为unicode
-      *如果下载失败的话，则返回None
-
-
+         *如果下载失败的话，则返回None
    }}}
+
+
+== 插件的安装 ==
+  * 将写好的python脚本文件(.py)拷贝到plugin的子目录下，主程序会自动扫描并载入。
+  * 建议脚本的文件格式为：网站名.py
+ 
