@@ -1,13 +1,22 @@
-#litebook在线搜索下载插件的开发指南
+#summary litebook在线搜索下载插件的开发指南
+
+<wiki:toc/>
 
 = litebook在线搜索下载插件的开发指南 =
 
-Add your content here.
+本文介绍了开发LiteBook在线搜索及下载插件（以下简称plugin）所需要了解的信息
 
 
-= Details =
+== 编程语言 ==
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+  * python 2.6
+
+== 调用接口函数 ==
+
+  * plugin必需提供如下两个函数供litebook主程序调用：
+    * GetSearchResults(key,proxyserver='',proxyport=0,proxyuser='',proxypass='')
+      *此函数返回搜索结果列表，且结果为一个二维嵌套list，r[x]=[bookname,book_index_page_url,authorname]
+
+     
+    * GetBook(url,proxyserver='',proxyport=0,proxyuser='',proxypass='')
+      *此函数返回整合后的小说内容string
