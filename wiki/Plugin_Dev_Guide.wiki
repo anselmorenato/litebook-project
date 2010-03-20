@@ -14,9 +14,12 @@
 == 调用接口函数 ==
 
   * plugin必需提供如下两个函数供litebook主程序调用：
+  {{{
     * GetSearchResults(key,proxyserver='',proxyport=0,proxyuser='',proxypass='')
       *此函数返回搜索结果列表，且结果为一个二维嵌套list，r[x]=[bookname,book_index_page_url,authorname]
 
      
     * GetBook(url,proxyserver='',proxyport=0,proxyuser='',proxypass='')
       *此函数返回整合后的小说内容string
+
+   }}}
