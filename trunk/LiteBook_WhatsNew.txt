@@ -3,6 +3,15 @@
 2010-1-5 ver1.61 linux only
     * 修正一个打开新文件后直接显示到最后的BUG,fix issue15
 
+2009-03-19 ver1.70 beta
+    * 支持智能分段
+    * 在线小说网站搜索及下载(Alt+C)
+	* 1.70 beta版中内置了www.yilook.com的插件
+	* 可以通过插件的形式支持新的网站，插件开发指南请参见http://code.google.com/p/litebook-project/ 
+    * 改进了HTML标签的过滤算法
+    * fix issue 14 comment 3
+
+
 2009-12-31 ver.160
     * 支持新的电子书格式EPUB
     * 能够记住隐藏工具栏的设置
