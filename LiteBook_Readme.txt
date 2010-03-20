@@ -1,8 +1,10 @@
-﻿LiteBook for Windows ver1.60 帮助
-(c)2009 Hu Jun	
+﻿LiteBook for Windows ver1.70 Beta 帮助
+(c)2010 Hu Jun	
 
 
 1.LiteBook 键盘操作说明
+	
+	打开搜索网站对话框	Alt+C
 
 	向下翻一行：		Down
 	向上翻一行：		Up
@@ -12,6 +14,8 @@
 	跳到最后一页：		End
 	下一个文件：		Ctrl+右箭头
 	上一个文件：		Ctrl+左箭头
+
+	智能分段		Alt+P
 
 	打开/关闭文件侧边栏：	Alt+D
 	侧边栏内回到上级目录：	左箭头
@@ -55,6 +59,8 @@
 － 支持UMD格式
 － 支持Jar格式
 － 支持EPUB格式
+－ 支持智能分段
+－ 在线小说网站搜索并下载（可以通过插件的方式进行扩展）
 － 打开文件时预览内容
 － 支持直接读取ZIP和RAR格式的文件
 － 文件编码自动识别
@@ -87,3 +93,5 @@ chardect: Mark Pilgrim
 rarfile: Marko Kreen
 unrar2:Konstantin Yegupov
 fanjian:ne.manman@gmail.com
+本软件的网络搜索功能支持并感谢如下网站：
+易读：www.yilook.com
