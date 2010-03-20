@@ -16,10 +16,25 @@
   * plugin必需提供如下两个函数供litebook主程序调用：
   {{{
     * GetSearchResults(key,proxyserver='',proxyport=0,proxyuser='',proxypass='')
+      *传入参数说明：
+         *key: 搜索关键字，类型unicode
+         *proxyserver:HTTP代理服务器地址（IP或域名），类型unicode
+         *proxyport: HTTP代理服务器端口，类型unicode
+         *proxyuser: HTTP代理服务器认证用户名，类型unicode
+         *proxypass: HTTP代理服务器认证口令，类型unicode
       *此函数返回搜索结果列表，且结果为一个二维嵌套list，r[x]=[bookname,book_index_page_url,authorname]
+      *bookname,book_index_page_url,authorname的类型均为unicode
+      *如果搜索失败的话，则返回None
+  
+    * GetBook(book_index_page_url,proxyserver='',proxyport=0,proxyuser='',proxypass='')
+      *传入参数说明：
+         *book_index_page_url: 小说目录页的URL
+         *proxyserver:HTTP代理服务器地址（IP或域名），类型unicode
+         *proxyport: HTTP代理服务器端口，类型unicode
+         *proxyuser: HTTP代理服务器认证用户名，类型unicode
+         *proxypass: HTTP代理服务器认证口令，类型unicode
+      *此函数返回整合后的小说内容，类型为unicode
+      *如果下载失败的话，则返回None
 
-     
-    * GetBook(url,proxyserver='',proxyport=0,proxyuser='',proxypass='')
-      *此函数返回整合后的小说内容string
 
    }}}
