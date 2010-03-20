@@ -2,7 +2,14 @@
 #labels Featured
 
 = 版本历史 =
-
+2009-03-19 ver1.70 beta
+    * 支持智能分段
+    * 在线小说网站搜索及下载(Alt+C)
+	* 1.70 beta版中内置了www.yilook.com的插件
+        * 支持HTTP代理（通过选项设置）
+	* 可以通过插件的形式支持新的网站，插件开发指南请参见本站Wiki
+    * 改进了HTML标签的过滤算法
+    * fix issue 14 comment 3
 
 ==2009-12-31 ver.160==
     * 支持新的电子书格式EPUB. fix issue10
