@@ -225,6 +225,7 @@ except ImportError: # if it's not there locally, try the wxPython lib.
 (GetPosEvent,EVT_GetPos)=wx.lib.newevent.NewEvent()
 (VerCheckEvent,EVT_VerCheck)=wx.lib.newevent.NewEvent()
 (DownloadFinishedAlert,EVT_DFA)=wx.lib.newevent.NewEvent()
+(DownloadUpdateAlert,EVT_DUA)=wx.lib.newevent.NewEvent()
 
 
 #dict used for convertion between Chinese-Simplified and Chinese-Tradition
@@ -1490,6 +1491,7 @@ def FtoJ(data):
 
 
 #some global var
+
 GlobalConfig={}
 OpenedFileList=[]
 current_file=''
@@ -1503,7 +1505,7 @@ ThemeList=[]
 BookDB=[]
 Ticking=True
 SupportedFileTypes=['.zip','.txt','.rar','.umd','.jar','.epub']
-Version='1.70 beta'
+Version='1.70 beta2'
 I_Version=1.70  # this is used to check updated version
 SqlCon=None
 
@@ -1635,7 +1637,16 @@ def readConfigFile():
             GlobalConfig['proxypass']=''
             GLobalConfig['DAUDF']=0
             GlobalConfig['lastwebsearchkeyword']=''
+            GlobalConfig['defaultsavedir']=GlobalConfig['LastDir']
+            GlobalConfig['numberofthreads']=1
+            GlobalConfig['lastweb']=''
             return
+
+
+    try:
+        GlobalConfig['lastweb']=config.get('settings','lastweb')
+    except:
+        GlobalConfig['lastweb']=''
 
     try:
         GlobalConfig['lastwebsearchkeyword']=config.get('settings','LastWebSearchKeyword')
@@ -1643,7 +1654,7 @@ def readConfigFile():
         GlobalConfig['lastwebsearchkeyword']=''
 
     try:
-        GlobalConfig['DAUDF']=config.getboolean('settings','DefaultActionUponDownloadFinished')
+        GlobalConfig['DAUDF']=config.getint('settings','DefaultActionUponDownloadFinished')
     except:
         GlobalConfig['DAUDF']=0
 
@@ -1684,6 +1695,16 @@ def readConfigFile():
         GlobalConfig['LastDir']=os.path.dirname(sys.argv[0])
 
     GlobalConfig['IconDir']=os.path.dirname(sys.argv[0])+u"\\icon"
+
+    try:
+        GlobalConfig['defaultsavedir']=config.get('settings','defaultsavedir')
+    except:
+        GlobalConfig['defaultsavedir']=GlobalConfig['LastDir']
+    try:
+        GlobalConfig['numberofthreads']=config.getint('settings','numberofthreads')
+    except:
+        GlobalConfig['numberofthreads']=1
+
 
 
     try:
@@ -1852,6 +1873,9 @@ def writeConfigFile(lastpos):
     config.set('settings','UseProxy',unicode(GlobalConfig['useproxy']))
     config.set('settings','DefaultActionUponDownloadFinished',unicode(GlobalConfig['DAUDF']))
     config.set('settings','LastWebSearchKeyword',unicode(GlobalConfig['lastwebsearchkeyword']))
+    config.set('settings','defaultsavedir',unicode(GlobalConfig['defaultsavedir']))
+    config.set('settings','numberofthreads',unicode(GlobalConfig['numberofthreads']))
+    config.set('settings','lastweb',unicode(GlobalConfig['lastweb']))
 
     # save opened files
     config.add_section('LastOpenedFiles')
@@ -1992,8 +2016,11 @@ def VersionCheck(os):
 
 def htmname2uni(htm):
     if htm[1]=='#':
-        uc=unichr(int(htm[2:-1]))
-        return uc
+        try:
+            uc=unichr(int(htm[2:-1]))
+            return uc
+        except:
+            return htm
     else:
         try:
             uc=unichr(htmlentitydefs.name2codepoint[htm[1:-1]])
@@ -2723,7 +2750,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.frame_1_menubar.Append(wxglade_tmp_menu, u"帮助(&H)")
         self.SetMenuBar(self.frame_1_menubar)
         # Menu Bar end
-        self.frame_1_statusbar = self.CreateStatusBar(3, 0)
+        self.frame_1_statusbar = self.CreateStatusBar(4, 0)
 
         # Tool Bar
 
@@ -2809,6 +2836,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.Bind(EVT_UPDATE_STATUSBAR,self.UpdateStatusBar)
         self.Bind(EVT_ReadTimeAlert,self.ReadTimeAlert)
         self.Bind(EVT_DFA,self.DownloadFinished)
+        self.Bind(EVT_DUA,self.UpdateStatusBar)
         self.Bind(EVT_ScrollDownPage,self.scrolldownpage)
         self.Bind(EVT_GetPos,self.getPos)
         self.Bind(EVT_VerCheck,self.DisplayVerCheck)
@@ -2937,7 +2965,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.SetTitle("LiteBook")
         self.SetSize((640, 480))
         # statusbar fields
-        self.frame_1_statusbar.SetStatusWidths([-2, -1,-1])
+        self.frame_1_statusbar.SetStatusWidths([-2, -1,-1,-3])
         frame_1_statusbar_fields = ["ready."]
         for i in range(len(frame_1_statusbar_fields)):
             self.frame_1_statusbar.SetStatusText(frame_1_statusbar_fields[i], i)
@@ -4299,6 +4327,26 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             dlg.ShowModal()
             dlg.Destroy()
             return None
+        if GlobalConfig['DAUDF']==2:
+            savefilename=GlobalConfig['defaultsavedir']+"\\"+event.name.strip()+".txt"
+            try:
+                fp=codecs.open(savefilename,encoding='GBK',mode='w')
+                ut=self.DT.bk.encode('GBK', 'ignore')
+                ut=unicode(ut, 'GBK', 'ignore')
+                fp.write(ut)
+                fp.close()
+            except:
+                err_dlg = wx.MessageDialog(None, u'写入文件：'+savefilename+u' 错误！',u"错误！",wx.OK|wx.ICON_ERROR)
+                err_dlg.ShowModal()
+                err_dlg.Destroy()
+                return False
+            dlg = wx.MessageDialog(self, event.name+u'下载完毕，已保存在'+savefilename,
+                               u'下载结束',
+                               wx.OK | wx.ICON_INFORMATION
+                               )
+            dlg.ShowModal()
+            dlg.Destroy()
+            return
 
         dlg = MyChoiceDialog(self, event.name+u'下载完毕。我想：',u'下载结束',
                               [u'直接观看',u'另存为...'],GlobalConfig['DAUDF']
@@ -4310,6 +4358,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             rr=None
         dlg.Destroy()
         if rr==u'直接观看':
+            self.SaveBookDB()
             self.text_ctrl_1.SetValue(self.DT.bk)
             OnScreenFileList=[]
             OnScreenFileList.append((event.name,'',self.DT.bk.__len__()))
@@ -5022,7 +5071,14 @@ class OptionDialog(wx.Dialog):
         self.checkbox_5 = wx.CheckBox(self.notebook_1_pane_2, -1, u"是否在文件选择侧边栏中只显示支持的文件格式")
 
         self.label_2 = wx.StaticText(self.notebook_1_pane_3, -1, u"下载完毕后的缺省动作：")
-        self.choice_1 = wx.Choice(self.notebook_1_pane_3, -1, choices=[u"直接阅读", u"另存为文件"])
+        self.choice_1 = wx.Choice(self.notebook_1_pane_3, -1, choices=[u"直接阅读", u"另存为文件",u"直接保存在缺省目录"])
+
+        self.label_12 = wx.StaticText(self.notebook_1_pane_3, -1, u"另存为的缺省目录：")
+        self.text_ctrl_8 = wx.TextCtrl(self.notebook_1_pane_3, -1, "")
+        self.button_1 = wx.Button(self.notebook_1_pane_3, -1, u"选择")
+        self.label_11 = wx.StaticText(self.notebook_1_pane_3, -1, u"同时下载的线程个数（需插件支持；不能超过50）：")
+        self.text_ctrl_7 = wx.TextCtrl(self.notebook_1_pane_3, -1, "10")
+
         self.label_3 = wx.StaticText(self.notebook_1_pane_3, -1, u"启用代理服务器：")
         self.checkbox_2 = wx.CheckBox(self.notebook_1_pane_3, -1, "")
         self.label_6 = wx.StaticText(self.notebook_1_pane_3, -1, u"代理服务器地址：")
@@ -5049,6 +5105,7 @@ class OptionDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON,self.OnSelBColor,self.button_11)
         self.Bind(wx.EVT_BUTTON,self.OnSaveTheme,self.button_6)
         self.Bind(wx.EVT_BUTTON,self.OnDelTheme,self.button_7)
+        self.Bind(wx.EVT_BUTTON,self.SelectDir,self.button_1)
         self.Bind(wx.EVT_COMBOBOX,self.OnSel,self.combo_box_1)
         self.Bind(wx.EVT_BUTTON,self.OnOk,self.button_4)
         self.Bind(wx.EVT_BUTTON,self.OnCancell,self.button_5)
@@ -5084,6 +5141,8 @@ class OptionDialog(wx.Dialog):
         self.checkbox_5.SetValue(not GlobalConfig['ShowAllFileInSidebar'])
         self.text_ctrl_mof.SetMinSize((30, -1))
         self.text_ctrl_mof.SetValue(unicode(GlobalConfig['MaxOpenedFiles']))
+        self.text_ctrl_8.SetMinSize((180, -1))
+        self.text_ctrl_7.SetMinSize((40, -1))
 
         self.text_ctrl_2.SetMinSize((200, -1))
         self.text_ctrl_3.SetMinSize((50, -1))
@@ -5093,6 +5152,8 @@ class OptionDialog(wx.Dialog):
         self.text_ctrl_3.SetValue(unicode(GlobalConfig['proxyport']))
         self.text_ctrl_5.SetValue(unicode(GlobalConfig['proxyuser']))
         self.text_ctrl_6.SetValue(unicode(GlobalConfig['proxypass']))
+        self.text_ctrl_7.SetValue(unicode(GlobalConfig['numberofthreads']))
+        self.text_ctrl_8.SetValue(unicode(GlobalConfig['defaultsavedir']))
 
 
         # end wxGlade
@@ -5109,7 +5170,11 @@ class OptionDialog(wx.Dialog):
         sizer_13 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_12 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_8 = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_3 = wx.StaticBoxSizer(self.sizer_3_staticbox, wx.HORIZONTAL)
+        sizer_3 = wx.StaticBoxSizer(self.sizer_3_staticbox,  wx.VERTICAL)
+
+        sizer_17 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_18 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_16 = wx.BoxSizer(wx.HORIZONTAL)
 
         sizer_9 = wx.BoxSizer(wx.VERTICAL)
         sizer_20 = wx.BoxSizer(wx.HORIZONTAL)
@@ -5179,8 +5244,20 @@ class OptionDialog(wx.Dialog):
         sizer_9.Add(sizer_mof, 0, wx.EXPAND, 0)
         self.notebook_1_pane_2.SetSizer(sizer_9)
 
-        sizer_3.Add(self.label_2, 0, wx.ALL, 5)
-        sizer_3.Add(self.choice_1, 0, 0, 0)
+
+        sizer_16.Add(self.label_2, 0, wx.ALL, 5)
+        sizer_16.Add(self.choice_1, 0, 0, 0)
+        sizer_3.Add(sizer_16, 1, wx.EXPAND, 0)
+        sizer_18.Add(self.label_12, 0, wx.ALL, 5)
+        sizer_18.Add(self.text_ctrl_8, 0, 0, 0)
+        sizer_18.Add(self.button_1, 0, 0, 0)
+        sizer_3.Add(sizer_18, 1, wx.EXPAND, 0)
+        sizer_17.Add(self.label_11, 0, wx.ALL, 5)
+        sizer_17.Add(self.text_ctrl_7, 0, 0, 0)
+        sizer_3.Add(sizer_17, 1, wx.EXPAND, 0)
+
+
+
         sizer_2.Add(sizer_3, 1, wx.EXPAND, 0)
         sizer_8.Add(self.label_3, 0, wx.ALL, 5)
         sizer_8.Add(self.checkbox_2, 0, wx.ALL, 5)
@@ -5360,6 +5437,28 @@ class OptionDialog(wx.Dialog):
             GlobalConfig['proxyport']=0
         GlobalConfig['proxyuser']=self.text_ctrl_5.GetValue()
         GlobalConfig['proxypass']=self.text_ctrl_6.GetValue()
+        try:
+            GlobalConfig['numberofthreads']=int(self.text_ctrl_7.GetValue())
+        except:
+            GlobalConfig['numberofthreads']=1
+        if GlobalConfig['numberofthreads']<=0 or GlobalConfig['numberofthreads']>50:
+            GlobalConfig['numberofthreads']=1
+        if not os.path.exists(self.text_ctrl_8.GetValue()):
+            GlobalConfig['defaultsavedir']=''
+        else:
+            GlobalConfig['defaultsavedir']=self.text_ctrl_8.GetValue()
+        if GlobalConfig['defaultsavedir']=='' and GlobalConfig['DAUDF']==2:
+            dlg = wx.MessageDialog(self, u'请指定正确的缺省保存目录!',
+                               u'出错了！',
+                               wx.OK | wx.ICON_ERROR
+                               )
+            dlg.ShowModal()
+            dlg.Destroy()
+            return
+
+
+
+
 
 
         self.Destroy()
@@ -5377,6 +5476,15 @@ class OptionDialog(wx.Dialog):
 
     def OnWinActive(self,event):
         if event.GetActive():self.text_ctrl_4.SetFocus()
+
+    def SelectDir(self,event):
+        dlg = wx.DirDialog(self, u"请选择目录：",defaultPath=GlobalConfig['LastDir'],
+                          style=wx.DD_DEFAULT_STYLE
+                           )
+        if dlg.ShowModal() == wx.ID_OK:
+            self.text_ctrl_8.SetValue(dlg.GetPath())
+
+        dlg.Destroy()
 
 
 class HelpDialog(wx.Dialog):
@@ -5807,7 +5915,7 @@ class FileHistoryDialog(wx.Dialog,wx.lib.mixins.listctrl.ColumnSorterMixin):
 
 class Search_Web_Dialog(wx.Dialog):
     def __init__(self, *args, **kwds):
-        global SqlCur
+        global SqlCur,lastweb
         # begin wxGlade: Search_Web_Dialog.__init__
         kwds["style"] = wx.DEFAULT_DIALOG_STYLE
         wx.Dialog.__init__(self, *args, **kwds)
@@ -5832,6 +5940,7 @@ class Search_Web_Dialog(wx.Dialog):
         self.sizer_1_staticbox = wx.StaticBox(self, -1, u"搜索小说网站")
         self.label_2 = wx.StaticText(self, -1, u"关键字：    ")
         self.text_ctrl_2 = wx.TextCtrl(self, -1, "")
+        self.text_ctrl_1 = wx.TextCtrl(self, -1, "", style=wx.TE_MULTILINE|wx.TE_READONLY|wx.TE_WORDWRAP)
         self.label_3 = wx.StaticText(self, -1, u"选择网站：")
         self.choice_1 = wx.Choice(self, -1, choices=weblist)
         self.button_3 = wx.Button(self, -1, u" 搜索 ")
@@ -5840,6 +5949,7 @@ class Search_Web_Dialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnCancell, self.button_4)
         self.text_ctrl_2.Bind(wx.EVT_CHAR,self.OnKey)
         self.choice_1.Bind(wx.EVT_CHAR,self.OnKey)
+        self.Bind(wx.EVT_CHOICE, self.OnChosen, self.choice_1)
 
 
 
@@ -5850,13 +5960,19 @@ class Search_Web_Dialog(wx.Dialog):
         # end wxGlade
 
     def __set_properties(self):
-        global GlobalConfig
+        global GlobalConfig,lastweb
         # begin wxGlade: Search_Web_Dialog.__set_properties
         self.SetTitle(u"搜索网站")
         self.text_ctrl_2.SetMinSize((200, 21))
         self.choice_1.SetMinSize((200, 21))
-        self.choice_1.Select(0)
+        if GlobalConfig['lastweb']=='' or not os.path.exists(os.path.dirname(sys.argv[0])+"\\plugin\\"+GlobalConfig['lastweb']+'.py'):
+            self.choice_1.Select(0)
+            self.ShowDesc(self.choice_1.GetString(0))
+        else:
+            self.choice_1.SetStringSelection(GlobalConfig['lastweb'])
+            self.ShowDesc(GlobalConfig['lastweb'])
         self.text_ctrl_2.SetValue(GlobalConfig['lastwebsearchkeyword'])
+        self.text_ctrl_1.SetMinSize((285, 84))
         # end wxGlade
 
     def __do_layout(self):
@@ -5871,12 +5987,28 @@ class Search_Web_Dialog(wx.Dialog):
         sizer_3.Add(self.label_3, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 5)
         sizer_3.Add(self.choice_1, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 5)
         sizer_1.Add(sizer_3, 1, wx.EXPAND, 0)
+        sizer_1.Add(self.text_ctrl_1, 0, wx.EXPAND, 0)
         sizer_4.Add(self.button_3, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 0)
         sizer_4.Add(self.button_4, 0, wx.ALL|wx.ALIGN_RIGHT, 5)
         sizer_1.Add(sizer_4, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 0)
         self.SetSizer(sizer_1)
         sizer_1.Fit(self)
         self.Layout()
+
+    def ShowDesc(self,desc):
+        myplugin=imp.load_source("plugin",os.path.dirname(sys.argv[0])+"\\plugin\\"+desc+".py")
+        self.text_ctrl_1.SetValue(u'此插件无介绍。')
+        try:
+            self.text_ctrl_1.SetValue(myplugin.Description)
+        except:
+            pass
+        myplugin.Description=u'此插件无介绍。'
+
+
+    def OnChosen(self,event):
+        global lastweb
+        GlobalConfig['lastweb']=self.choice_1.GetString(event.GetInt())
+        self.ShowDesc(event.GetString())
 
     def OnCancell(self, event):
         self.Hide()
@@ -5901,9 +6033,12 @@ class web_search_result_dialog(wx.Dialog):
         # begin wxGlade: web_search_result_dialog.__init__
         #kwds["style"] = wx.DEFAULT_DIALOG_STYLE
         wx.Dialog.__init__(self,parent,-1,style=wx.DEFAULT_DIALOG_STYLE)
-        self.list_ctrl_1 = wx.ListCtrl(self, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
-        self.list_ctrl_1.InsertColumn(0,u'书名',width=420)
+        self.list_ctrl_1 = wx.ListCtrl(self, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL)
+        self.list_ctrl_1.InsertColumn(0,u'书名',width=320)
         self.list_ctrl_1.InsertColumn(1,u'作者')
+        self.list_ctrl_1.InsertColumn(2,u'状态')
+        self.list_ctrl_1.InsertColumn(3,u'大小')
+        self.list_ctrl_1.InsertColumn(4,u'最后更新')
         self.button_1 = wx.Button(self, -1, u" 下载(后台) ")
         self.button_2 = wx.Button(self, -1, u" 取消 ")
         self.plugin=imp.load_source("plugin",os.path.dirname(sys.argv[0])+"\\plugin\\"+sitename+".py")
@@ -5916,14 +6051,17 @@ class web_search_result_dialog(wx.Dialog):
                          |wx.PD_AUTO_HIDE
                         )
         self.rlist=None
-        self.rlist=self.plugin.GetSearchResults(keyword)
+        self.rlist=self.plugin.GetSearchResults(keyword,useproxy=GlobalConfig['useproxy'],proxyserver=GlobalConfig['proxyserver'],proxyport=GlobalConfig['proxyport'],proxyuser=GlobalConfig['proxyuser'],proxypass=GlobalConfig['proxypass'])
         dlg.Update(100)
         dlg.Destroy()
         if self.rlist<>None:
             i=0
             for r in self.rlist:
-                index=self.list_ctrl_1.InsertStringItem(sys.maxint,r[0])
-                self.list_ctrl_1.SetStringItem(index,1,r[2])
+                index=self.list_ctrl_1.InsertStringItem(sys.maxint,r['bookname'])
+                self.list_ctrl_1.SetStringItem(index,1,r['authorname'])
+                self.list_ctrl_1.SetStringItem(index,2,r['bookstatus'])
+                self.list_ctrl_1.SetStringItem(index,3,r['booksize'])
+                self.list_ctrl_1.SetStringItem(index,4,r['lastupdatetime'])
                 self.list_ctrl_1.SetItemData(index,i)
                 i+=1
         else:
@@ -5945,7 +6083,7 @@ class web_search_result_dialog(wx.Dialog):
     def __set_properties(self):
         # begin wxGlade: web_search_result_dialog.__set_properties
         self.SetTitle(u"搜索结果")
-        self.list_ctrl_1.SetMinSize((509, 312))
+        self.list_ctrl_1.SetMinSize((709, 312))
 
         # end wxGlade
 
@@ -5969,7 +6107,7 @@ class web_search_result_dialog(wx.Dialog):
 ##                               )
 ##        dlg.ShowModal()
 ##        dlg.Destroy()
-        self.GetParent().DT=DownloadThread(self.GetParent(),self.rlist[self.list_ctrl_1.GetItemData(item)][1],self.plugin,self.list_ctrl_1.GetItemText(item))
+        self.GetParent().DT=DownloadThread(self.GetParent(),self.rlist[self.list_ctrl_1.GetItemData(item)]['book_index_url'],self.plugin,self.list_ctrl_1.GetItemText(item))
         self.Hide()
 
     def OnCancell(self, event):
@@ -5996,7 +6134,8 @@ class DownloadThread:
 ##        self.running=False
 
     def run(self):
-        self.bk=self.plugin.GetBook(self.url)
+        evt2=DownloadUpdateAlert(Value='',FieldNum=3)
+        self.bk=self.plugin.GetBook(self.url,bkname=self.bookname,win=self.win,evt=evt2,useproxy=GlobalConfig['useproxy'],proxyserver=GlobalConfig['proxyserver'],proxyport=GlobalConfig['proxyport'],proxyuser=GlobalConfig['proxyuser'],proxypass=GlobalConfig['proxypass'],concurrent=GlobalConfig['numberofthreads'])
         if self.bk<>None:
             evt1=DownloadFinishedAlert(name=self.bookname,status='ok')
         else:
