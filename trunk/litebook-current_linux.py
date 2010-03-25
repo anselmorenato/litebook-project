@@ -45,6 +45,10 @@
 # - fix lasopened files problem
 #
 #
+import imp
+import urllib2
+import HTMLParser
+import glob
 import math
 import htmlentitydefs
 import wx
@@ -86,7 +90,8 @@ except ImportError: # if it's not there locally, try the wxPython lib.
 (ScrollDownPage,EVT_ScrollDownPage)=wx.lib.newevent.NewEvent()
 (GetPosEvent,EVT_GetPos)=wx.lib.newevent.NewEvent()
 (VerCheckEvent,EVT_VerCheck)=wx.lib.newevent.NewEvent()
-
+(DownloadFinishedAlert,EVT_DFA)=wx.lib.newevent.NewEvent()
+(DownloadUpdateAlert,EVT_DUA)=wx.lib.newevent.NewEvent()
 
 zh_dict={
    '气':'氣',
@@ -1363,8 +1368,8 @@ BookMarkList=[]
 ThemeList=[]
 BookDB=[]
 Ticking=True
-Version='1.61 LINUX'
-I_Version=1.61 # this is used to check updated version
+Version='1.70 Beta2 LINUX'
+I_Version=1.70 # this is used to check updated version
 
 def cur_file_dir():
     #获取脚本路径
@@ -1491,7 +1496,58 @@ def readConfigFile():
         GlobalConfig['HashTitle']=False  
         GlobalConfig['ShowAllFileInSidebar']=True
         GlobalConfig['HideToolbar']=False
+        GlobalConfig['useproxy']=False
+        GlobalConfig['proxyserver']=''
+        GlobalConfig['proxyport']=0
+        GlobalConfig['proxyuser']=''
+        GlobalConfig['proxypass']=''
+        GlobalConfig['DAUDF']=0
+        GlobalConfig['lastwebsearchkeyword']=''
+        GlobalConfig['defaultsavedir']=GlobalConfig['LastDir']
+        GlobalConfig['numberofthreads']=1
+        GlobalConfig['lastweb']=''        
+        
         return
+    try:
+        GlobalConfig['lastweb']=config.get('settings','lastweb')
+    except:
+        GlobalConfig['lastweb']=''    
+    try:
+        GlobalConfig['lastwebsearchkeyword']=config.get('settings','LastWebSearchKeyword')
+    except:
+        GlobalConfig['lastwebsearchkeyword']=''
+    
+    try:
+        GlobalConfig['DAUDF']=config.getint('settings','DefaultActionUponDownloadFinished')
+    except:
+        GlobalConfig['DAUDF']=0
+    
+    
+    
+    try:
+        GlobalConfig['useproxy']=config.getboolean('settings','UseProxy')
+    except:
+        GlobalConfig['useproxy']=False
+    
+    
+    try:
+        GlobalConfig['proxyserver']=config.get('settings','ProxyServer')
+    except:
+        GlobalConfig['proxyserver']=''
+    
+    try:
+        GlobalConfig['proxyport']=config.getint('settings','ProxyPort')
+    except:
+        GlobalConfig['proxyport']=0
+    try:
+        GlobalConfig['proxyuser']=config.get('settings','ProxyUser')
+    except:
+        GlobalConfig['proxyuser']=''
+    try:
+        GlobalConfig['proxypass']=config.get('settings','ProxyPass')
+    except:
+        GlobalConfig['proxypass']=''
+    
     GlobalConfig['ConfigDir']=cur_file_dir()
     try:
         GlobalConfig['LastDir']=config.get('settings','LastDir')
@@ -1503,7 +1559,14 @@ def readConfigFile():
 
     GlobalConfig['IconDir']=cur_file_dir()+u"/icon"
 
-
+    try:
+        GlobalConfig['defaultsavedir']=config.get('settings','defaultsavedir')
+    except:
+        GlobalConfig['defaultsavedir']=GlobalConfig['LastDir']
+    try:
+        GlobalConfig['numberofthreads']=config.getint('settings','numberofthreads')
+    except:
+        GlobalConfig['numberofthreads']=1    
 
     try:
         GlobalConfig['LoadLastFile']=config.getboolean('settings','LoadLastFile')
@@ -1671,6 +1734,17 @@ def writeConfigFile(lastpos):
     config.set('settings','HashTitle',unicode(True))
     config.set('settings','ShowAllFileInSidebar',unicode(GlobalConfig['ShowAllFileInSidebar']))
     config.set('settings','HideToolbar',unicode(GlobalConfig['HideToolbar']))
+    config.set('settings','ProxyServer',unicode(GlobalConfig['proxyserver']))
+    config.set('settings','ProxyPort',unicode(GlobalConfig['proxyport']))
+    config.set('settings','ProxyUser',unicode(GlobalConfig['proxyuser']))
+    config.set('settings','ProxyPass',unicode(GlobalConfig['proxypass']))
+    config.set('settings','UseProxy',unicode(GlobalConfig['useproxy']))
+    config.set('settings','DefaultActionUponDownloadFinished',unicode(GlobalConfig['DAUDF']))
+    config.set('settings','LastWebSearchKeyword',unicode(GlobalConfig['lastwebsearchkeyword']))
+    config.set('settings','defaultsavedir',unicode(GlobalConfig['defaultsavedir']))
+    config.set('settings','numberofthreads',unicode(GlobalConfig['numberofthreads']))
+    config.set('settings','lastweb',unicode(GlobalConfig['lastweb']))    
+    
     # save opened files
     config.add_section('LastOpenedFiles')
     i=0
@@ -1751,9 +1825,13 @@ def UpdateOpenedFileList(filename,ftype,zfile=''):
     for x in OpenedFileList:
         if x['file']==filename:
             if x['type']=='normal':
+                OpenedFileList.remove(x)
+                OpenedFileList.insert(0,x)                
                 return
             else:
                 if x['zfile']==zfile:
+                    OpenedFileList.remove(x)
+                    OpenedFileList.insert(0,x)                    
                     return
     OpenedFileList.insert(0,fi)
     if OpenedFileList.__len__()>GlobalConfig['MaxOpenedFiles']:
@@ -1795,9 +1873,11 @@ def VersionCheck(os):
 
 def htmname2uni(htm):
     if htm[1]=='#':
-        uc=unichr(int(htm[2:-1]))
-
-        return uc
+        try:
+            uc=unichr(int(htm[2:-1]))
+            return uc
+        except:
+            return htm
     else:
         try:
             uc=unichr(htmlentitydefs.name2codepoint[htm[1:-1]])
@@ -1834,6 +1914,9 @@ def htm2txt(inf):
     #remove <script xxxx>xxxx</script>
     p=re.compile('<script.*?>.*?</script>',re.I|re.S)
     f_str=p.sub('',f_str)
+    #remove <style></style>
+    p=re.compile('<style>.*?</style>',re.I|re.S)
+    f_str=p.sub('',f_str)    
 
     #remove <option>
     p=re.compile('<option.*?>.*?</option>',re.I|re.S)
@@ -1847,9 +1930,6 @@ def htm2txt(inf):
     p=re.compile('<!--.*?-->',re.S)
     f_str=p.sub('',f_str)
 
-    #convert more than 10 newline in a row into one newline
-    p=re.compile('(\n){10,}',re.S)
-    f_str=p.sub('-----',f_str)
 
     #conver &nbsp; into space
     p=re.compile('&nbsp;',re.I)
@@ -1864,6 +1944,11 @@ def htm2txt(inf):
             e_list.append(x)
     for x in e_list:
         f_str=f_str.replace(x,htmname2uni(x))
+    
+    #convert more than 5 newline in a row into one newline
+    f_str=f_str.replace("\r\n","\n")
+    p=re.compile('\n{5,}?')
+    f_str=p.sub('-----',f_str)    
 
 
     return f_str
@@ -2442,11 +2527,13 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
     last_mouse_event=None
     UpdateSidebar=False
     SidebarPos=300 # inital postion value for dir sidebar
+    Formated=False
     def __init__(self,*args, **kwds):
         global GlobalConfig
         self.buff=u''
         self.currentLine=0
-        self.toolbar_visable=True        
+        self.toolbar_visable=True     
+        self.FileHistoryDiag=None   
         # begin wxGlade: MyFrame.__init__
         kwds["style"] = wx.DEFAULT_FRAME_STYLE
         wx.Frame.__init__(self, *args, **kwds)
@@ -2482,6 +2569,9 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         wxglade_tmp_menu.AppendMenu(wx.NewId(), u"曾经打开的文件", wxglade_tmp_menu_sub, "")
         wxglade_tmp_menu.Append(109, u"以往打开文件历史", u"显示曾经打开的所有文件列表", wx.ITEM_NORMAL)
         wxglade_tmp_menu.AppendSeparator()
+        wxglade_tmp_menu.Append(110, u"搜索小说网站(&S)\tAlt+C", u"搜索小说网站", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.AppendSeparator()
+        
         wxglade_tmp_menu.Append(106, u"选项(&O)\tAlt+O", u"程序的设置选项", wx.ITEM_NORMAL)
         wxglade_tmp_menu.AppendSeparator()
         wxglade_tmp_menu.Append(107, u"退出(&X)\tAlt+X", u"退出本程序", wx.ITEM_NORMAL)
@@ -2505,6 +2595,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         else:
             self.toolbar_visable=False        
         self.SidebarMenu=wxglade_tmp_menu
+        wxglade_tmp_menu.Append(504, u"智能分段\tAlt+P", u"智能分段", wx.ITEM_CHECK)
+        self.FormatMenu=wxglade_tmp_menu        
         self.frame_1_menubar.Append(wxglade_tmp_menu, u"视图(&T)")        
         wxglade_tmp_menu = wx.Menu()
         wxglade_tmp_menu.Append(301, u"添加到收藏夹(&A)\tCtrl+D", u"将当前阅读位置添加到收藏夹", wx.ITEM_NORMAL)
@@ -2518,7 +2610,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.frame_1_menubar.Append(wxglade_tmp_menu, u"帮助(&H)")
         self.SetMenuBar(self.frame_1_menubar)
         # Menu Bar end
-        self.frame_1_statusbar = self.CreateStatusBar(3, 0)
+        self.frame_1_statusbar = self.CreateStatusBar(4, 0)
 
         # Tool Bar
         self.frame_1_toolbar = wx.ToolBar(self, -1, style=wx.TB_HORIZONTAL|wx.TB_FLAT|wx.TB_3DBUTTONS)
@@ -2539,6 +2631,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.frame_1_toolbar.AddLabelTool(31, u"加入收藏夹", wx.Bitmap(GlobalConfig['IconDir']+u"/bookmark-add-32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"将当前阅读位置加入收藏夹", u"将当前阅读位置加入收藏夹")
         self.frame_1_toolbar.AddLabelTool(32, u"收藏夹", wx.Bitmap(GlobalConfig['IconDir']+u"/bookmark-32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"打开收藏夹", u"打开收藏夹")
         self.frame_1_toolbar.AddSeparator()
+        self.FormatTool=self.frame_1_toolbar.AddCheckLabelTool(44, u"智能分段", wx.Bitmap(GlobalConfig['IconDir']+u"/format-32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, u"智能分段", u"智能分段")
         self.frame_1_toolbar.AddLabelTool(41, "HTML", wx.Bitmap(GlobalConfig['IconDir']+u"/html--32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"过滤HTML标记", u"过滤HTML标记")
         self.frame_1_toolbar.AddLabelTool(42, u"切换为简体字", wx.Bitmap(GlobalConfig['IconDir']+u"/jian.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"切换为简体字", u"切换为简体字")
         self.frame_1_toolbar.AddLabelTool(43, u"切换为繁体字", wx.Bitmap(GlobalConfig['IconDir']+u"/fan.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"切换为繁体字", u"切换为繁体字")
@@ -2557,6 +2650,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.Bind(wx.EVT_MENU, self.Menu107, id=107)
         self.Bind(wx.EVT_MENU, self.Menu108, id=108)
         self.Bind(wx.EVT_MENU, self.Menu109, id=109)
+        self.Bind(wx.EVT_MENU, self.Menu110, id=110)
         self.Bind(wx.EVT_MENU, self.Menu201, id=201)
         self.Bind(wx.EVT_MENU, self.Menu202, id=202)
         self.Bind(wx.EVT_MENU, self.Menu203, id=203)
@@ -2570,7 +2664,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.Bind(wx.EVT_MENU, self.Menu404, id=404)
         self.Bind(wx.EVT_MENU, self.Menu501, id=501)
         self.Bind(wx.EVT_MENU, self.Menu502, id=502) 
-        self.Bind(wx.EVT_MENU, self.Menu503, id=503)       
+        self.Bind(wx.EVT_MENU, self.Menu503, id=503)  
+        self.Bind(wx.EVT_MENU, self.Tool44, id=504)     
         self.Bind(wx.EVT_TOOL, self.Menu101, id=11)
         self.Bind(wx.EVT_TOOL, self.Menu103, id=13)
         self.Bind(wx.EVT_TOOL, self.Menu106, id=16)
@@ -2585,6 +2680,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.Bind(wx.EVT_TOOL, self.Tool41, id=41)
         self.Bind(wx.EVT_TOOL, self.Tool42, id=42)
         self.Bind(wx.EVT_TOOL, self.Tool43, id=43)
+        self.Bind(wx.EVT_TOOL, self.Tool44, id=44)
         # end wxGlade
         self.Bind(wx.EVT_TOOL, self.Menu502, id=52)
         self.text_ctrl_1.Bind(wx.EVT_CHAR,self.OnChar)
@@ -2595,6 +2691,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.Bind(wx.EVT_ACTIVATE,self.OnWinActive)
         self.Bind(EVT_UPDATE_STATUSBAR,self.UpdateStatusBar)
         self.Bind(EVT_ReadTimeAlert,self.ReadTimeAlert)
+        self.Bind(EVT_DFA,self.DownloadFinished)
+        self.Bind(EVT_DUA,self.UpdateStatusBar)
         self.Bind(EVT_ScrollDownPage,self.scrolldownpage)
         self.Bind(EVT_GetPos,self.getPos)
         self.Bind(EVT_VerCheck,self.DisplayVerCheck)
@@ -2692,7 +2790,19 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         
         #if enabled, check version update
         if GlobalConfig['VerCheckOnStartup']:
-            self.version_check_thread=VersionCheckThread(self,False)        
+            self.version_check_thread=VersionCheckThread(self,False)
+        
+            #hide the text_ctrl's cursor
+            #self.text_ctrl_1.Bind(wx.EVT_SET_FOCUS, self.TextOnFocus)
+            #self.text_ctrl_1.HideNativeCaret()
+        
+        
+        
+        
+        def TextOnFocus(self,event):
+            self.text_ctrl_1.HideNativeCaret()
+            event.Skip()
+        
         
         
 
@@ -2706,7 +2816,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.SetTitle("LiteBook")
         self.SetSize((640, 480))
         # statusbar fields
-        self.frame_1_statusbar.SetStatusWidths([-2, -1,-1])
+        self.frame_1_statusbar.SetStatusWidths([-2, -1,-1,-3])
         frame_1_statusbar_fields = ["ready."]
         for i in range(len(frame_1_statusbar_fields)):
             self.frame_1_statusbar.SetStatusText(frame_1_statusbar_fields[i], i)
@@ -2860,10 +2970,32 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         dlg.Destroy()
         
     def Menu109(self, event): # wxGlade: MyFrame.<event_handler>
-        dlg=FileHistoryDialog(self)
+        if self.FileHistoryDiag==None:self.FileHistoryDiag=FileHistoryDialog(self)
+        #dlg=FileHistoryDialog(self)
+        self.FileHistoryDiag.ShowModal()
+        self.FileHistoryDiag.Hide()
+        
+    def Menu110(self,event):
+        dlg=Search_Web_Dialog(self)
         dlg.ShowModal()
-        dlg.Destroy()
-
+        try:
+            sitename=dlg.sitename
+        except:
+            sitename=None
+        if sitename<>None:
+            keyword=dlg.keyword
+            try:
+                dlg.Destroy()
+            except:
+                pass
+            dlg=web_search_result_dialog(self,sitename,keyword)
+            dlg.ShowModal()
+            #self.text_ctrl_1.SetValue(dlg.bk)
+            try:
+                dlg.Destroy()
+            except:
+                pass
+    
 
     def Menu201(self, event): # wxGlade: MyFrame.<event_handler>
         self.text_ctrl_1.SetSelection(-1,-1)
@@ -2932,7 +3064,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         info = wx.AboutDialogInfo()
         info.Name = "LiteBook"
         info.Version = Version
-        info.Copyright = "(C) 2009 Hu Jun"
+        info.Copyright = "(C) 2010 Hu Jun"
         info.Description = u"LiteBook，简单好用的看书软件！"
 
         info.WebSite = (u"http://code.google.com/p/litebook-project/", u"LiteBook官方网站")
@@ -3110,6 +3242,49 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.text_ctrl_1.ShowPosition(pos)
 
 
+    def fenduan(self):  #HJ: auto optimize the paragraph layout
+        self.BackupValue=self.text_ctrl_1.GetValue()
+        istr=self.text_ctrl_1.GetValue()
+        #convert more than 3 newlines in a row into one newline
+        p=re.compile('(\n){3,}',re.S)
+        istr=p.sub("\n",istr)
+        #find out how much words can current line hold
+        mmm=self.text_ctrl_1.GetClientSizeTuple()
+        f=self.text_ctrl_1.GetFont()
+        dc=wx.WindowDC(self.text_ctrl_1)
+        dc.SetFont(f)
+        nnn,hhh=dc.GetTextExtent(u"我")
+        line_capacity=mmm[0]/nnn
+        #combile short-lines together
+        p=re.compile(".*\n")
+        line_list=p.findall(istr)
+        i2=[]
+        last_len=0
+        cc=0
+        for line in line_list:
+            cur_len=len(line)
+            if cur_len<line_capacity-2:
+                if cur_len>last_len-3:
+                    line=line[:-1]
+                    cc+=1
+            i2.append(line)
+            last_len=cur_len
+        self.text_ctrl_1.SetValue("".join(i2))
+    
+    
+    
+    def Tool44(self,event):
+        if self.Formated:
+            self.text_ctrl_1.SetValue(self.BackupValue)
+            self.FormatMenu.Check(504,False)
+            self.frame_1_toolbar.ToggleTool(44,False)
+        else:
+            self.fenduan()
+            self.FormatMenu.Check(504,True)
+            self.frame_1_toolbar.ToggleTool(44,True)
+        self.Formated=not self.Formated
+    
+
 # end of class MyFrame
 
 
@@ -3214,6 +3389,14 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                     self.buff+="--------------"+eachfile+"--------------LiteBook-ID:"+unicode(id)+u"\n\n"
                     self.buff+=utext
                     self.text_ctrl_1.SetValue(self.buff)
+                    GlobalConfig['CurFont'].SetPointSize(GlobalConfig['CurFont'].GetPointSize()+2)
+                    self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
+                    GlobalConfig['CurFont'].SetPointSize(GlobalConfig['CurFont'].GetPointSize()-2)
+                    self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
+                    self.text_ctrl_1.SetForegroundColour(GlobalConfig['CurFColor'])
+                    self.text_ctrl_1.SetBackgroundColour(GlobalConfig['CurBColor'])
+                    self.text_ctrl_1.Refresh()
+                    self.text_ctrl_1.Update()                    
                     UpdateOpenedFileList(eachfile,'normal')
                     self.UpdateLastFileMenu()
                     self.frame_1_statusbar.SetStatusText(os.path.split(eachfile)[1])
@@ -3278,6 +3461,14 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                             self.buff+=u"--------------"+zipfilepath+u' | '+eachfile.decode('gbk')+u"--------------LiteBook-ID:"+unicode(id)+u"\n\n"
                             self.buff+=utext
                             self.text_ctrl_1.SetValue(self.buff)
+                            GlobalConfig['CurFont'].SetPointSize(GlobalConfig['CurFont'].GetPointSize()+2)
+                            self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
+                            GlobalConfig['CurFont'].SetPointSize(GlobalConfig['CurFont'].GetPointSize()-2)
+                            self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
+                            self.text_ctrl_1.SetForegroundColour(GlobalConfig['CurFColor'])
+                            self.text_ctrl_1.SetBackgroundColour(GlobalConfig['CurBColor'])
+                            self.text_ctrl_1.Refresh()
+                            self.text_ctrl_1.Update()
                             
                             UpdateOpenedFileList(eachfile.decode('gbk'),'zip',zipfilepath)
                             current_file=eachfile.decode('gbk')
@@ -3319,6 +3510,14 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                                 self.buff+=u"--------------"+zipfilepath+u'|'+eachfile+u"--------------LiteBook-ID:"+unicode(id)+u"\n\n"
                                 self.buff+=utext
                                 self.text_ctrl_1.SetValue(self.buff)
+                                GlobalConfig['CurFont'].SetPointSize(GlobalConfig['CurFont'].GetPointSize()+2)
+                                self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
+                                GlobalConfig['CurFont'].SetPointSize(GlobalConfig['CurFont'].GetPointSize()-2)
+                                self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
+                                self.text_ctrl_1.SetForegroundColour(GlobalConfig['CurFColor'])
+                                self.text_ctrl_1.SetBackgroundColour(GlobalConfig['CurBColor'])
+                                self.text_ctrl_1.Refresh()
+                                self.text_ctrl_1.Update()
                                 
                                 UpdateOpenedFileList(eachfile,'rar',zipfilepath)
                                 current_file=eachfile
@@ -3327,13 +3526,21 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             self.text_ctrl_1.SetSelection(pos,pos)#it seems SetSelection is needed before ShowPosition can work
             self.text_ctrl_1.ShowPosition(pos)
         else:
+            found=False
             if openmethod=='load':
                 for bk in BookDB:
                     if bk['key']==unicode(hashresult):
                         self.text_ctrl_1.SetSelection(bk['pos'],bk['pos'])
                         self.text_ctrl_1.ShowPosition(bk['pos'])
-                        return
-
+                        found=True
+                if not found:
+                    self.text_ctrl_1.SetSelection(0,0)
+                    self.text_ctrl_1.ShowPosition(0)
+                    
+        #Auto Format the paragraph if it is enabled
+        if self.FormatMenu.IsChecked(504):
+            self.fenduan()
+            self.Formated=not self.Formated        
 
 
 
@@ -3637,7 +3844,10 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 ##        while i<id:
 ##            pos-=OnScreenFileList[i][2]
         if OnScreenFileList.__len__()>1: return #if there is multiple on scrren file, the the pos will not be remembered
-        hash_id=OnScreenFileList[0][3]
+        try:
+            hash_id=OnScreenFileList[0][3]
+        except:
+            return        
         for bk in BookDB:
             if bk['key']==hash_id:
                 bk['pos']=pos
@@ -3984,7 +4194,85 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             else:self.LastFileMenu.Append(i,f['zfile']+u'|'+f['file'],f['file'],wx.ITEM_NORMAL)
             self.Bind(wx.EVT_MENU, self.OpenLastFile, id=i)
     
-
+    def DownloadFinished(self,event):
+        global OnScreenFileList,GlobalConfig
+        if event.status=='nok':
+            dlg = wx.MessageDialog(self, event.name+u'下载失败！',
+                               u'出错了！',
+                               wx.OK | wx.ICON_ERROR
+                               )
+            dlg.ShowModal()
+            dlg.Destroy()
+            return None
+        if GlobalConfig['DAUDF']==2:
+            savefilename=GlobalConfig['defaultsavedir']+"/"+event.name.strip()+".txt"
+            try:
+                fp=codecs.open(savefilename,encoding='GBK',mode='w')
+                ut=self.DT.bk.encode('GBK', 'ignore')
+                ut=unicode(ut, 'GBK', 'ignore')
+                fp.write(ut)
+                fp.close()
+            except:
+                err_dlg = wx.MessageDialog(None, u'写入文件：'+savefilename+u' 错误！',u"错误！",wx.OK|wx.ICON_ERROR)
+                err_dlg.ShowModal()
+                err_dlg.Destroy()
+                return False
+            dlg = wx.MessageDialog(self, event.name+u'下载完毕，已保存在'+savefilename,
+                               u'下载结束',
+                               wx.OK | wx.ICON_INFORMATION
+                               )
+            dlg.ShowModal()
+            dlg.Destroy()
+            return        
+        dlg = MyChoiceDialog(self, event.name+u'下载完毕。我想：',u'下载结束',
+                              [u'直接观看',u'另存为...'],GlobalConfig['DAUDF']
+                               )
+        dlg.ShowModal()
+        try:
+            rr=dlg.chosen
+        except:
+            rr=None
+        dlg.Destroy()
+        if rr==u'直接观看':
+            self.SaveBookDB()
+            self.text_ctrl_1.SetValue(self.DT.bk)
+            OnScreenFileList=[]
+            OnScreenFileList.append((event.name,'',self.DT.bk.__len__()))
+        else:
+            if rr==u'另存为...':
+                wildcard = u"文本文件(UTF-8) (*.txt)|*.txt|"     \
+                        u"文本文件(GBK) (*.txt)|*.txt"
+                dlg = wx.FileDialog(
+                    self, message=u"将当前文件另存为", defaultDir=GlobalConfig['LastDir'],
+                    defaultFile=event.name+u".txt", wildcard=wildcard, style=wx.SAVE | wx.FD_OVERWRITE_PROMPT
+                    )
+    
+                if dlg.ShowModal() == wx.ID_OK:
+                    savefilename=dlg.GetPath()
+                    if dlg.GetFilterIndex()==0:
+                        try:
+                            fp=codecs.open(savefilename,encoding='utf-8',mode='w')
+                            fp.write(self.DT.bk)
+                            fp.close()
+                        except:
+                            err_dlg = wx.MessageDialog(None, u'写入文件：'+fname+u' 错误！',u"错误！",wx.OK|wx.ICON_ERROR)
+                            err_dlg.ShowModal()
+                            err_dlg.Destroy()
+                            return False
+                    else:
+                        try:
+                            fp=codecs.open(savefilename,encoding='GBK',mode='w')
+                            ut=self.DT.bk.encode('GBK', 'ignore')
+                            ut=unicode(ut, 'GBK', 'ignore')
+                            fp.write(ut)
+                            fp.close()
+                        except:
+                            err_dlg = wx.MessageDialog(None, u'写入文件：'+savefilename+u' 错误！',u"错误！",wx.OK|wx.ICON_ERROR)
+                            err_dlg.ShowModal()
+                            err_dlg.Destroy()
+                            return False
+                dlg.Destroy()
+    
 class MyOpenFileDialog(wx.Dialog,wx.lib.mixins.listctrl.ColumnSorterMixin):
     global GlobalConfig
     select_files=[]
@@ -4595,6 +4883,10 @@ class OptionDialog(wx.Dialog):
         self.notebook_1 = wx.Notebook(self, -1, style=0)
         self.notebook_1_pane_2 = wx.Panel(self.notebook_1, -1)
         self.notebook_1_pane_1 = wx.Panel(self.notebook_1, -1)
+        self.notebook_1_pane_3 = wx.Panel(self.notebook_1, -1)
+        self.sizer_3_staticbox = wx.StaticBox(self.notebook_1_pane_3, -1, u"下载")
+        self.sizer_4_staticbox = wx.StaticBox(self.notebook_1_pane_3, -1, u"代理服务器")
+        
         self.text_ctrl_4 = wx.TextCtrl(self.notebook_1_pane_1, -1, u"《老子》八十一章\n\n　1.道可道，非常道。名可名，非常名。无名天地之始。有名万物之母。故常无欲以观其妙。常有欲以观其徼。此两者同出而异名，同谓之玄。玄之又玄，众妙之门。\n\n　2.天下皆知美之为美，斯恶矣；皆知善之为善，斯不善已。故有无相生，难易相成，长短相形，高下相倾，音声相和，前後相随。是以圣人处无为之事，行不言之教。万物作焉而不辞。生而不有，为而不恃，功成而弗居。夫唯弗居，是以不去。\n\n　3.不尚贤， 使民不争。不贵难得之货，使民不为盗。不见可欲，使民心不乱。是以圣人之治，虚其心，实其腹，弱其志，强其骨；常使民无知、无欲，使夫智者不敢为也。为无为，则无不治。\n\n　4.道冲而用之，或不盈。渊兮似万物之宗。解其纷，和其光，同其尘，湛兮似或存。吾不知谁之子，象帝之先。\n\n　5.天地不仁，以万物为刍狗。圣人不仁，以百姓为刍狗。天地之间，其犹橐迭乎？虚而不屈，动而愈出。多言数穷，不如守中。", style=wx.TE_MULTILINE|wx.TE_READONLY)
         self.label_4 = wx.StaticText(self.notebook_1_pane_1, -1, u"显示方案：")
         self.combo_box_1 = wx.ComboBox(self.notebook_1_pane_1, -1, choices=[], style=wx.CB_DROPDOWN|wx.CB_READONLY)
@@ -4619,6 +4911,26 @@ class OptionDialog(wx.Dialog):
         self.checkbox_Preview = wx.CheckBox(self.notebook_1_pane_2, -1, u"是否在文件选择侧边栏中预览文件内容")        
         self.label_7 = wx.StaticText(self.notebook_1_pane_2, -1, u"文件选择栏显示")
         self.checkbox_5 = wx.CheckBox(self.notebook_1_pane_2, -1, u"是否在文件选择侧边栏中只显示支持的文件格式")        
+        
+        self.label_2 = wx.StaticText(self.notebook_1_pane_3, -1, u"下载完毕后的缺省动作：")
+        self.choice_1 = wx.Choice(self.notebook_1_pane_3, -1, choices=[u"直接阅读", u"另存为文件",u'直接保存在缺省目录'])
+        self.label_12 = wx.StaticText(self.notebook_1_pane_3, -1, u"另存为的缺省目录：")
+        self.text_ctrl_8 = wx.TextCtrl(self.notebook_1_pane_3, -1, "")
+        self.button_1 = wx.Button(self.notebook_1_pane_3, -1, u"选择")
+        self.label_11 = wx.StaticText(self.notebook_1_pane_3, -1, u"同时下载的线程个数（需插件支持；不能超过50）：")
+        self.text_ctrl_7 = wx.TextCtrl(self.notebook_1_pane_3, -1, "10")        
+        self.label_3 = wx.StaticText(self.notebook_1_pane_3, -1, u"启用代理服务器：")
+        self.checkbox_2 = wx.CheckBox(self.notebook_1_pane_3, -1, "")
+        self.label_6 = wx.StaticText(self.notebook_1_pane_3, -1, u"代理服务器地址：")
+        self.text_ctrl_2 = wx.TextCtrl(self.notebook_1_pane_3, -1, "")
+        self.label_8 = wx.StaticText(self.notebook_1_pane_3, -1, u"代理服务器端口：")
+        self.text_ctrl_3 = wx.TextCtrl(self.notebook_1_pane_3, -1, "")
+        self.label_9 = wx.StaticText(self.notebook_1_pane_3, -1, u"用户名：")
+        self.text_ctrl_5 = wx.TextCtrl(self.notebook_1_pane_3, -1, "")
+        self.label_10 = wx.StaticText(self.notebook_1_pane_3, -1, u"密码：")
+        self.text_ctrl_6 = wx.TextCtrl(self.notebook_1_pane_3, -1, "")
+        
+        
         self.button_4 = wx.Button(self, -1, u"确定")
         self.button_5 = wx.Button(self, -1, u"取消")
 
@@ -4633,6 +4945,7 @@ class OptionDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON,self.OnSelBColor,self.button_11)
         self.Bind(wx.EVT_BUTTON,self.OnSaveTheme,self.button_6)
         self.Bind(wx.EVT_BUTTON,self.OnDelTheme,self.button_7)
+        self.Bind(wx.EVT_BUTTON,self.SelectDir,self.button_1)
         self.Bind(wx.EVT_COMBOBOX,self.OnSel,self.combo_box_1)
         self.Bind(wx.EVT_BUTTON,self.OnOk,self.button_4)
         self.Bind(wx.EVT_BUTTON,self.OnCancell,self.button_5)
@@ -4646,6 +4959,8 @@ class OptionDialog(wx.Dialog):
         self.combo_box_1.SetMinSize((150,-1))
         self.text_ctrl_4.SetMinSize((384, 189))
         self.text_ctrl_1.SetMinSize((30,-1))
+        self.text_ctrl_8.SetMinSize((180, -1))
+        self.text_ctrl_7.SetMinSize((40, -1))        
         self.label_1_copy.SetToolTipString(u"0代表不提醒")
         self.text_ctrl_1_copy.SetMinSize((40, -1))
         self.text_ctrl_1_copy.SetToolTipString(u"0代表不提醒")
@@ -4668,12 +4983,38 @@ class OptionDialog(wx.Dialog):
         self.text_ctrl_mof.SetMinSize((30, -1))
         self.text_ctrl_mof.SetValue(unicode(GlobalConfig['MaxOpenedFiles']))
         
+        self.text_ctrl_2.SetMinSize((200, -1))
+        self.text_ctrl_3.SetMinSize((50, -1))
+        self.choice_1.Select(GlobalConfig['DAUDF'])
+        self.checkbox_2.SetValue(GlobalConfig['useproxy'])
+        self.text_ctrl_2.SetValue(unicode(GlobalConfig['proxyserver']))
+        self.text_ctrl_3.SetValue(unicode(GlobalConfig['proxyport']))
+        self.text_ctrl_5.SetValue(unicode(GlobalConfig['proxyuser']))
+        self.text_ctrl_6.SetValue(unicode(GlobalConfig['proxypass'])) 
+        self.text_ctrl_7.SetValue(unicode(GlobalConfig['numberofthreads']))
+        self.text_ctrl_8.SetValue(unicode(GlobalConfig['defaultsavedir']))               
+        
         # end wxGlade
 
     def __do_layout(self):
         # begin wxGlade: OptionDialog.__do_layout
         sizer_5 = wx.BoxSizer(wx.VERTICAL)
         grid_sizer_1 = wx.GridSizer(1, 5, 0, 0)
+        
+        sizer_2 = wx.BoxSizer(wx.VERTICAL)
+        sizer_4 = wx.StaticBoxSizer(self.sizer_4_staticbox, wx.VERTICAL)
+        sizer_15 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_14 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_13 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_12 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_8 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_3 = wx.StaticBoxSizer(self.sizer_3_staticbox,  wx.VERTICAL)
+
+        sizer_17 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_18 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_16 = wx.BoxSizer(wx.HORIZONTAL)
+
+        
         sizer_9 = wx.BoxSizer(wx.VERTICAL)
         sizer_20 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_1_copy_copy_copy = wx.BoxSizer(wx.HORIZONTAL)
@@ -4735,8 +5076,42 @@ class OptionDialog(wx.Dialog):
         sizer_mof.Add(self.text_ctrl_mof, 0, 0, 0)
         sizer_9.Add(sizer_mof, 0, wx.EXPAND, 0)        
         self.notebook_1_pane_2.SetSizer(sizer_9)
+        
+        sizer_16.Add(self.label_2, 0, wx.ALL, 5)
+        sizer_16.Add(self.choice_1, 0, 0, 0)
+        sizer_3.Add(sizer_16, 1, wx.EXPAND, 0)
+        sizer_18.Add(self.label_12, 0, wx.ALL, 5)
+        sizer_18.Add(self.text_ctrl_8, 0, 0, 0)
+        sizer_18.Add(self.button_1, 0, 0, 0)
+        sizer_3.Add(sizer_18, 1, wx.EXPAND, 0)
+        sizer_17.Add(self.label_11, 0, wx.ALL, 5)
+        sizer_17.Add(self.text_ctrl_7, 0, 0, 0)
+        sizer_3.Add(sizer_17, 1, wx.EXPAND, 0)        
+        
+
+        sizer_2.Add(sizer_3, 1, wx.EXPAND, 0)
+        sizer_8.Add(self.label_3, 0, wx.ALL, 5)
+        sizer_8.Add(self.checkbox_2, 0, wx.ALL, 5)
+        sizer_4.Add(sizer_8, 1, wx.EXPAND, 0)
+        sizer_12.Add(self.label_6, 0, wx.ALL, 5)
+        sizer_12.Add(self.text_ctrl_2, 0, 0, 0)
+        sizer_4.Add(sizer_12, 1, wx.EXPAND, 0)
+        sizer_13.Add(self.label_8, 0, wx.ALL, 5)
+        sizer_13.Add(self.text_ctrl_3, 0, 0, 0)
+        sizer_4.Add(sizer_13, 1, wx.EXPAND, 0)
+        sizer_14.Add(self.label_9, 0, wx.ALL, 5)
+        sizer_14.Add(self.text_ctrl_5, 0, 0, 0)
+        sizer_4.Add(sizer_14, 1, wx.EXPAND, 0)
+        sizer_15.Add(self.label_10, 0, wx.ALL, 5)
+        sizer_15.Add(self.text_ctrl_6, 0, 0, 0)
+        sizer_4.Add(sizer_15, 1, wx.EXPAND, 0)
+        sizer_2.Add(sizer_4, 1, wx.EXPAND, 0)
+        self.notebook_1_pane_3.SetSizer(sizer_2)
+        
+        
         self.notebook_1.AddPage(self.notebook_1_pane_1, u"界面设置")
         self.notebook_1.AddPage(self.notebook_1_pane_2, u"控制设置")
+        self.notebook_1.AddPage(self.notebook_1_pane_3, u"下载设置")
         sizer_5.Add(self.notebook_1, 1, wx.EXPAND, 0)
         grid_sizer_1.Add((20, 20), 0, 0, 0)
         grid_sizer_1.Add(self.button_4, 0, 0, 0)
@@ -4881,6 +5256,35 @@ class OptionDialog(wx.Dialog):
             GlobalConfig['RemindInterval']=abs(int(self.text_ctrl_1_copy.GetValue()))
         except:
             GlobalConfig['RemindInterval']=60
+        
+        GlobalConfig['DAUDF']=self.choice_1.GetSelection()
+        GlobalConfig['useproxy']=self.checkbox_2.GetValue()
+        GlobalConfig['proxyserver']=self.text_ctrl_2.GetValue()
+        try:
+            GlobalConfig['proxyport']=int(self.text_ctrl_3.GetValue())
+        except:
+            GlobalConfig['proxyport']=0
+        GlobalConfig['proxyuser']=self.text_ctrl_5.GetValue()
+        GlobalConfig['proxypass']=self.text_ctrl_6.GetValue()
+        try:
+            GlobalConfig['numberofthreads']=int(self.text_ctrl_7.GetValue())
+        except:
+            GlobalConfig['numberofthreads']=1
+        if GlobalConfig['numberofthreads']<=0 or GlobalConfig['numberofthreads']>50:
+            GlobalConfig['numberofthreads']=1
+        if not os.path.exists(self.text_ctrl_8.GetValue()):
+            GlobalConfig['defaultsavedir']=''
+        else:
+            GlobalConfig['defaultsavedir']=self.text_ctrl_8.GetValue()
+        if GlobalConfig['defaultsavedir']=='' and GlobalConfig['DAUDF']==2:
+            dlg = wx.MessageDialog(self, u'请指定正确的缺省保存目录!',
+                               u'出错了！',
+                               wx.OK | wx.ICON_ERROR
+                               )
+            dlg.ShowModal()
+            dlg.Destroy()
+            return                
+        
         self.Destroy()
 
     def OnCancell(self,event):
@@ -4896,6 +5300,16 @@ class OptionDialog(wx.Dialog):
 
     def OnWinActive(self,event):
         if event.GetActive():self.text_ctrl_4.SetFocus()
+    
+    def SelectDir(self,event):
+        dlg = wx.DirDialog(self, u"请选择目录：",defaultPath=GlobalConfig['LastDir'],
+                          style=wx.DD_DEFAULT_STYLE
+                           )
+        if dlg.ShowModal() == wx.ID_OK:
+            self.text_ctrl_8.SetValue(dlg.GetPath())
+    
+        dlg.Destroy()
+    
 
 
 class HelpDialog(wx.Dialog):
@@ -4921,9 +5335,9 @@ class HelpDialog(wx.Dialog):
             self.text_ctrl_1.SetMinSize((700,400))
         self.text_ctrl_1.SetFont(wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.NORMAL, 0, ""))
         # end wxGlade
-        if mode=="help":fname=os.path.dirname(sys.argv[0])+u"\\LiteBook_Readme.txt"
+        if mode=="help":fname=cur_file_dir()+u"/LiteBook_Readme.txt"
         else:
-            fname=os.path.dirname(sys.argv[0])+u"\\LiteBook_WhatsNew.txt"        
+            fname=cur_file_dir()+u"/LiteBook_WhatsNew.txt"        
 #        try:
         f=open(fname,'r')
         t_buff=f.read()
@@ -5021,6 +5435,7 @@ class DisplayPosThread():
             wx.PostEvent(self.win, evt)
             if self.win.last_pos<>0:
                 percent=int((float(self.win.current_pos)/float(self.win.last_pos))*100)
+                if percent>100: percent=100
                 allsize=0
                 i=0
                 self.win.current_pos+=2700
@@ -5289,7 +5704,7 @@ class FileHistoryDialog(wx.Dialog,wx.lib.mixins.listctrl.ColumnSorterMixin):
         return self.list_ctrl_1
 
     def OnCancell(self, event):
-        self.Destroy()
+        self.Hide()
         
     def clearHistory(self, event):
         global SqlCon,SqlCur
@@ -5299,7 +5714,7 @@ class FileHistoryDialog(wx.Dialog,wx.lib.mixins.listctrl.ColumnSorterMixin):
             SqlCon.commit()
             self.list_ctrl_1.DeleteAllItems()
         dlg.Destroy()
-        self.Destroy()
+        self.Hide()
 
     def OnLoadFile(self, event):
         filepath=self.list_ctrl_1.GetItemText(self.list_ctrl_1.GetFirstSelected())
@@ -5308,7 +5723,112 @@ class FileHistoryDialog(wx.Dialog,wx.lib.mixins.listctrl.ColumnSorterMixin):
         else:
             (zfilename,filename)=filepath.split('|',1)
             self.Parent.LoadFile((filename,),'zip',zfilename)
-        self.Destroy()
+        self.Hide()
+
+    def OnKey(self,event):
+        key=event.GetKeyCode()
+        if key==wx.WXK_ESCAPE:
+            self.Hide()
+        else:
+            event.Skip()
+        
+
+# end of class FileHistory
+
+class Search_Web_Dialog(wx.Dialog):
+    def __init__(self, *args, **kwds):
+        global SqlCur
+        # begin wxGlade: Search_Web_Dialog.__init__
+        kwds["style"] = wx.DEFAULT_DIALOG_STYLE
+        wx.Dialog.__init__(self, *args, **kwds)
+        weblist=[]
+        flist=glob.glob(cur_file_dir()+"/plugin/*.py")
+        for f in flist:
+            bname=os.path.basename(f)
+            weblist.append(bname[:-3])
+        self.sizer_1_staticbox = wx.StaticBox(self, -1, u"搜索小说网站")
+        self.label_2 = wx.StaticText(self, -1, u"关键字：    ")
+        self.text_ctrl_2 = wx.TextCtrl(self, -1, "")
+        self.text_ctrl_1 = wx.TextCtrl(self, -1, "", style=wx.TE_MULTILINE|wx.TE_READONLY|wx.TE_WORDWRAP)
+        self.label_3 = wx.StaticText(self, -1, u"选择网站：")
+        self.choice_1 = wx.Choice(self, -1, choices=weblist)
+        self.button_3 = wx.Button(self, -1, u" 搜索 ")
+        self.button_4 = wx.Button(self, -1, u" 取消 ")
+        self.Bind(wx.EVT_BUTTON, self.OnOK, self.button_3)
+        self.Bind(wx.EVT_BUTTON, self.OnCancell, self.button_4)
+        self.text_ctrl_2.Bind(wx.EVT_CHAR,self.OnKey)
+        self.choice_1.Bind(wx.EVT_CHAR,self.OnKey)
+        self.Bind(wx.EVT_CHOICE, self.OnChosen, self.choice_1)
+
+
+
+
+
+        self.__set_properties()
+        self.__do_layout()
+        # end wxGlade
+
+    def __set_properties(self):
+        global GlobalConfig
+        # begin wxGlade: Search_Web_Dialog.__set_properties
+        self.SetTitle(u"搜索网站")
+        self.text_ctrl_2.SetMinSize((200, 35))
+        self.choice_1.SetMinSize((200, 35))
+        if GlobalConfig['lastweb']=='' or not os.path.exists(cur_file_dir()+"/plugin/"+GlobalConfig['lastweb']+'.py'):
+            self.choice_1.Select(0)
+            self.ShowDesc(self.choice_1.GetString(0))
+        else:
+            self.choice_1.SetStringSelection(GlobalConfig['lastweb'])
+            self.ShowDesc(GlobalConfig['lastweb'])
+        self.text_ctrl_2.SetValue(GlobalConfig['lastwebsearchkeyword'])
+        self.text_ctrl_1.SetMinSize((285, 84))
+        
+        # end wxGlade
+
+    def __do_layout(self):
+        # begin wxGlade: Search_Web_Dialog.__do_layout
+        sizer_1 = wx.StaticBoxSizer(self.sizer_1_staticbox, wx.VERTICAL)
+        sizer_4 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_3 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_2.Add(self.label_2, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 5)
+        sizer_2.Add(self.text_ctrl_2, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 5)
+        sizer_1.Add(sizer_2, 1, wx.EXPAND, 0)
+        sizer_3.Add(self.label_3, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 5)
+        sizer_3.Add(self.choice_1, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 5)
+        sizer_1.Add(sizer_3, 1, wx.EXPAND, 0)
+        sizer_1.Add(self.text_ctrl_1, 0, wx.EXPAND, 0)
+        sizer_4.Add(self.button_3, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_4.Add(self.button_4, 0, wx.ALL|wx.ALIGN_RIGHT, 5)
+        sizer_1.Add(sizer_4, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 0)
+        self.SetSizer(sizer_1)
+        sizer_1.Fit(self)
+        self.Layout()
+
+    def ShowDesc(self,desc):
+        myplugin=imp.load_source("plugin",cur_file_dir()+"/plugin/"+desc+".py")
+        self.text_ctrl_1.SetValue(u'此插件无介绍。')
+        try:
+            self.text_ctrl_1.SetValue(myplugin.Description)
+        except:
+            pass
+        myplugin.Description=u'此插件无介绍。'
+    
+    
+    def OnChosen(self,event):
+        global lastweb
+        GlobalConfig['lastweb']=self.choice_1.GetString(event.GetInt())
+        self.ShowDesc(event.GetString())
+    
+    
+    def OnCancell(self, event):
+        self.Hide()
+
+    def OnOK(self,event):
+        self.sitename=self.choice_1.GetString(self.choice_1.GetSelection())
+        self.keyword=self.text_ctrl_2.GetValue()
+        GlobalConfig['lastwebsearchkeyword']=self.keyword
+        self.Hide()
 
     def OnKey(self,event):
         key=event.GetKeyCode()
@@ -5316,9 +5836,177 @@ class FileHistoryDialog(wx.Dialog,wx.lib.mixins.listctrl.ColumnSorterMixin):
             self.Destroy()
         else:
             event.Skip()
-        
 
-# end of class FileHistory
+
+
+class web_search_result_dialog(wx.Dialog):
+    def __init__(self, parent,sitename,keyword):
+        # begin wxGlade: web_search_result_dialog.__init__
+        #kwds["style"] = wx.DEFAULT_DIALOG_STYLE
+        wx.Dialog.__init__(self,parent,-1,style=wx.DEFAULT_DIALOG_STYLE)
+        self.list_ctrl_1 = wx.ListCtrl(self, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL)
+        self.list_ctrl_1.InsertColumn(0,u'书名',width=320)
+        self.list_ctrl_1.InsertColumn(1,u'作者')
+        self.list_ctrl_1.InsertColumn(2,u'状态')
+        self.list_ctrl_1.InsertColumn(3,u'大小')
+        self.list_ctrl_1.InsertColumn(4,u'最后更新')        
+        self.button_1 = wx.Button(self, -1, u" 下载(后台) ")
+        self.button_2 = wx.Button(self, -1, u" 取消 ")
+        self.plugin=imp.load_source("plugin",cur_file_dir()+"/plugin/"+sitename+".py")
+        dlg = wx.ProgressDialog(u"搜索中",
+                       u"搜索进行中...",
+                       maximum = 100,
+                       parent=self,
+                       style =
+                         wx.PD_SMOOTH
+                         |wx.PD_AUTO_HIDE
+                        )
+        self.rlist=None
+        self.rlist=self.plugin.GetSearchResults(keyword,useproxy=GlobalConfig['useproxy'],proxyserver=GlobalConfig['proxyserver'],proxyport=GlobalConfig['proxyport'],proxyuser=GlobalConfig['proxyuser'],proxypass=GlobalConfig['proxypass'])
+        dlg.Update(100)
+        dlg.Destroy()
+        if self.rlist<>None:
+            i=0
+            for r in self.rlist:
+                index=self.list_ctrl_1.InsertStringItem(sys.maxint,r['bookname'])
+                self.list_ctrl_1.SetStringItem(index,1,r['authorname'])
+                self.list_ctrl_1.SetStringItem(index,2,r['bookstatus'])
+                self.list_ctrl_1.SetStringItem(index,3,r['booksize'])
+                self.list_ctrl_1.SetStringItem(index,4,r['lastupdatetime'])
+                self.list_ctrl_1.SetItemData(index,i)                
+
+                i+=1
+        else:
+            dlg = wx.MessageDialog(self, u'搜索失败！',
+                               u'出错了！',
+                               wx.OK | wx.ICON_ERROR
+                               )
+            dlg.ShowModal()
+            dlg.Destroy()
+            self.Destroy()
+            return None
+        self.Bind(wx.EVT_BUTTON, self.OnOK, self.button_1)
+        self.Bind(wx.EVT_BUTTON, self.OnCancell, self.button_2)
+        self.list_ctrl_1.Bind(wx.EVT_CHAR,self.OnKey)
+        self.__set_properties()
+        self.__do_layout()
+        # end wxGlade
+
+    def __set_properties(self):
+        # begin wxGlade: web_search_result_dialog.__set_properties
+        self.SetTitle(u"搜索结果")
+        self.list_ctrl_1.SetMinSize((709, 312))
+
+        # end wxGlade
+
+    def __do_layout(self):
+        # begin wxGlade: web_search_result_dialog.__do_layout
+        sizer_1 = wx.BoxSizer(wx.VERTICAL)
+        sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_1.Add(self.list_ctrl_1, 1, wx.EXPAND, 0)
+        sizer_2.Add(self.button_1, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
+        sizer_2.Add(self.button_2, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
+        sizer_1.Add(sizer_2, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5)
+        self.SetSizer(sizer_1)
+        sizer_1.Fit(self)
+        self.Layout()
+
+    def OnOK(self, event):
+        item=self.list_ctrl_1.GetNextSelected(-1)
+##        dlg = wx.MessageDialog(self, u'后台下载中，请稍候！',
+##                               u'下载中',
+##                               wx.OK | wx.ICON_INFORMATION
+##                               )
+##        dlg.ShowModal()
+##        dlg.Destroy()
+        self.GetParent().DT=DownloadThread(self.GetParent(),self.rlist[self.list_ctrl_1.GetItemData(item)]['book_index_url'],self.plugin,self.list_ctrl_1.GetItemText(item))
+        self.Hide()
+
+    def OnCancell(self, event):
+        self.Hide()
+
+    def OnKey(self,event):
+        key=event.GetKeyCode()
+        if key==wx.WXK_ESCAPE:
+            self.Destroy()
+        else:
+            event.Skip()
+
+
+class DownloadThread:
+    def __init__(self,win,url,plugin,bookname):
+        self.win=win
+        self.url=url
+        self.plugin=plugin
+        self.bookname=bookname
+        #self.running=True
+        thread.start_new_thread(self.run, ())
+
+##    def stop(self):
+##        self.running=False
+
+    def run(self):
+        evt2=DownloadUpdateAlert(Value='',FieldNum=3)
+        self.bk=self.plugin.GetBook(self.url,bkname=self.bookname,win=self.win,evt=evt2,useproxy=GlobalConfig['useproxy'],proxyserver=GlobalConfig['proxyserver'],proxyport=GlobalConfig['proxyport'],proxyuser=GlobalConfig['proxyuser'],proxypass=GlobalConfig['proxypass'],concurrent=GlobalConfig['numberofthreads'])        
+        if self.bk<>None:
+            evt1=DownloadFinishedAlert(name=self.bookname,status='ok')
+        else:
+            evt1=DownloadFinishedAlert(name=self.bookname,status='nok')
+        wx.PostEvent(self.win,evt1)
+
+
+
+class MyChoiceDialog(wx.Dialog):
+    def __init__(self, parent,msg='',title='',mychoices=[],default=0):
+        # begin wxGlade: MyChoiceDialog.__init__
+        wx.Dialog.__init__(self,parent,-1,style=wx.DEFAULT_DIALOG_STYLE)
+        self.sizer_1_staticbox = wx.StaticBox(self, -1, u"选择")
+        self.label_1 = wx.StaticText(self, -1, msg)
+        self.choice_1 = wx.Choice(self, -1, choices=mychoices)
+        self.button_1 = wx.Button(self, -1, u"确定")
+        self.button_2 = wx.Button(self, -1, u"取消")
+        self.Bind(wx.EVT_BUTTON, self.OnOK, self.button_1)
+        self.Bind(wx.EVT_BUTTON, self.OnCancell, self.button_2)
+        self.choice_1.Bind(wx.EVT_CHAR,self.OnKey)
+        self.choice_1.Select(default)
+        self.tit=title
+        self.__set_properties()
+        self.__do_layout()
+        # end wxGlade
+
+    def __set_properties(self):
+        # begin wxGlade: MyChoiceDialog.__set_properties
+        self.SetTitle(self.tit)
+        # end wxGlade
+
+    def __do_layout(self):
+        # begin wxGlade: MyChoiceDialog.__do_layout
+        sizer_1 = wx.StaticBoxSizer(self.sizer_1_staticbox, wx.VERTICAL)
+        sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_1.Add(self.label_1, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5)
+        sizer_1.Add(self.choice_1, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 5)
+        sizer_2.Add(self.button_1, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 5)
+        sizer_2.Add(self.button_2, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 5)
+        sizer_1.Add(sizer_2, 1, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 5)
+        self.SetSizer(sizer_1)
+        sizer_1.Fit(self)
+        self.Layout()
+        # end wxGlade
+
+    def OnCancell(self, event):
+        self.Hide()
+
+    def OnOK(self,event):
+        self.sitename=self.choice_1.GetString(self.choice_1.GetSelection())
+        self.chosen=self.choice_1.GetStringSelection()
+        self.Hide()
+
+    def OnKey(self,event):
+        key=event.GetKeyCode()
+        if key==wx.WXK_ESCAPE:
+            self.Destroy()
+        else:
+            event.Skip()
 
 
 
@@ -5326,7 +6014,7 @@ if __name__ == "__main__":
     try:
         SqlCon = sqlite3.connect(unicode(os.environ['HOME'])+u"/.litebook.bookdb")
     except:
-        print unicode(os.environ['HOME'])+u"\\litebook.bookdb is not a sqlite file!" 
+        print unicode(os.environ['HOME'])+u"/litebook.bookdb is not a sqlite file!" 
     sqlstr="select * from book_history"
     try:
         SqlCon.execute(sqlstr)
