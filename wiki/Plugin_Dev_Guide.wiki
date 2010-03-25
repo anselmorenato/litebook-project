@@ -1,4 +1,4 @@
-#summary litebook在线搜索下载插件的开发指南
+#summary litebook在线搜索下载插件的开发指南(for 1.70beta2)
 
 <wiki:toc/>
 
@@ -10,29 +10,34 @@
 == 编程语言 ==
 
   * python 2.6
+  * 脚本编码格式：utf-8
 
 == 调用接口函数 ==
 
   * plugin必需提供如下两个函数供litebook主程序调用：
   {{{
-    * GetSearchResults(key,proxyserver='',proxyport=0,proxyuser='',proxypass='')
+    * GetSearchResults(key,useproxy=False,proxyserver='',proxyport=0,proxyuser='',proxypass='')
       *传入参数说明：
          *key: 搜索关键字，类型unicode
+         *useproxy: 是否使用带来代理，类型boolean
          *proxyserver:HTTP代理服务器地址（IP或域名），类型unicode
          *proxyport: HTTP代理服务器端口，类型unicode
          *proxyuser: HTTP代理服务器认证用户名，类型unicode
          *proxypass: HTTP代理服务器认证口令，类型unicode
-      *此函数返回搜索结果列表，且结果为一个二维嵌套list，r[x]=[bookname,book_index_page_url,authorname]
-         *bookname,book_index_page_url,authorname的类型均为unicode
+      *此函数返回搜索结果列表，且结果为一个dict list，r[x]={'bookname':,'booksize':,'authorname':,'bookstatus':,'lastupdatetime'}
+         *类型均为unicode
          *如果搜索失败的话，则返回None
   
-    * GetBook(book_index_page_url,proxyserver='',proxyport=0,proxyuser='',proxypass='')
+    * GetBook(url,bkname='',win=None,evt=None,useproxy=False,proxyserver='',proxyport=0,proxyuser='',proxypass='',concurrent=10)
       *传入参数说明：
          *book_index_page_url: 小说目录页的URL
+         *win: litebook主窗口
+         *evt: 用于回传的事件，litebook主窗口收到这个事件之后会在状态栏显示evt.Value的内容。
          *proxyserver:HTTP代理服务器地址（IP或域名），类型unicode
          *proxyport: HTTP代理服务器端口，类型unicode
          *proxyuser: HTTP代理服务器认证用户名，类型unicode
          *proxypass: HTTP代理服务器认证口令，类型unicode
+         *concurrent：同时下载的线程数
       *此函数返回整合后的小说内容，类型为unicode
          *如果下载失败的话，则返回None
    }}}
