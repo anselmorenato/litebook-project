@@ -1,0 +1,22 @@
+#summary litebook在线搜索和下载功能介绍(WIP)
+
+= litebook在线搜索和下载功能介绍(WIP) =
+
+litebook从ver1.70 beta起开始加入在线搜索和下载的功能，其原理就是利用HTTP协议直接获取小说网站的搜索结果页面和小说的目录页面，然后加以分析，提取出小说的内容，然后加以整合、过滤，最后是获得一个整合后的文本文件。
+上述过程说的通俗一点就是litebook把如下的步骤自动化了：
+  * 访问某小说网站，并在其搜索框内输入关键字
+  * 在搜索结果页面点击某个小说的链接，转入小说的目录页
+  * 把这本小说所有的章节都下载下来，然后拼成一个文本文件
+
+此功能具备如下特点：
+  * 每个小说网站的支持都是通过一个插件的形式来实现
+  * 插件可以直接用python编写，编写完之后把脚本文件拷贝到plugin子目录下即可生效
+  * 支持HTTP代理(需插件支持)
+  * 支持多线程下载(需插件支持)
+
+= Details =
+
+Add your content here.  Format your content with:
+  * Text in *bold* or _italic_
+  * Headings, paragraphs, and lists
+  * Automatic links to other wiki pages
