@@ -16,7 +16,4 @@ litebook从ver1.70 beta起开始加入在线搜索和下载的功能，其原理
 
 = Details =
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+http://lh6.ggpht.com/_Ve6FsAYCHZk/S6xDnHcl54I/AAAAAAAAAFE/Tux6grEAQbQ/s400/litebook-webmenu.png
