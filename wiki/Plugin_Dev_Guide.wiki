@@ -32,7 +32,7 @@
       *传入参数说明：
          *book_index_page_url: 小说目录页的URL
          *win: litebook主窗口
-         *evt: 用于回传的事件，litebook主窗口收到这个事件之后会在状态栏显示evt.Value的内容。
+         *evt: 用于回传的事件，litebook主窗口收到这个事件之后会在状态栏显示evt.Value的内容。另外如果在下载结束时收到evt.status='nok'的事件，则代表下载失败。
          *proxyserver:HTTP代理服务器地址（IP或域名），类型unicode
          *proxyport: HTTP代理服务器端口，类型unicode
          *proxyuser: HTTP代理服务器认证用户名，类型unicode
