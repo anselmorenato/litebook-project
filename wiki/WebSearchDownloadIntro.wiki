@@ -1,7 +1,7 @@
-#summary litebook在线搜索和下载功能介绍(WIP)
+#summary litebook在线搜索和下载功能介绍
 #labels Featured
 
-= litebook在线搜索和下载功能介绍(WIP) =
+= litebook在线搜索和下载功能介绍 =
 
 litebook从ver1.70 beta起开始加入在线搜索和下载的功能，其原理就是利用HTTP协议直接获取小说网站的搜索结果页面和小说的目录页面，然后加以分析，提取出小说的内容，然后加以整合、过滤，最后是获得一个整合后的文本文件。
 上述过程说的通俗一点就是litebook把如下的步骤自动化了：
