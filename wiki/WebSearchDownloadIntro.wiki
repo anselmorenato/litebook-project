@@ -1,4 +1,5 @@
 #summary litebook在线搜索和下载功能介绍(WIP)
+#labels Featured
 
 = litebook在线搜索和下载功能介绍(WIP) =
 
@@ -18,3 +19,21 @@ litebook从ver1.70 beta起开始加入在线搜索和下载的功能，其原理
 
   * 首先在“文件”菜单中选择“搜索小说网站”，也可以使用快捷键 Alt+C
 http://lh6.ggpht.com/_Ve6FsAYCHZk/S6xDnHcl54I/AAAAAAAAAFE/Tux6grEAQbQ/s800/litebook-webmenu.png
+
+  * 然后在弹出的对话框中选择要搜索的网站以及输入关键字
+http://lh3.ggpht.com/_Ve6FsAYCHZk/S6xDvnw4L-I/AAAAAAAAAFI/Pp1w9iy1cbY/s800/litebook-websearch.png
+ 
+  * 在搜索结果对话框中选择你要下载的小说，然后点击“下载”按钮
+http://lh6.ggpht.com/_Ve6FsAYCHZk/S6xDv5yKj5I/AAAAAAAAAFM/1hE2qCHo9QE/s800/litebook-websearchresult.png
+
+  * 在下载过程中，你可以继续看别的小说，下载是在后台进行的，底部的状态栏中会显示当前进程
+http://lh6.ggpht.com/_Ve6FsAYCHZk/S6xDm44eZ8I/AAAAAAAAAE8/Xspvva8K47Y/s800/litebook-webdownloading.png
+
+  * 下载结束后，会有弹出对话框提醒（你也可以在选项中设置直接保存而不提醒）
+http://lh6.ggpht.com/_Ve6FsAYCHZk/S6xDmmG7xhI/AAAAAAAAAE4/kZWgoakip4E/s800/litebook-webdownloadfinished.png
+
+  * 你也可以选择直接观看，结果如下：
+http://lh3.ggpht.com/_Ve6FsAYCHZk/S6xDmoJoG-I/AAAAAAAAAE0/1HIkc7Jktww/s800/litebook-webdownloadfinished2.png
+
+  * 关于本功能的设置，请参见选项对话框中的下载设置页
+http://lh5.ggpht.com/_Ve6FsAYCHZk/S6xDnLUUFpI/AAAAAAAAAFA/P3l_44GVMvs/s800/litebook-webdownloadoption.png
