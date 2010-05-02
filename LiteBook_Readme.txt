@@ -1,4 +1,4 @@
-﻿LiteBook for Windows ver1.70 Beta 帮助
+﻿LiteBook for Windows ver1.70 Beta3 帮助
 (c)2010 Hu Jun	
 
 
@@ -50,6 +50,11 @@
 	向上翻一页：		按住鼠标右键后，向上滚动中间转轮
 	下一个文件：		双击鼠标中键
 	上一个文件：		按住鼠标右键后，双击鼠标中键
+
+2.1 LiteBook 插件功能介绍
+LiteBook从1.70 beta1开始加入“搜索小说网站”功能，此功能通过插件的方式实现，不同的小说的网站通过不同的插件实现，每个插件由一个python脚本文件组成。这些插件都放在"plugin"子目录下。
+LiteBook在启动时会将"plugun"下所有的".py"文件读入内存；如果要安装新的插件的话，只要把"xxx.py"文件拷到"plugin"子目录下，然后点击"文件->重新读入插件"菜单使之生效。
+
 
 3.LiteBook功能说明
 － 支持Windows XP/Vista/Windows 7 
