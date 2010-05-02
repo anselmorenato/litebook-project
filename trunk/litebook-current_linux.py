@@ -77,6 +77,7 @@ import subprocess
 import thread
 import hashlib
 import urllib
+import threading
 try:
     from agw import hyperlink as hl
 except ImportError: # if it's not there locally, try the wxPython lib.
@@ -1355,8 +1356,9 @@ def FtoJ(data):
 
 
 
-
+OnDirectSeenPage=False
 GlobalConfig={}
+PluginList={}
 OpenedFileList=[]
 current_file=''
 load_zip=False
@@ -1368,8 +1370,8 @@ BookMarkList=[]
 ThemeList=[]
 BookDB=[]
 Ticking=True
-Version='1.70 Beta2 LINUX'
-I_Version=1.70 # this is used to check updated version
+Version='1.70 Beta3 LINUX'
+I_Version=1.72 # this is used to check updated version
 
 def cur_file_dir():
     #获取脚本路径
@@ -1451,6 +1453,17 @@ def DetectFileCoding(filepath,type='txt',zipfilepath=''):
 
 
 
+def isfull(l):
+    xx=0
+    n=len(l)
+    count=0
+    while xx<n:
+        if l[xx]==-1: count+=1
+        xx+=1
+
+    if count==0: return True
+    else:
+        return int((float(n-count)/float(n))*100)
 
 
 def AnyToUnicode(input_str,coding):
@@ -1465,6 +1478,22 @@ def AnyToUnicode(input_str,coding):
     else:
         output_str=unicode(input_str,'gbk',errors='replace')
     return output_str
+
+def readPlugin():
+    global PluginList
+    PluginList={}
+    flist=glob.glob(cur_file_dir()+"/plugin/*.py")
+    i=0
+    for f in flist:
+        bname=os.path.basename(f)
+        try:
+            PluginList[bname]=imp.load_source(str(i),cur_file_dir()+"/plugin/"+bname)
+        except:
+            return False
+        i+=1
+
+    
+      
 
 
 def readConfigFile():
@@ -2392,7 +2421,7 @@ class ZipFileDialog(wx.Dialog):
 #                    if isinstance(line,str):
 #                        line=line.decode('gbk')
                     line+="/"
-                rarfile_list.append((line.replace("\\","/")).decode('GBK'))
+                rarfile_list.append((line.replace("plugi","/")).decode('GBK'))
             for rr in rarfile_list:
                 self.AddLeaf(rr,self.tree_ctrl_1)            
         self.image_list=wx.ImageList(16,16,mask=False,initialCount=5)
@@ -2570,6 +2599,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         wxglade_tmp_menu.Append(109, u"以往打开文件历史", u"显示曾经打开的所有文件列表", wx.ITEM_NORMAL)
         wxglade_tmp_menu.AppendSeparator()
         wxglade_tmp_menu.Append(110, u"搜索小说网站(&S)\tAlt+C", u"搜索小说网站", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(111, u"重新载入插件", u"重新载入插件", wx.ITEM_NORMAL)
         wxglade_tmp_menu.AppendSeparator()
         
         wxglade_tmp_menu.Append(106, u"选项(&O)\tAlt+O", u"程序的设置选项", wx.ITEM_NORMAL)
@@ -2615,6 +2645,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         # Tool Bar
         self.frame_1_toolbar = wx.ToolBar(self, -1, style=wx.TB_HORIZONTAL|wx.TB_FLAT|wx.TB_3DBUTTONS)
         self.SetToolBar(self.frame_1_toolbar)
+        self.frame_1_toolbar.AddLabelTool(110, u"搜索并下载", wx.Bitmap(GlobalConfig['IconDir']+u"/Network-32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"搜索并下载", u"搜索并下载")
         self.frame_1_toolbar.AddCheckLabelTool(52, u"打开文件侧边栏",wx.Bitmap(GlobalConfig['IconDir']+u"/DirSideBar.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, u"打开文件侧边栏", u"打开文件侧边栏")
         self.frame_1_toolbar.AddLabelTool(11, u"打开", wx.Bitmap(GlobalConfig['IconDir']+u"/file-open-32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"打开文件", u"打开文件列表")
         self.frame_1_toolbar.AddLabelTool(13, u"关闭", wx.Bitmap(GlobalConfig['IconDir']+u"/file-close-32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"关闭文件", u"关闭文件")
@@ -2651,6 +2682,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.Bind(wx.EVT_MENU, self.Menu108, id=108)
         self.Bind(wx.EVT_MENU, self.Menu109, id=109)
         self.Bind(wx.EVT_MENU, self.Menu110, id=110)
+        self.Bind(wx.EVT_MENU, self.Menu111, id=111)
         self.Bind(wx.EVT_MENU, self.Menu201, id=201)
         self.Bind(wx.EVT_MENU, self.Menu202, id=202)
         self.Bind(wx.EVT_MENU, self.Menu203, id=203)
@@ -2665,7 +2697,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.Bind(wx.EVT_MENU, self.Menu501, id=501)
         self.Bind(wx.EVT_MENU, self.Menu502, id=502) 
         self.Bind(wx.EVT_MENU, self.Menu503, id=503)  
-        self.Bind(wx.EVT_MENU, self.Tool44, id=504)     
+        self.Bind(wx.EVT_MENU, self.Tool44, id=504) 
+        self.Bind(wx.EVT_TOOL, self.Menu110, id=110)    
         self.Bind(wx.EVT_TOOL, self.Menu101, id=11)
         self.Bind(wx.EVT_TOOL, self.Menu103, id=13)
         self.Bind(wx.EVT_TOOL, self.Menu106, id=16)
@@ -2974,7 +3007,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         #dlg=FileHistoryDialog(self)
         self.FileHistoryDiag.ShowModal()
         self.FileHistoryDiag.Hide()
-        
+    def Menu111(self,event):
+        readPlugin()    
     def Menu110(self,event):
         dlg=Search_Web_Dialog(self)
         dlg.ShowModal()
@@ -3747,6 +3781,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                 break
 
     def OnClose(self, event):
+        global OnDirectSeenPage,GlobalConfig
         self.Hide()
         print "closing..."
         SqlCon.close()
@@ -3758,7 +3793,10 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         GlobalConfig['CurFColor']=self.text_ctrl_1.GetForegroundColour()
         GlobalConfig['CurBColor']=self.text_ctrl_1.GetBackgroundColour()
         GlobalConfig['HideToolbar']=not self.toolbar_visable
-        writeConfigFile(self.GetCurrentPos()[0])
+        if OnDirectSeenPage:
+            writeConfigFile(GlobalConfig['LastPos'])
+        else:
+            writeConfigFile(self.GetCurrentPos()[0])        
         event.Skip()
         
 
@@ -3829,7 +3867,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 
 
     def SaveBookDB(self):
-        global OnScreenFileList,BookDB
+        global OnScreenFileList,BookDB,OnDirectSeenPage,GlobalConfig
         pos=self.GetCurrentPos()[0]
 ##        tsize=0
 ##        i=0
@@ -3850,6 +3888,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             return        
         for bk in BookDB:
             if bk['key']==hash_id:
+                if OnDirectSeenPage: GlobalConfig['LastPos']=pos
                 bk['pos']=pos
                 return
         BookDB.insert(0,{'key':hash_id,'pos':pos})
@@ -4195,7 +4234,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             self.Bind(wx.EVT_MENU, self.OpenLastFile, id=i)
     
     def DownloadFinished(self,event):
-        global OnScreenFileList,GlobalConfig
+        global OnScreenFileList,GlobalConfig,OnDirectSeenPage
         if event.status=='nok':
             dlg = wx.MessageDialog(self, event.name+u'下载失败！',
                                u'出错了！',
@@ -4208,7 +4247,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             savefilename=GlobalConfig['defaultsavedir']+"/"+event.name.strip()+".txt"
             try:
                 fp=codecs.open(savefilename,encoding='GBK',mode='w')
-                ut=self.DT.bk.encode('GBK', 'ignore')
+                ut=event.bk.encode('GBK', 'ignore')
                 ut=unicode(ut, 'GBK', 'ignore')
                 fp.write(ut)
                 fp.close()
@@ -4234,10 +4273,11 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             rr=None
         dlg.Destroy()
         if rr==u'直接观看':
+            OnDirectSeenPage=True
             self.SaveBookDB()
-            self.text_ctrl_1.SetValue(self.DT.bk)
+            self.text_ctrl_1.SetValue(event.bk)
             OnScreenFileList=[]
-            OnScreenFileList.append((event.name,'',self.DT.bk.__len__()))
+            OnScreenFileList.append((event.name,'',event.bk.__len__()))
         else:
             if rr==u'另存为...':
                 wildcard = u"文本文件(UTF-8) (*.txt)|*.txt|"     \
@@ -4252,7 +4292,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                     if dlg.GetFilterIndex()==0:
                         try:
                             fp=codecs.open(savefilename,encoding='utf-8',mode='w')
-                            fp.write(self.DT.bk)
+                            fp.write(event.bk)
                             fp.close()
                         except:
                             err_dlg = wx.MessageDialog(None, u'写入文件：'+fname+u' 错误！',u"错误！",wx.OK|wx.ICON_ERROR)
@@ -4262,7 +4302,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                     else:
                         try:
                             fp=codecs.open(savefilename,encoding='GBK',mode='w')
-                            ut=self.DT.bk.encode('GBK', 'ignore')
+                            ut=event.bk.encode('GBK', 'ignore')
                             ut=unicode(ut, 'GBK', 'ignore')
                             fp.write(ut)
                             fp.close()
@@ -5746,6 +5786,7 @@ class Search_Web_Dialog(wx.Dialog):
         for f in flist:
             bname=os.path.basename(f)
             weblist.append(bname[:-3])
+        weblist.insert(0,u'搜索所有网站')
         self.sizer_1_staticbox = wx.StaticBox(self, -1, u"搜索小说网站")
         self.label_2 = wx.StaticText(self, -1, u"关键字：    ")
         self.text_ctrl_2 = wx.TextCtrl(self, -1, "")
@@ -5806,13 +5847,13 @@ class Search_Web_Dialog(wx.Dialog):
         self.Layout()
 
     def ShowDesc(self,desc):
-        myplugin=imp.load_source("plugin",cur_file_dir()+"/plugin/"+desc+".py")
+        global PluginList
         self.text_ctrl_1.SetValue(u'此插件无介绍。')
-        try:
-            self.text_ctrl_1.SetValue(myplugin.Description)
-        except:
-            pass
-        myplugin.Description=u'此插件无介绍。'
+        if desc<>u'搜索所有网站':
+            try:
+                self.text_ctrl_1.SetValue(PluginList[desc+'.py'].Description)
+            except:
+                pass
     
     
     def OnChosen(self,event):
@@ -5822,13 +5863,13 @@ class Search_Web_Dialog(wx.Dialog):
     
     
     def OnCancell(self, event):
-        self.Hide()
+        self.Destroy()
 
     def OnOK(self,event):
         self.sitename=self.choice_1.GetString(self.choice_1.GetSelection())
         self.keyword=self.text_ctrl_2.GetValue()
         GlobalConfig['lastwebsearchkeyword']=self.keyword
-        self.Hide()
+        self.Destroy()
 
     def OnKey(self,event):
         key=event.GetKeyCode()
@@ -5841,6 +5882,7 @@ class Search_Web_Dialog(wx.Dialog):
 
 class web_search_result_dialog(wx.Dialog):
     def __init__(self, parent,sitename,keyword):
+        global PluginList
         # begin wxGlade: web_search_result_dialog.__init__
         #kwds["style"] = wx.DEFAULT_DIALOG_STYLE
         wx.Dialog.__init__(self,parent,-1,style=wx.DEFAULT_DIALOG_STYLE)
@@ -5849,10 +5891,11 @@ class web_search_result_dialog(wx.Dialog):
         self.list_ctrl_1.InsertColumn(1,u'作者')
         self.list_ctrl_1.InsertColumn(2,u'状态')
         self.list_ctrl_1.InsertColumn(3,u'大小')
-        self.list_ctrl_1.InsertColumn(4,u'最后更新')        
+        self.list_ctrl_1.InsertColumn(4,u'最后更新') 
+        self.list_ctrl_1.InsertColumn(5,u'网站')       
         self.button_1 = wx.Button(self, -1, u" 下载(后台) ")
         self.button_2 = wx.Button(self, -1, u" 取消 ")
-        self.plugin=imp.load_source("plugin",cur_file_dir()+"/plugin/"+sitename+".py")
+
         dlg = wx.ProgressDialog(u"搜索中",
                        u"搜索进行中...",
                        maximum = 100,
@@ -5861,8 +5904,45 @@ class web_search_result_dialog(wx.Dialog):
                          wx.PD_SMOOTH
                          |wx.PD_AUTO_HIDE
                         )
-        self.rlist=None
-        self.rlist=self.plugin.GetSearchResults(keyword,useproxy=GlobalConfig['useproxy'],proxyserver=GlobalConfig['proxyserver'],proxyport=GlobalConfig['proxyport'],proxyuser=GlobalConfig['proxyuser'],proxypass=GlobalConfig['proxypass'])
+        self.rlist=[]
+        if sitename<>u'搜索所有网站':
+            
+            self.rlist=None
+            self.rlist=PluginList[sitename+'.py'].GetSearchResults(keyword,useproxy=GlobalConfig['useproxy'],proxyserver=GlobalConfig['proxyserver'],proxyport=GlobalConfig['proxyport'],proxyuser=GlobalConfig['proxyuser'],proxypass=GlobalConfig['proxypass'])
+            for x in self.rlist:
+                x['sitename']=sitename
+        else:
+            sr=[]
+            flist=glob.glob(cur_file_dir()+"/plugin/*.py")
+            for x in range(len(flist)):
+                sr.append(-1)
+            
+            i=0
+            crv=threading.Condition()
+            srm=[]
+            
+            for f in flist:
+                bname=os.path.basename(f)
+                
+                m=SearchThread(self,PluginList[bname],keyword,sr,i,crv)
+                srm.append(bname[:-3])
+                i+=1
+            isfinished=False
+            while isfinished<>True:
+                time.sleep(1)
+                isfinished=isfull(sr)
+                if isfinished==True: dlg.Update(100)
+                else:
+                    dlg.Update(isfinished)
+            self.rlist=[]
+            i=0
+        
+            for x in sr:
+                if x<>None or x<>-1:
+                    for m in x:m['sitename']=srm[i]
+                    self.rlist+=x
+                i+=1
+        
         dlg.Update(100)
         dlg.Destroy()
         if self.rlist<>None:
@@ -5873,6 +5953,7 @@ class web_search_result_dialog(wx.Dialog):
                 self.list_ctrl_1.SetStringItem(index,2,r['bookstatus'])
                 self.list_ctrl_1.SetStringItem(index,3,r['booksize'])
                 self.list_ctrl_1.SetStringItem(index,4,r['lastupdatetime'])
+                self.list_ctrl_1.SetStringItem(index,5,r['sitename'])
                 self.list_ctrl_1.SetItemData(index,i)                
 
                 i+=1
@@ -5912,18 +5993,23 @@ class web_search_result_dialog(wx.Dialog):
         self.Layout()
 
     def OnOK(self, event):
+        global PluginList
         item=self.list_ctrl_1.GetNextSelected(-1)
-##        dlg = wx.MessageDialog(self, u'后台下载中，请稍候！',
-##                               u'下载中',
-##                               wx.OK | wx.ICON_INFORMATION
-##                               )
-##        dlg.ShowModal()
-##        dlg.Destroy()
-        self.GetParent().DT=DownloadThread(self.GetParent(),self.rlist[self.list_ctrl_1.GetItemData(item)]['book_index_url'],self.plugin,self.list_ctrl_1.GetItemText(item))
-        self.Hide()
+        if item==-1:
+            dlg = wx.MessageDialog(self, u'没有任何小说被选中！',
+                                   u'错误',
+                                   wx.OK | wx.ICON_ERROR
+                                   )
+            dlg.ShowModal()
+            dlg.Destroy()
+            return
+        siten=self.list_ctrl_1.GetItem(item,5).GetText()
+        
+        self.GetParent().DT=DownloadThread(self.GetParent(),self.rlist[self.list_ctrl_1.GetItemData(item)]['book_index_url'],PluginList[siten+'.py'],self.list_ctrl_1.GetItemText(item))
+        self.Destroy()    
 
     def OnCancell(self, event):
-        self.Hide()
+        self.Destroy()
 
     def OnKey(self,event):
         key=event.GetKeyCode()
@@ -5949,11 +6035,28 @@ class DownloadThread:
         evt2=DownloadUpdateAlert(Value='',FieldNum=3)
         self.bk=self.plugin.GetBook(self.url,bkname=self.bookname,win=self.win,evt=evt2,useproxy=GlobalConfig['useproxy'],proxyserver=GlobalConfig['proxyserver'],proxyport=GlobalConfig['proxyport'],proxyuser=GlobalConfig['proxyuser'],proxypass=GlobalConfig['proxypass'],concurrent=GlobalConfig['numberofthreads'])        
         if self.bk<>None:
-            evt1=DownloadFinishedAlert(name=self.bookname,status='ok')
+            evt1=DownloadFinishedAlert(name=self.bookname,status='ok',bk=self.bk)
         else:
             evt1=DownloadFinishedAlert(name=self.bookname,status='nok')
         wx.PostEvent(self.win,evt1)
 
+class SearchThread(threading.Thread):
+    def __init__(self,win,plugin,keyword,sr,i,cv):
+        threading.Thread.__init__(self,group=None, target=None, name=None, args=(), kwargs={})
+        self.win=win
+        self.plugin=plugin
+        self.keyword=keyword
+        self.sr=sr
+        self.i=i
+        self.cv=cv
+        self.start()
+
+
+    def run(self):
+        global GlobalConfig
+        self.cv.acquire()
+        self.sr[self.i]=self.plugin.GetSearchResults(self.keyword,useproxy=GlobalConfig['useproxy'],proxyserver=GlobalConfig['proxyserver'],proxyport=GlobalConfig['proxyport'],proxyuser=GlobalConfig['proxyuser'],proxypass=GlobalConfig['proxypass'])
+        self.cv.release()
 
 
 class MyChoiceDialog(wx.Dialog):
@@ -6030,6 +6133,7 @@ if __name__ == "__main__":
         SqlCur=SqlCon.cursor()    
     app = wx.PySimpleApp(0)
     readConfigFile()
+    readPlugin()
     wx.InitAllImageHandlers()
     frame_1 = MyFrame(None, -1, "")
     app.SetTopWindow(frame_1)
