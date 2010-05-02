@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
 # LiteBook Plugin for www.xsxs520.com
@@ -22,8 +22,8 @@ base_url="http://www.xsxs520.com/"
 search_url="http://www.xsxs520.com/modules/article/search.php"
 tlock=thread.allocate_lock()
 Description=u"""支持的网站: http://www.xsxs520.com/
-插件版本：1.0
-发布时间: 2010-03-24
+插件版本：2.0
+发布时间: 2010-5-1
 简介：
     - 支持多线程下载
     - 最短搜索关键字为两个汉字
@@ -147,12 +147,16 @@ class DBIP(HTMLParser):
 class DSRP(HTMLParser):
     #this class is used to Decode Search Result Page from www.xsxs520.com
     #the decoded result is put into self.rlist
-    rlist=[]
-    prebegin=False
-    mybegin=False
-    pos=None
-    item={}
-    i=0
+
+    def __init__(self):
+        HTMLParser.__init__(self)
+        self.rlist=[]
+        self.prebegin=False
+        self.mybegin=False
+        self.pos=None
+        self.item={}
+        self.i=0
+
 
     def handle_starttag(self,tag,attrs):
         if self.mybegin:
@@ -256,7 +260,6 @@ def GetSearchResults(key,useproxy=False,proxyserver='',proxyport=0,proxyuser='',
         myp.feed(page)
     except:
         pass
-
     return myp.rlist
 
 def GetBook(url,bkname='',win=None,evt=None,useproxy=False,proxyserver='',proxyport=0,proxyuser='',proxypass='',concurrent=10):
