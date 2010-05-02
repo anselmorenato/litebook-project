@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
 
@@ -23,8 +23,8 @@ yilook_search_url="http://www.yi-look.com/search.php"
 
 
 Description=u"""支持的网站: http://www.yilook.com/
-插件版本：2.0
-发布时间: 2010-03-24
+插件版本：3.0
+发布时间: 2010-05-1
 简介：
     - 支持多线程下载
     - 空关键字也会返回结果
@@ -239,12 +239,16 @@ def get_search_result(url,key,useproxy=False,proxyserver='',proxyport=0,proxyuse
 class DSRP_yilook(HTMLParser):
     #this class is used to Decode Search Result Page from www.xsxs520.com
     #the decoded result is put into self.rlist
-    rlist=[]
-    mybegin=False
-    pos=None
-    item={}
-    begineval=False
-    i=0
+
+    def __init__(self):
+        HTMLParser.__init__(self)
+        self.rlist=[]
+        self.mybegin=False
+        self.pos=None
+        self.item={}
+        self.begineval=False
+        self.i=0
+
 
     def handle_starttag(self,tag,attrs):
         if self.mybegin:
@@ -298,8 +302,11 @@ class DSRP_yilook(HTMLParser):
 class DBIP_yilook(HTMLParser):
     #this class is used to Decode Book Index Page from www.yilook.com
     #the decoded result is put into self.rlist
-    rlist={}
-    srlist=[]
+
+    def __init__(self):
+        HTMLParser.__init__(self)
+        self.rlist={}
+        self.srlist=[]
 
     def handle_data(self,data):
         data=data.decode('GBK')
@@ -327,6 +334,7 @@ def GetSearchResults(key,useproxy=False,proxyserver='',proxyport=0,proxyuser='',
         return None
     myp=DSRP_yilook()
     myp.feed(page)
+
     return myp.rlist
 
 def GetBook(url,bkname='',win=None,evt=None,useproxy=False,proxyserver='',proxyport=0,proxyuser='',proxypass='',concurrent=10):
