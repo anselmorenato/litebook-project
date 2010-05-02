@@ -1,4 +1,4 @@
-#summary litebook在线搜索下载插件的开发指南(for 1.70beta2)
+#summary litebook在线搜索下载插件的开发指南(for 1.70beta3)
 
 <wiki:toc/>
 
@@ -46,6 +46,7 @@
 
 
 == 插件的安装 ==
-  * 将写好的python脚本文件(.py)拷贝到plugin的子目录下，主程序会自动扫描并载入。
+  * 将写好的python脚本文件(.py)拷贝到plugin的子目录下。
+  * 然后点击菜单"文件->重新读入插件"使其生效；或者重启litebook亦可。
   * 建议脚本的文件格式为：网站名.py
  
