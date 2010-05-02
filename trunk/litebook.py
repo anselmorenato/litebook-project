@@ -1479,6 +1479,20 @@ zh_dict={
 
 }
 
+
+def readPlugin():
+    global PluginList
+    PluginList={}
+    flist=glob.glob(os.path.dirname(sys.argv[0])+"\\plugin\\*.py")
+    i=0
+    for f in flist:
+        bname=os.path.basename(f)
+        try:
+            PluginList[bname]=imp.load_source(str(i),os.path.dirname(sys.argv[0])+"\\plugin\\"+bname)
+        except:
+            return False
+        i+=1
+
 def isfull(l):
     xx=0
     n=len(l)
@@ -1519,6 +1533,7 @@ def FtoJ(data):
 
 
 #some global var
+PluginList={}
 OnDirectSeenPage=False
 GlobalConfig={}
 OpenedFileList=[]
@@ -2738,6 +2753,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 
         wxglade_tmp_menu.AppendSeparator()
         wxglade_tmp_menu.Append(110, u"搜索小说网站(&S)\tAlt+C", u"搜索小说网站", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(111, u"重新载入插件", u"重新载入插件", wx.ITEM_NORMAL)
         wxglade_tmp_menu.AppendSeparator()
 
         wxglade_tmp_menu.Append(106, u"选项(&O)\tAlt+O", u"程序的设置选项", wx.ITEM_NORMAL)
@@ -2784,6 +2800,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 
         self.frame_1_toolbar = wx.ToolBar(self, -1, style=wx.TB_HORIZONTAL|wx.TB_FLAT|wx.TB_3DBUTTONS)
         self.SetToolBar(self.frame_1_toolbar)
+        self.frame_1_toolbar.AddLabelTool(110, u"搜索并下载", wx.Bitmap(GlobalConfig['IconDir']+u"\\network-32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"搜索并下载", u"搜索并下载")
         self.frame_1_toolbar.AddCheckLabelTool(52, u"打开文件侧边栏",wx.Bitmap(GlobalConfig['IconDir']+u"\\DirSideBar.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, u"打开文件侧边栏", u"打开文件侧边栏")
         self.frame_1_toolbar.AddLabelTool(11, u"打开", wx.Bitmap(GlobalConfig['IconDir']+u"\\file-open-32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"打开文件", u"打开文件列表")
         self.frame_1_toolbar.AddLabelTool(13, u"关闭", wx.Bitmap(GlobalConfig['IconDir']+u"\\file-close-32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"关闭文件", u"关闭文件")
@@ -2823,6 +2840,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.Bind(wx.EVT_MENU, self.Menu108, id=108)
         self.Bind(wx.EVT_MENU, self.Menu109, id=109)
         self.Bind(wx.EVT_MENU, self.Menu110, id=110)
+        self.Bind(wx.EVT_MENU, self.Menu111, id=111)
         self.Bind(wx.EVT_MENU, self.Menu201, id=201)
         self.Bind(wx.EVT_MENU, self.Menu202, id=202)
         self.Bind(wx.EVT_MENU, self.Menu203, id=203)
@@ -2838,6 +2856,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.Bind(wx.EVT_MENU, self.Menu502, id=502) # bind the sidebar menu to menu502()
         self.Bind(wx.EVT_MENU, self.Menu503, id=503)
         self.Bind(wx.EVT_MENU, self.Tool44, id=504)
+        self.Bind(wx.EVT_TOOL, self.Menu110, id=110)
         self.Bind(wx.EVT_TOOL, self.Menu101, id=11)
         self.Bind(wx.EVT_TOOL, self.Menu103, id=13)
         self.Bind(wx.EVT_TOOL, self.Menu106, id=16)
@@ -3145,7 +3164,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         #dlg=FileHistoryDialog(self)
         self.FileHistoryDiag.ShowModal()
         self.FileHistoryDiag.Hide()
-
+    def Menu111(self,event):
+        readPlugin()
     def Menu110(self,event):
         dlg=Search_Web_Dialog(self)
         dlg.ShowModal()
@@ -4395,7 +4415,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             self.SaveBookDB()
             self.text_ctrl_1.SetValue(event.bk)
             OnScreenFileList=[]
-            OnScreenFileList.append((event.name,'',self.DT.bk.__len__()))
+            OnScreenFileList.append((event.name,'',event.bk.__len__()))
         else:
             if rr==u'另存为...':
                 wildcard = u"文本文件(UTF-8) (*.txt)|*.txt|"     \
@@ -6031,14 +6051,13 @@ class Search_Web_Dialog(wx.Dialog):
         self.Layout()
 
     def ShowDesc(self,desc):
+        global PluginList
         self.text_ctrl_1.SetValue(u'此插件无介绍。')
         if desc<>u'搜索所有网站':
-            myplugin=imp.load_source("plugin",os.path.dirname(sys.argv[0])+"\\plugin\\"+desc+".py")
             try:
-                self.text_ctrl_1.SetValue(myplugin.Description)
+                self.text_ctrl_1.SetValue(PluginList[desc+'.py'].Description)
             except:
                 pass
-            #myplugin.Description=u'此插件无介绍。'
 
 
     def OnChosen(self,event):
@@ -6047,13 +6066,13 @@ class Search_Web_Dialog(wx.Dialog):
         self.ShowDesc(event.GetString())
 
     def OnCancell(self, event):
-        self.Hide()
+        self.Destroy()
 
     def OnOK(self,event):
         self.sitename=self.choice_1.GetString(self.choice_1.GetSelection())
         self.keyword=self.text_ctrl_2.GetValue()
         GlobalConfig['lastwebsearchkeyword']=self.keyword
-        self.Hide()
+        self.Destroy()
 
     def OnKey(self,event):
         key=event.GetKeyCode()
@@ -6066,6 +6085,7 @@ class Search_Web_Dialog(wx.Dialog):
 
 class web_search_result_dialog(wx.Dialog):
     def __init__(self, parent,sitename,keyword):
+        global PluginList
         # begin wxGlade: web_search_result_dialog.__init__
         #kwds["style"] = wx.DEFAULT_DIALOG_STYLE
         wx.Dialog.__init__(self,parent,-1,style=wx.DEFAULT_DIALOG_STYLE)
@@ -6086,10 +6106,11 @@ class web_search_result_dialog(wx.Dialog):
                          wx.PD_SMOOTH
                          |wx.PD_AUTO_HIDE
                         )
+        self.rlist=[]
         if sitename<>u'搜索所有网站':
-            self.plugin=imp.load_source("plugin",os.path.dirname(sys.argv[0])+"\\plugin\\"+sitename+".py")
+
             self.rlist=None
-            self.rlist=self.plugin.GetSearchResults(keyword,useproxy=GlobalConfig['useproxy'],proxyserver=GlobalConfig['proxyserver'],proxyport=GlobalConfig['proxyport'],proxyuser=GlobalConfig['proxyuser'],proxypass=GlobalConfig['proxypass'])
+            self.rlist=PluginList[sitename+'.py'].GetSearchResults(keyword,useproxy=GlobalConfig['useproxy'],proxyserver=GlobalConfig['proxyserver'],proxyport=GlobalConfig['proxyport'],proxyuser=GlobalConfig['proxyuser'],proxypass=GlobalConfig['proxypass'])
             for x in self.rlist:
                 x['sitename']=sitename
         else:
@@ -6103,8 +6124,8 @@ class web_search_result_dialog(wx.Dialog):
             srm=[]
             for f in flist:
                 bname=os.path.basename(f)
-                plugin=imp.load_source("plugin",os.path.dirname(sys.argv[0])+"\\plugin\\"+bname)
-                m=SearchThread(self,plugin,keyword,sr,i,crv)
+
+                m=SearchThread(self,PluginList[bname],keyword,sr,i,crv)
                 srm.append(bname[:-3])
                 i+=1
             isfinished=False
@@ -6170,6 +6191,7 @@ class web_search_result_dialog(wx.Dialog):
         self.Layout()
 
     def OnOK(self, event):
+        global PluginList
         item=self.list_ctrl_1.GetNextSelected(-1)
         if item==-1:
             dlg = wx.MessageDialog(self, u'没有任何小说被选中！',
@@ -6180,12 +6202,12 @@ class web_search_result_dialog(wx.Dialog):
             dlg.Destroy()
             return
         siten=self.list_ctrl_1.GetItem(item,5).GetText()
-        self.plugin=imp.load_source("plugin",os.path.dirname(sys.argv[0])+"\\plugin\\"+siten+".py")
-        self.GetParent().DT=DownloadThread(self.GetParent(),self.rlist[self.list_ctrl_1.GetItemData(item)]['book_index_url'],self.plugin,self.list_ctrl_1.GetItemText(item))
-        self.Hide()
+
+        self.GetParent().DT=DownloadThread(self.GetParent(),self.rlist[self.list_ctrl_1.GetItemData(item)]['book_index_url'],PluginList[siten+'.py'],self.list_ctrl_1.GetItemText(item))
+        self.Destroy()
 
     def OnCancell(self, event):
-        self.Hide()
+        self.Destroy()
 
     def OnKey(self,event):
         key=event.GetKeyCode()
@@ -6327,6 +6349,7 @@ if __name__ == "__main__":
 
     app = wx.PySimpleApp(0)
     readConfigFile()
+    readPlugin()
     wx.InitAllImageHandlers()
     frame_1 = MyFrame(None, -1, "")
     app.SetTopWindow(frame_1)
