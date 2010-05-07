@@ -7,8 +7,8 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{C271CABE-D1DE-46B3-A92B-2CFD5DE732D5}
 AppName=LiteBook
-AppVerName=LiteBook ver1.31
-OutputBaseFilename=LiteBook-v1.31_Win_setup
+AppVerName=LiteBook ver1.70 正式版
+OutputBaseFilename=LiteBook-v1.70final_Win_setup
 AppPublisher=Hu Jun
 AppPublisherURL=http://sites.google.com/site/litebooksite/
 AppSupportURL=http://sites.google.com/site/litebooksite/
@@ -27,15 +27,19 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "E:\litebook\tobuild\dist\litebook.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\litebook\tobuild\dist\python26.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\litebook\tobuild\dist\unrar.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\litebook\tobuild\dist\w9xpopen.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\litebook\tobuild\dist\litebook.exe.manifest"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\litebook\tobuild\dist\litebook.ico"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\litebook\tobuild\dist\LiteBook_Readme.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\litebook\tobuild\dist\icon\*"; DestDir: "{app}\icon"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "E:\litebook\tobuild\dist\lib\*"; DestDir: "{app}\lib"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "c:\hujun\litebook\建造\dist\litebook.exe"; DestDir: "{app}"; Flags: ignoreversion
+;Source: "c:\hujun\litebook\建造\dist\python26.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "c:\hujun\litebook\建造\dist\unrar.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "c:\hujun\litebook\建造\dist\w9xpopen.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "c:\hujun\litebook\建造\dist\litebook.exe.manifest"; DestDir: "{app}"; Flags: ignoreversion
+Source: "c:\hujun\litebook\建造\dist\litebook.ico"; DestDir: "{app}"; Flags: ignoreversion
+Source: "c:\hujun\litebook\建造\dist\LiteBook_Readme.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "c:\hujun\litebook\建造\dist\LiteBook_WhatsNew.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "c:\hujun\litebook\建造\dist\py.dat"; DestDir: "{app}"; Flags: ignoreversion
+Source: "c:\hujun\litebook\建造\dist\bh.dat"; DestDir: "{app}"; Flags: ignoreversion
+Source: "c:\hujun\litebook\建造\dist\icon\*"; DestDir: "{app}\icon"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "c:\hujun\litebook\建造\dist\lib\*"; DestDir: "{app}\lib"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "c:\hujun\litebook\建造\dist\plugin\*"; DestDir: "{app}\plugin"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "vcredist_x86.exe"; DestDir: "{tmp}"; Check: NeedInstallVC9SP1
 
 [Icons]

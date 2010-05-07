@@ -1,4 +1,4 @@
-﻿LiteBook for Windows ver1.70 Beta3 帮助
+﻿LiteBook for Windows ver1.70 帮助
 (c)2010 Hu Jun	
 
 
