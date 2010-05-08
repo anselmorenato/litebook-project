@@ -1567,7 +1567,7 @@ ThemeList=[]
 BookDB=[]
 Ticking=True
 SupportedFileTypes=['.zip','.txt','.rar','.umd','.jar','.epub']
-Version='1.70 正式版'
+Version='1.70 Final'
 I_Version=1.73  # this is used to check updated version
 SqlCon=None
 
@@ -1701,7 +1701,7 @@ def readConfigFile():
             GlobalConfig['DAUDF']=0
             GlobalConfig['lastwebsearchkeyword']=''
             GlobalConfig['defaultsavedir']=GlobalConfig['LastDir']
-            GlobalConfig['numberofthreads']=1
+            GlobalConfig['numberofthreads']=10
             GlobalConfig['lastweb']=''
             return
 
@@ -1766,7 +1766,7 @@ def readConfigFile():
     try:
         GlobalConfig['numberofthreads']=config.getint('settings','numberofthreads')
     except:
-        GlobalConfig['numberofthreads']=1
+        GlobalConfig['numberofthreads']=10
 
 
 
@@ -3830,7 +3830,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
     def OnChar2(self, event):
         key=event.GetKeyCode()
         if key==wx.WXK_TAB:
-            self.text_ctrl_2.Focus()
+            self.text_ctrl_2.SetFocus()
         else:
             event.Skip()
 
@@ -6405,8 +6405,8 @@ class cnsort:
     # 建立拼音辞典
         self.dic_py = dict()
         try:
-            f_py = open('py.dat',"r")
-            f_bh = open('bh.dat',"r")
+            f_py = open(os.path.dirname(AnyToUnicode(sys.argv[0]))+'\\py.dat',"r")
+            f_bh = open(os.path.dirname(AnyToUnicode(sys.argv[0]))+'\\bh.dat',"r")
         except:
             return None
         content_py = f_py.read()
