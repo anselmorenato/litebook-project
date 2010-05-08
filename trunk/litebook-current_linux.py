@@ -45,6 +45,7 @@
 # - fix lasopened files problem
 #
 #
+import platform
 import imp
 import urllib2
 import HTMLParser
@@ -1370,12 +1371,15 @@ BookMarkList=[]
 ThemeList=[]
 BookDB=[]
 Ticking=True
-Version='1.70 Beta3 LINUX'
-I_Version=1.72 # this is used to check updated version
+Version='1.70 Final LINUX'
+I_Version=1.73 # this is used to check updated version
 
 def cur_file_dir():
     #获取脚本路径
     path = sys.path[0]
+    if isinstance(path,str):
+        path=path.decode('utf-8')
+        
     #判断为脚本文件还是py2exe编译后的文件，如果是脚本文件，则返回的是脚本的目录，如果是编译后的文件，则返回的是编译后的文件路径
     if os.path.isdir(path):
         return path
@@ -1451,7 +1455,11 @@ def DetectFileCoding(filepath,type='txt',zipfilepath=''):
     else:
         return None
 
-
+def GetPint():
+    p=platform.architecture()
+    if p[0]=='32bit': return 'L'
+    else:
+        return 'I'
 
 def isfull(l):
     xx=0
@@ -1466,8 +1474,9 @@ def isfull(l):
         return int((float(n-count)/float(n))*100)
 
 
-def AnyToUnicode(input_str,coding):
+def AnyToUnicode(input_str,coding=None):
     """Convert any coding str into unicode str. this function should used with function DetectFileCoding"""
+    if isinstance(input_str,unicode): return input_str
     if coding<>None:
         if coding <> 'utf-8':
             if coding.lower()=='gb2312':
@@ -1486,8 +1495,10 @@ def readPlugin():
     i=0
     for f in flist:
         bname=os.path.basename(f)
+        fpath=cur_file_dir()+"/plugin/"+bname
+        fpath=fpath.encode('utf-8')
         try:
-            PluginList[bname]=imp.load_source(str(i),cur_file_dir()+"/plugin/"+bname)
+            PluginList[bname]=imp.load_source(str(i),fpath)
         except:
             return False
         i+=1
@@ -1501,10 +1512,10 @@ def readConfigFile():
     global GlobalConfig,OpenedFileList,BookMarkList,ThemeList,BookDB
     config = MyConfig()
     try:
-        ffp=codecs.open(unicode(os.environ['HOME'])+u"/.litebook.ini",encoding='utf-8',mode='r')
+        ffp=codecs.open(unicode(os.environ['HOME'],'utf-8')+u"/.litebook.ini",encoding='utf-8',mode='r')
         config.readfp(ffp)
     except:
-        GlobalConfig['LastDir']=os.environ['HOME']
+        GlobalConfig['LastDir']=os.environ['HOME'].decode('utf-8')
         GlobalConfig['IconDir']=cur_file_dir()+u"/icon"
         GlobalConfig['ConfigDir']=cur_file_dir()
         OpenedFileList=[]
@@ -1533,7 +1544,7 @@ def readConfigFile():
         GlobalConfig['DAUDF']=0
         GlobalConfig['lastwebsearchkeyword']=''
         GlobalConfig['defaultsavedir']=GlobalConfig['LastDir']
-        GlobalConfig['numberofthreads']=1
+        GlobalConfig['numberofthreads']=10
         GlobalConfig['lastweb']=''        
         
         return
@@ -1581,10 +1592,10 @@ def readConfigFile():
     try:
         GlobalConfig['LastDir']=config.get('settings','LastDir')
     except:
-        GlobalConfig['LastDir']=os.environ['HOME']
+        GlobalConfig['LastDir']=os.environ['HOME'].decode('utf-8')
 
     if GlobalConfig['LastDir'].strip()=='' or os.path.isdir(GlobalConfig['LastDir'])==False:
-        GlobalConfig['LastDir']=os.environ['HOME']
+        GlobalConfig['LastDir']=os.environ['HOME'].decode('utf-8')
 
     GlobalConfig['IconDir']=cur_file_dir()+u"/icon"
 
@@ -1595,7 +1606,7 @@ def readConfigFile():
     try:
         GlobalConfig['numberofthreads']=config.getint('settings','numberofthreads')
     except:
-        GlobalConfig['numberofthreads']=1    
+        GlobalConfig['numberofthreads']=10
 
     try:
         GlobalConfig['LoadLastFile']=config.getboolean('settings','LoadLastFile')
@@ -1741,6 +1752,7 @@ def readConfigFile():
                 os.remove(f)
             except:
                 return
+  
             
     #print os.path.abspath(GlobalConfig['IconDir'])
         
@@ -1822,7 +1834,7 @@ def writeConfigFile(lastpos):
 
     #write into litebook.ini
 #    try:
-    ConfigFile=codecs.open(unicode(os.environ['HOME'])+u'/.litebook.ini',encoding='utf-8',mode='w')
+    ConfigFile=codecs.open(unicode(os.environ['HOME'],'utf-8')+u'/.litebook.ini',encoding='utf-8',mode='w')
     config.write(ConfigFile)
     ConfigFile.close()
 #    except:
@@ -2129,7 +2141,7 @@ def umd_field_decode(fp,pos):
         while t_tag=='$':
             pos+=5
             fp.seek(pos,0)
-            content_len=struct.unpack('L',fp.read(4))[0]-9
+            content_len=struct.unpack(GetPint(),fp.read(4))[0]-9
 ##            print "content_len is:"+str(content_len)
             #content_len=192450
 
@@ -2217,7 +2229,7 @@ def umd_field_decode(fp,pos):
                             if m_tag==0x82:
                                 pos+=14
                                 fp.seek(pos,0)
-                                cover_len=struct.unpack('L',fp.read(4))[0]-9
+                                cover_len=struct.unpack(GetPint(),fp.read(4))[0]-9
                                 pos+=cover_len+4
                             else:
                                 if m_tag==0xb:
@@ -2228,7 +2240,7 @@ def umd_field_decode(fp,pos):
                                     while t_tag=='$':
                                          pos+=5
                                          fp.seek(pos,0)
-                                         content_len=struct.unpack('L',fp.read(4))[0]-9
+                                         content_len=struct.unpack(GetPint(),fp.read(4))[0]-9
         ##                                 print "content_len is:"+str(content_len)
                                          pos+=4
                                          fp.seek(pos,0)
@@ -2563,6 +2575,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.currentLine=0
         self.toolbar_visable=True     
         self.FileHistoryDiag=None   
+        self.cnsort=cnsort()
         # begin wxGlade: MyFrame.__init__
         kwds["style"] = wx.DEFAULT_FRAME_STYLE
         wx.Frame.__init__(self, *args, **kwds)
@@ -2572,6 +2585,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.window_1_pane_1 = wx.Panel(self.window_1, -1)
         self.list_ctrl_1 = wx.ListCtrl(self.window_1_pane_1, -1, style=wx.LC_REPORT)
         self.text_ctrl_1 = wx.TextCtrl(self.window_1_pane_2, -1, "", style=wx.TE_MULTILINE|wx.TE_READONLY|wx.TE_RICH2|wx.TE_BESTWRAP)
+        self.text_ctrl_2 = wx.TextCtrl(self.window_1_pane_1, -1, "",style=wx.TE_PROCESS_TAB|wx.TE_PROCESS_ENTER)
         
 
         # Menu Bar
@@ -2717,6 +2731,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         # end wxGlade
         self.Bind(wx.EVT_TOOL, self.Menu502, id=52)
         self.text_ctrl_1.Bind(wx.EVT_CHAR,self.OnChar)
+        self.text_ctrl_2.Bind(wx.EVT_CHAR,self.OnChar3)
+        self.list_ctrl_1.Bind(wx.EVT_CHAR,self.OnChar2)        
         self.Bind(wx.EVT_FIND, self.OnFind)
         self.Bind(wx.EVT_FIND_NEXT, self.OnFind)
         self.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
@@ -2732,7 +2748,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.Bind(wx.EVT_SPLITTER_DCLICK,self.OnSplitterDClick,self.window_1)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected,self.list_ctrl_1)
         self.Bind(wx.EVT_SIZE,self.onSize)
-        self.list_ctrl_1.Bind(wx.EVT_CHAR,self.OnDirChar)        
+        self.list_ctrl_1.Bind(wx.EVT_CHAR,self.OnDirChar)
+        self.Bind(wx.EVT_TEXT,self.SearchSidebar,self.text_ctrl_2)        
 #        self.text_ctrl_1.Bind(wx.EVT_MIDDLE_DCLICK,self.MyMouseMDC)
 #        self.text_ctrl_1.Bind(wx.EVT_RIGHT_DOWN,self.MyMouseRU)
 #        self.text_ctrl_1.Bind(wx.EVT_MOUSEWHEEL,self.MyMouseMW)
@@ -2875,7 +2892,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         sizer_1 = wx.BoxSizer(wx.HORIZONTAL)
         #Use splitwindow to add dir sidebar
         sizer_3 = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_2 = wx.BoxSizer(wx.VERTICAL)
+        sizer_2.Add(self.text_ctrl_2, 0, wx.EXPAND, 0)
         sizer_2.Add(self.list_ctrl_1, 1, wx.EXPAND, 0)
         self.window_1_pane_1.SetSizer(sizer_2)
         sizer_3.Add(self.text_ctrl_1, 1, wx.EXPAND, 0)
@@ -3662,7 +3680,22 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 
 
 
+    def OnChar3(self, event):
+        key=event.GetKeyCode()
+        if key==wx.WXK_RETURN or key==wx.WXK_TAB:
+            self.list_ctrl_1.SetFocus()
+##            self.list_ctrl_1.Select(self.list_ctrl_1.GetNextItem(-1))
+        else:
+            event.Skip()
 
+
+    def OnChar2(self, event):
+        key=event.GetKeyCode()
+        if key==wx.WXK_TAB:
+            self.text_ctrl_2.SetFocus()
+        else:
+            event.Skip()
+    
 
 
 
@@ -3999,6 +4032,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             self.LastDir=GlobalConfig['LastDir']
                 
         current_ext=os.path.splitext(GlobalConfig['LastDir'])[1].lower()
+        self.sideitemlist=[]
         self.list_ctrl_1.DeleteAllItems()
         if str(type(GlobalConfig['LastDir']))=='<type \'str\'>':
             GlobalConfig['LastDir']=unicode(GlobalConfig['LastDir'],'GBK','ignore')        
@@ -4013,6 +4047,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 #            self.list_ctrl_1.SetStringItem(index,2,Date_str)
             self.list_ctrl_1.SetItemData(index,index)
             self.itemDataMap[index]=('\x01'+u"..",)
+            self.sideitemlist.append({'py':u'..','item':self.list_ctrl_1.GetItem(index)})
             self.window_1_pane_1.SetFocus()
             self.list_ctrl_1.SetFocus()
             self.list_ctrl_1.Focus(0)
@@ -4023,6 +4058,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         index=self.list_ctrl_1.InsertImageStringItem(sys.maxint,"..",self.file_icon_list['folder'])
         self.list_ctrl_1.SetItemData(index,index)
         self.itemDataMap[index]=('\x01'+u"..",)
+        self.sideitemlist.append({'py':u'..','item':self.list_ctrl_1.GetItem(index)})
         i=0
         RPos=0
         bflist=[]
@@ -4041,6 +4077,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 #                self.list_ctrl_1.SetStringItem(index,2,Date_str)
 
                 self.list_ctrl_1.SetItemData(index,index)
+                self.sideitemlist.append({'py':self.cnsort.strToPYS(filename).lower(),'item':self.list_ctrl_1.GetItem(index)})
 #                Date_str=''
                 self.itemDataMap[index]=('\x01'+filename,)
                 bflist.remove(filename)
@@ -4081,8 +4118,10 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 #            self.list_ctrl_1.SetStringItem(index,2,Date_str)
             self.list_ctrl_1.SetItemData(index,index)
             self.itemDataMap[index]=(filename,)
+            self.sideitemlist.append({'py':self.cnsort.strToPYS(filename.lower()),'item':self.list_ctrl_1.GetItem(index)})
                 
-        
+        key=self.text_ctrl_2.GetValue()
+        self.UpdateSearchSidebar(key)        
         self.list_ctrl_1.Focus(RPos)
         self.list_ctrl_1.Select(RPos)
         self.list_ctrl_1.Refresh()
@@ -4312,6 +4351,25 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                             err_dlg.Destroy()
                             return False
                 dlg.Destroy()
+    def SearchSidebar(self,evt):
+        self.UpdateSearchSidebar(evt.GetString().strip())
+    
+    
+    def UpdateSearchSidebar(self,key):
+        py_key=key.strip()
+        rlist=[]
+        self.list_ctrl_1.DeleteAllItems()
+        if py_key<>'':
+            #print self.sideitemlist
+            for m in self.sideitemlist:
+                if m['py'].find(py_key)<>-1:
+                    rlist.append(m['item'])
+        else:
+            for m in self.sideitemlist:
+                rlist.append(m['item'])
+        for m in rlist:
+            self.list_ctrl_1.InsertItem(m)
+    
     
 class MyOpenFileDialog(wx.Dialog,wx.lib.mixins.listctrl.ColumnSorterMixin):
     global GlobalConfig
@@ -6111,13 +6169,152 @@ class MyChoiceDialog(wx.Dialog):
         else:
             event.Skip()
 
+class cnsort:
+    #use the code from henrysting@gmail.com, change a little bit
+    def __init__(self):
+    # 建立拼音辞典
+        self.dic_py = dict()
+        try:
+            f_py = open(cur_file_dir()+'/py.dat',"r")
+            f_bh = open(cur_file_dir()+'/bh.dat',"r")
+        except:
+            return None
+        content_py = f_py.read()
+        lines_py = content_py.split('\n')
+        n=len(lines_py)
+        for i in range(0,n-1):
+            word_py, mean_py = lines_py[i].split('\t', 1)#将line用\t进行分割，最多分一次变成两块，保存到word和mean中去
+            self.dic_py[word_py]=mean_py
+        f_py.close()
+
+        #建立笔画辞典
+        self.dic_bh = dict()
+        content_bh = f_bh.read()
+        lines_bh = content_bh.split('\n')
+        n=len(lines_bh)
+        for i in range(0,n-1):
+            word_bh, mean_bh = lines_bh[i].split('\t', 1)#将line用\t进行分割，最多分一次变成两块，保存到word和mean中去
+            self.dic_bh[word_bh]=mean_bh
+        f_bh.close()
+
+
+    # 辞典查找函数
+    def searchdict(self,dic,uchar):
+        if isinstance(uchar, str):
+            uchar = unicode(uchar,'utf-8')
+        if uchar >= u'\u4e00' and uchar<=u'\u9fa5':
+            value=dic.get(uchar.encode('utf-8'))
+            if value == None:
+                value = '*'
+        else:
+            value = uchar
+        if isinstance(value,str):
+            return value.decode('gbk')
+        else:
+            return value
+
+    #比较单个字符
+    def comp_char_PY(self,A,B):
+        if A==B:
+            return -1
+        pyA=self.searchdict(self.dic_py,A)
+        pyB=self.searchdict(self.dic_py,B)
+        if pyA > pyB:
+            return 1
+        elif pyA < pyB:
+            return 0
+        else:
+            bhA=eval(self.searchdict(self.dic_bh,A))
+            bhB=eval(self.searchdict(self.dic_bh,B))
+            if bhA > bhB:
+                return 1
+            elif bhA < bhB:
+                return 0
+            else:
+                return False
+
+    #比较字符串
+    def comp_char(self,A,B):
+        charA = A.decode("utf-8")
+        charB = B.decode("utf-8")
+        n=min(len(charA),len(charB))
+        i=0
+        while i < n:
+            dd=self.comp_char_PY(charA[i],charB[i])
+            if dd == -1:
+                i=i+1
+                if i==n:
+                    dd=len(charA)>len(charB)
+            else:
+                break
+        return dd
+
+    # 排序函数
+    def cnsort(self,nline):
+        n = len(nline)
+        lines="\n".join(nline)
+        for i in range(1, n):  # 插入法
+            tmp = nline[i]
+            j = i
+            while j > 0 and self.comp_char(nline[j-1],tmp):
+                nline[j] = nline[j-1]
+                j -= 1
+            nline[j] = tmp
+        return nline
+
+
+##    # 将一个字符串转换成一个含每个字拼音的list，字符串中的连续的ASCII会按原样放在一个值内
+##    def strToPYL(istr):
+##        global dic_py
+##        if isinstance(istr,str):
+##            istr=istr.decode('gbk')
+##            istr=istr.encode('utf-8')
+##            istr=istr.decode('utf-8')
+##        else:
+##            if isinstance(istr,unicode):
+##                istr=istr.encode('utf-8')
+##                istr=istr.decode('utf-8')
+##            else:
+##                return None
+##        lastasic=False
+##        py_list=[]
+##        for ichr in istr:
+##           if ord(ichr)<=255:
+##               if lastasic:
+##                   py_list[len(py_list)-1]+=ichr
+##               else:
+##                   py_list.append(ichr)
+##               lastasic=True
+##           else:
+##               py_list.append(searchdict(dic_py,ichr)[:-1])
+##               lastasic=False
+##        return py_list
+
+    # 将一个字符串转换成一个含每个字拼音的list，字符串中的连续的ASCII会按原样放在一个值内
+    def strToPYS(self,istr):
+        if isinstance(istr,str):
+            istr=istr.decode('gbk')
+            istr=istr.encode('utf-8')
+            istr=istr.decode('utf-8')
+        else:
+            if isinstance(istr,unicode):
+                istr=istr.encode('utf-8')
+                istr=istr.decode('utf-8')
+            else:
+                return None
+        rstr=''
+        for ichr in istr:
+           if ord(ichr)<=255:rstr+=ichr
+           else:
+               rstr+=self.searchdict(self.dic_py,ichr)[:-1]
+        return rstr
 
 
 if __name__ == "__main__":
     try:
-        SqlCon = sqlite3.connect(unicode(os.environ['HOME'])+u"/.litebook.bookdb")
+        SqlCon = sqlite3.connect(unicode(os.environ['HOME'],'utf-8')+u"/.litebook.bookdb")
     except:
-        print unicode(os.environ['HOME'])+u"/litebook.bookdb is not a sqlite file!" 
+        print unicode(os.environ['HOME'],'utf-8')+u"/litebook.bookdb is not a sqlite file!" 
     sqlstr="select * from book_history"
     try:
         SqlCon.execute(sqlstr)
