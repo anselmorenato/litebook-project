@@ -5,10 +5,12 @@ u"""LiteView is a read-only optimized wxpython text control, which provides
 following features:
 - 3 show modes: paper/book/vertical-book
 - configurable: background(picture)/font/underline/margin
-- render speed is independent of file size
+- render speed is almost independent of file size
 
 Author: Hu Jun
-Updated: 29/05/2010
+
+Updated: 19/11/2010
+- first beta,all major feature implemented
 
 """
 
@@ -58,8 +60,12 @@ class LiteView(wx.ScrolledWindow):
         self.show_mode='paper'
         self.buffer_bak=None
         self.TextForeground='black'
+        #render direction, used for self.GetHitPos()
+        self.RenderDirection=1
+        #defaul selection color
+        self.DefaultSelectionColor=wx.Color(255,  0,  0,128)
         #setup the default font
-        self.SetFont(wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL, 0, ""))
+        self.SetFont(wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.NORMAL, 0, ""))
         self.current_pos=0
         self.start_pos=0
         self.SelectedRange=[0,0]
@@ -86,6 +92,7 @@ class LiteView(wx.ScrolledWindow):
         ch_w=dc.GetTextExtent(u'我')[0]
         if self.show_mode=='paper':
             line=pos[1]/(self.linespace+ch_h)
+            if line>=len(self.curPageTextList):line=len(self.curPageTextList)-1
             pos_list=dc.GetPartialTextExtents(self.curPageTextList[line][0])
             i=0
             tlen=pos[0]-self.pagemargin
@@ -105,13 +112,115 @@ class LiteView(wx.ScrolledWindow):
                 x=self.pagemargin
             else:
                 x=self.pagemargin+dc.GetTextExtent(self.curPageTextList[line][0][:i])[0]
-            y=(ch_h+self.linespace)*line
+
+            if self.RenderDirection==1 or self.start_pos==0:
+                y=(ch_h+self.linespace)*line
+            else:
+                y=(ch_h+self.linespace)*line+1.5*self.linespace
+
             r['index']=self.start_pos+delta
             r['pos']=(x,y)
             r['line']=line
             r['row']=i
-##            return [(self.start_pos+delta),(x,y)]
             return r
+        elif self.show_mode=='book':
+            if self.RenderDirection==1:
+                if pos[0]<=self.maxWidth/2:
+                    line=pos[1]/(self.linespace+ch_h)
+                    tlen=pos[0]-self.bookmargin
+                else:
+                    line=pos[1]/(self.linespace+ch_h)+len(self.curPageTextList)/2
+                    tlen=pos[0]-self.centralmargin-self.maxWidth/2
+            else:
+                if pos[0]<=self.maxWidth/2:
+                    line=self.blockline-((self.maxHeight-pos[1])/(self.linespace+ch_h))-1
+                    tlen=pos[0]-self.bookmargin
+                else:
+                    line=self.blockline-((self.maxHeight-pos[1])/(self.linespace+ch_h))-1+len(self.curPageTextList)/2
+                    tlen=pos[0]-self.centralmargin-self.maxWidth/2
+            if line>=len(self.curPageTextList):line=len(self.curPageTextList)-1
+            pos_list=dc.GetPartialTextExtents(self.curPageTextList[line][0])
+            i=0
+            while i<len(pos_list):
+                if pos_list[i]>tlen:break
+                else:
+                    i+=1
+            if i>=len(self.curPageTextList[line][0]):
+                i=len(self.curPageTextList[line][0])
+            m=0
+            delta=0
+            while m<line:
+                delta+=len(self.curPageTextList[m][0])+self.curPageTextList[m][1]
+                m+=1
+            delta+=i
+            if pos[0]<=self.maxWidth/2:
+                if len(self.curPageTextList[line][0])==0:
+                    x=self.bookmargin
+                else:
+                    x=self.bookmargin+dc.GetTextExtent(self.curPageTextList[line][0][:i])[0]
+                if self.RenderDirection==1 or self.start_pos==0:
+                    y=(ch_h+self.linespace)*line
+                else:
+                    y=(ch_h+self.linespace)*line+self.linespace*1.5
+            else:
+                if len(self.curPageTextList[line][0])==0:
+                    x=self.centralmargin+self.maxWidth/2
+                else:
+                    x=self.centralmargin+self.maxWidth/2+dc.GetTextExtent(self.curPageTextList[line][0][:i])[0]
+                if self.RenderDirection==1 or self.start_pos==0:
+                    y=(ch_h+self.linespace)*(line-len(self.curPageTextList)/2)
+                else:
+                    y=(ch_h+self.linespace)*(line-len(self.curPageTextList)/2)+self.linespace*1.5
+            r['index']=self.start_pos+delta
+            r['pos']=(x,y)
+            r['line']=line
+            r['row']=i
+            return r
+        elif self.show_mode=='vertical_book':
+##            if self.RenderDirection==1:
+            newwidth=self.maxWidth/2-self.vbookmargin-self.centralmargin
+            newheight=self.maxHeight-2*self.vbookmargin
+            self.blockline=newwidth/(ch_w+self.vlinespace)
+            if pos[0]>self.maxWidth/2:
+                line=(self.maxWidth-self.vbookmargin-pos[0])/(ch_w+self.vlinespace)+1
+            else:
+                line=(self.maxWidth/2-self.centralmargin-2*ch_w-pos[0])/(ch_w+self.vlinespace)+2+self.blockline
+            if line>=len(self.curPageTextList):line=len(self.curPageTextList)-1
+
+            tlen=pos[1]-self.vbookmargin
+            if tlen<0:tlen=0
+            ti=tlen/(ch_h+2)
+            if ti>=len(self.curPageTextList[line][0]):ti=len(self.curPageTextList[line][0])
+            m=0
+            delta=0
+            while m<line:
+                delta+=len(self.curPageTextList[m][0])+self.curPageTextList[m][1]
+                m+=1
+            delta+=ti
+            m=0
+            y=ti*(ch_h+2)+self.vbookmargin
+            if line<=self.blockline:
+                x=self.maxWidth-self.vbookmargin-line*(ch_w+self.vlinespace/2+self.vlinespace/2)-self.vlinespace/3
+            else:
+                x=(self.maxWidth/2)-(self.centralmargin/2)-(line-self.blockline)*(ch_w+self.vlinespace/2+self.vlinespace/2)-ch_w
+
+
+##            else:
+##                #if direction == -1
+##                none
+
+
+            r['index']=self.start_pos+delta
+            #print self.Value[r['index']:r['index']+3]
+            r['pos']=(x,y)
+            r['line']=line
+            r['row']=ti
+            print "line-1 is",line
+            v1=r['index']
+            print "value is ", self.Value[v1:v1+3]
+            print "x is",x
+            return r
+
 
     def GenSelectColor(self):
         """返回选择文字时候被选择文字的颜色"""
@@ -127,9 +236,6 @@ class LiteView(wx.ScrolledWindow):
             newr=(510-oldr-bgr)/2
             newg=(510-oldg-bgg)/2
             newb=(510-oldb-bgb)/2
-##            print 'old color is ',oldr,oldg,oldb
-##            print 'bg color is ',bgr,bgg,bgb
-##            print 'new color is ',newr,newg,newb
             if oldr==0: oldr=1
             if oldg==0: oldg=1
             if oldb==0: oldb=1
@@ -137,9 +243,9 @@ class LiteView(wx.ScrolledWindow):
             if bgg==0:bgg=1
             if bgb==0:bgb=1
             if (float(oldg)/float(oldr)<0.5 and float(oldb)/float(oldr)<0.5) or (float(bgg)/float(bgr)<0.5 and float(bgb)/float(bgr)<0.5):
-                return (wx.Color(newr,newg,newb,0))
+                return (wx.Color(newr,newg,newb,128))
             else:
-                return (wx.NamedColor('red'))
+                return self.DefaultSelectionColor
         else:
             dc = wx.MemoryDC( )
             dc.SelectObject( self.bg_buff)
@@ -170,63 +276,254 @@ class LiteView(wx.ScrolledWindow):
             if g==0: g=1
             if b==0: b=1
             if (float(oldg)/float(oldr)<0.5 and float(oldb)/float(oldr)<0.5) or (float(g)/float(r)<0.5 and float(b)/float(r)<0.5):
-                return (wx.Color(newr,newg,newb,0))
+                return (wx.Color(newr,newg,newb,128))
             else:
-                return (wx.NamedColor('red'))
+                return self.DefaultSelectionColor
 
 
 
     def DrawSelection(self,dc,r1,r2):
         dc.SetFont(self.GetFont())
+
         ch_h=dc.GetCharHeight()
+        ch_w=dc.GetTextExtent(u'我')[0]
         newc=self.GenSelectColor()
+        self.blockline=self.maxHeight/(ch_h+self.linespace)
         dc.SetTextForeground(newc)
         dc.BeginDrawing()
-        if r1['pos'][1]==r2['pos'][1]:
-            #如果在同一行
-            dc.SetTextForeground(newc)
-            y=r1['pos'][1]
-            if r1['pos'][0]>r2['pos'][0]:
-                x1=r2['pos'][0]
-                x2=r1['pos'][0]
-                i1=r2['index']
-                i2=r1['index']
+        gc = wx.GraphicsContext.Create(dc)
+        gc.SetBrush(wx.Brush(newc))
+        if self.show_mode=='paper':
+            if r1['pos'][1]==r2['pos'][1]:
+                #如果在同一行
+                dc.SetTextForeground(newc)
+                y=r1['pos'][1]
+                if r1['pos'][0]>r2['pos'][0]:
+                    x1=r2['pos'][0]
+                    x2=r1['pos'][0]
+                    i1=r2['index']
+                    i2=r1['index']
+                else:
+                    x2=r2['pos'][0]
+                    x1=r1['pos'][0]
+                    i2=r2['index']
+                    i1=r1['index']
+                gc.DrawRectangle(x1,y,(x2-x1),ch_h)
             else:
-                x2=r2['pos'][0]
-                x1=r1['pos'][0]
-                i2=r2['index']
-                i1=r1['index']
-            dc.DrawText(self.Value[i1:i2],x1,y)
-        else:
-            if r1['pos'][1]>r2['pos'][1]:
-                y2=r1['pos'][1]
-                x2=r1['pos'][0]
-                l2=r1['line']
-                w2=r1['row']
-                y1=r2['pos'][1]
-                x1=r2['pos'][0]
-                l1=r2['line']
-                w1=r2['row']
-            elif r1['pos'][1]<r2['pos'][1]:
-                y1=r1['pos'][1]
-                x1=r1['pos'][0]
-                l1=r1['line']
-                w1=r1['row']
-                y2=r2['pos'][1]
-                x2=r2['pos'][0]
-                l2=r2['line']
-                w2=r2['row']
-            line=l1
-            pos1=w1
-            x=x1
-            y=y1
-            while line<l2:
-                dc.DrawText(self.curPageTextList[line][0][pos1:],x,y)
-                x=self.pagemargin
-                y+=self.linespace+ch_h
-                pos1=0
-                line+=1
-            dc.DrawText(self.curPageTextList[line][0][:w2],self.pagemargin,y)
+                if r1['pos'][1]>r2['pos'][1]:
+                    y2=r1['pos'][1]
+                    x2=r1['pos'][0]
+                    l2=r1['line']
+                    w2=r1['row']
+                    y1=r2['pos'][1]
+                    x1=r2['pos'][0]
+                    l1=r2['line']
+                    w1=r2['row']
+                elif r1['pos'][1]<r2['pos'][1]:
+                    y1=r1['pos'][1]
+                    x1=r1['pos'][0]
+                    l1=r1['line']
+                    w1=r1['row']
+                    y2=r2['pos'][1]
+                    x2=r2['pos'][0]
+                    l2=r2['line']
+                    w2=r2['row']
+                gc.DrawRectangle(x1,y1,self.maxWidth-self.pagemargin-x1,ch_h)
+                line=l1
+                y=y1+ch_h+self.linespace
+                while line<l2-1:
+                    gc.DrawRectangle(self.pagemargin,y,self.maxWidth-2*self.pagemargin,ch_h)
+                    line+=1
+                    y+=ch_h+self.linespace
+                gc.DrawRectangle(self.pagemargin,y,x2-self.pagemargin,ch_h)
+
+
+        elif self.show_mode=='book':
+            if r1['pos'][1]==r2['pos'][1] \
+                and ((r1['pos'][0]<=self.maxWidth/2 and r2['pos'][0]<=self.maxWidth/2) \
+                or (r1['pos'][0]>self.maxWidth/2 and r2['pos'][0]>self.maxWidth/2)):
+                    dc.SetTextForeground(newc)
+                    y=r1['pos'][1]
+                    if r1['pos'][0]>r2['pos'][0]:
+                        x1=r2['pos'][0]
+                        x2=r1['pos'][0]
+                        i1=r2['index']
+                        i2=r1['index']
+                    else:
+                        x2=r2['pos'][0]
+                        x1=r1['pos'][0]
+                        i2=r2['index']
+                        i1=r1['index']
+                    gc.DrawRectangle(x1,y,(x2-x1),ch_h)
+            else:
+                if r1['index']<r2['index']:
+                    y1=r1['pos'][1]
+                    x1=r1['pos'][0]
+                    l1=r1['line']
+                    w1=r1['row']
+                    i1=r1['index']
+                    i2=r2['index']
+                    y2=r2['pos'][1]
+                    x2=r2['pos'][0]
+                    l2=r2['line']
+                    w2=r2['row']
+
+                else:
+                    y2=r1['pos'][1]
+                    x2=r1['pos'][0]
+                    l2=r1['line']
+                    w2=r1['row']
+                    i1=r2['index']
+                    i2=r1['index']
+
+                    y1=r2['pos'][1]
+                    x1=r2['pos'][0]
+                    l1=r2['line']
+                    w1=r2['row']
+
+                #draw book mode
+                #draw left page
+                if l1<self.blockline:
+                    gc.DrawRectangle(x1,y1,self.maxWidth/2-self.centralmargin/2-x1,ch_h)
+                    line=l1
+                    y=y1+ch_h+self.linespace
+                    if l2<=self.blockline:
+                        tline=l2-1
+                    else:
+                        tline=self.blockline-1
+                    while line<tline:
+                        gc.DrawRectangle(self.bookmargin,y,self.maxWidth/2-self.centralmargin/2-self.bookmargin,ch_h)
+                        line+=1
+                        y+=ch_h+self.linespace
+                    if l2<=self.blockline:
+                        gc.DrawRectangle(self.bookmargin,y,x2-self.bookmargin,ch_h)
+                #draw right page
+                if l2>=self.blockline:
+                    y=0
+                    if l1>=self.blockline:
+                        y=y1
+                        gc.DrawRectangle(x1,y,self.maxWidth-self.bookmargin-x1,ch_h)
+                        line=l1
+                        y+=self.linespace+ch_h
+                        while line<l2-1:
+                            gc.DrawRectangle(self.maxWidth/2+self.centralmargin/2,y,self.maxWidth-(self.maxWidth/2+self.centralmargin/2+self.bookmargin),ch_h)
+                            line+=1
+                            y+=ch_h+self.linespace
+                        gc.DrawRectangle(self.maxWidth/2+self.centralmargin/2,y,x2-(self.maxWidth/2+self.centralmargin/2),ch_h)
+                    else:
+                        if l2==line+1:
+                            gc.DrawRectangle(self.maxWidth/2+self.centralmargin/2,y,x2-(self.maxWidth/2+self.centralmargin/2),ch_h)
+                            y+=self.linespace+ch_h
+                        else:
+
+                            if l1>self.blockline:
+                                tt=l2
+                            else:
+                                tt=l2-1
+                            while line<tt:
+                                gc.DrawRectangle(self.maxWidth/2+self.centralmargin/2,y,self.maxWidth-(self.maxWidth/2+self.centralmargin/2+self.bookmargin),ch_h)
+                                line+=1
+                                y+=ch_h+self.linespace
+                            gc.DrawRectangle(self.maxWidth/2+self.centralmargin/2,y,x2-(self.maxWidth/2+self.centralmargin/2),ch_h)
+
+        elif self.show_mode=='vertical_book':
+            newwidth=self.maxWidth/2-self.vbookmargin-self.centralmargin
+            newheight=self.maxHeight-2*self.vbookmargin
+            self.blockline=newwidth/(ch_w+self.vlinespace)
+            if r1['pos'][0]==r2['pos'][0]:
+                if r1['pos'][1]<r2['pos'][1]:
+                    x1=r1['pos'][0]
+                    x2=r2['pos'][0]
+                    y1=r1['pos'][1]
+                    y2=r2['pos'][1]
+                else:
+                    x1=r2['pos'][0]
+                    x2=r1['pos'][0]
+                    y1=r2['pos'][1]
+                    y2=r1['pos'][1]
+                bar_wid=ch_w+self.vlinespace/2
+                gc.DrawRectangle(x1,y1,bar_wid,y2-y1)
+            else:
+                bar_wid=ch_w+self.vlinespace/2
+                if r1['pos'][0]>r2['pos'][0]:
+                    x1=r1['pos'][0]
+                    x2=r2['pos'][0]
+                    y1=r1['pos'][1]
+                    y2=r2['pos'][1]
+                    l1=r1['line']
+                    l2=r2['line']
+                    i1=r1['row']
+                    i2=r2['row']
+                    v1=r1['index']
+                    v2=r2['index']
+                else:
+                    x1=r2['pos'][0]
+                    x2=r1['pos'][0]
+                    y1=r2['pos'][1]
+                    y2=r1['pos'][1]
+                    l1=r2['line']
+                    l2=r1['line']
+                    i1=r2['row']
+                    i2=r1['row']
+                    v1=r2['index']
+                    v2=r1['index']
+
+                #draw right page
+                if l1<=self.blockline:
+                    print "drawing right"
+                    line=l1
+                    gc.DrawRectangle(x1,y1,bar_wid,self.maxHeight-self.vbookmargin-y1)
+                    line+=1
+                    x=x1-(ch_w+self.vlinespace/2+self.vlinespace/2)
+                    y=self.vbookmargin
+                    if self.blockline>l2:
+                        tline=l2
+                    else:
+                        tline=self.blockline
+                    while line<tline:
+                        gc.DrawRectangle(x,y,bar_wid,self.maxHeight-2*self.vbookmargin)
+                        line+=1
+                        x-=(ch_w+self.vlinespace/2+self.vlinespace/2)
+                    if tline==l2:
+                        gc.DrawRectangle(x,y,bar_wid,(ch_h+2)*i2)
+                    else:
+                        gc.DrawRectangle(x,y,bar_wid,self.maxHeight-2*self.vbookmargin)
+                #draw left page
+                if l2>self.blockline:
+                    if l1>self.blockline:
+                        print "drawing left only"
+                        line=l1
+                        gc.DrawRectangle(x1,y1,bar_wid,self.maxHeight-self.vbookmargin-y1)
+                        line+=1
+                        x=x1-(ch_w+self.vlinespace/2+self.vlinespace/2)
+                        y=self.vbookmargin
+                        while line<l2:
+                            gc.DrawRectangle(x,y,bar_wid,self.maxHeight-2*self.vbookmargin)
+                            line+=1
+                            x-=(ch_w+self.vlinespace/2+self.vlinespace/2)
+                        gc.DrawRectangle(x,y,bar_wid,(ch_h+2)*i2)
+                    else:
+                        print "left goon"
+                        line=self.blockline
+                        x=self.maxWidth/2-self.centralmargin-2*ch_w
+                        y=self.vbookmargin
+                        while line<l2-1:
+                            gc.DrawRectangle(x,y,bar_wid,self.maxHeight-2*self.vbookmargin)
+                            line+=1
+                            x-=(ch_w+self.vlinespace/2+self.vlinespace/2)
+                        gc.DrawRectangle(x,y,bar_wid,(ch_h+2)*i2)
+
+
+
+
+
+
+
+
+
+
+
+
         dc.EndDrawing()
 
 
@@ -241,6 +538,7 @@ class LiteView(wx.ScrolledWindow):
                 dc.EndDrawing()
             return
         if evt.Dragging():
+            print "I am dragging"
             current_mouse_pos=evt.GetPositionTuple()
             if current_mouse_pos==self.LastMousePos:return
             else:
@@ -602,16 +900,20 @@ class LiteView(wx.ScrolledWindow):
 
     def ShowPos(self,direction=1):
         """从指定位置开始，画出一页的文本"""
-
         self.isdirty=False
+##        if self.start_pos<0: self.start_pos=0
         if self.Value==None:
             return
         if direction==1:
             if self.current_pos>=self.ValueCharCount: return
         else:
-            if self.start_pos==0:return
+            if self.start_pos<=0:
+##                self.start_pos=0
+                return
         if direction==1:
             if self.current_pos>=len(self.Value):return
+
+        self.RenderDirection=direction
         dc=wx.MemoryDC()
         dc.SetFont(self.GetFont())
 
@@ -652,6 +954,7 @@ class LiteView(wx.ScrolledWindow):
             cur_x=0
             self.curPageTextList=[]
             if direction==1:
+
                 if cur_pos+maxcount<len(self.Value):
                     tmptxt=self.Value[cur_pos:cur_pos+maxcount]
                 else:
@@ -709,11 +1012,10 @@ class LiteView(wx.ScrolledWindow):
                         if line==len(ptxtlist)-1:break
                         h+=ch_h+self.linespace
                         line+=1
-                    self.start_pos=0
+                    self.start_pos=delta
                     self.current_pos=delta
-                    dc.EndDrawing()
-                    return
                 else:
+                    delta=0
                     while line>tlen :
                         dc.DrawText(ptxtlist[line][0],self.pagemargin,h)
                         if self.under_line:
@@ -728,6 +1030,7 @@ class LiteView(wx.ScrolledWindow):
                         line-=1
 
                 self.current_pos=self.start_pos
+
                 self.start_pos-=delta
                 i=len(elist)-1
                 while i>=0:
@@ -756,29 +1059,29 @@ class LiteView(wx.ScrolledWindow):
                         oldpen=dc.GetPen()
                         newpen=wx.Pen(self.under_line_color,style=self.under_line_style)
                         dc.SetPen(newpen)
-                        dc.DrawLine(self.bookmargin,h+ch_h+2,self.maxWidth/2-self.centralmargin,h+ch_h+2)
+                        dc.DrawLine(self.bookmargin,h+ch_h+2,self.maxWidth-self.bookmargin,h+ch_h+2)
                         dc.SetPen(oldpen)
                     delta+=len(ptxtlist[line][0])+ptxtlist[line][1]
                     if line==len(ptxtlist)-1:break
                     h+=ch_h+self.linespace
                     line+=1
                 #draw right page
-                h=0
-                newx=self.maxWidth/2+self.centralmargin
-                while line<2*self.blockline:
-
-                    dc.DrawText(ptxtlist[line][0],newx,h)
-                    self.curPageTextList.append(ptxtlist[line])
-                    if self.under_line:
-                        oldpen=dc.GetPen()
-                        newpen=wx.Pen(self.under_line_color,style=self.under_line_style)
-                        dc.SetPen(newpen)
-                        dc.DrawLine(self.maxWidth/2+self.centralmargin,h+ch_h+2,self.maxWidth-self.bookmargin,h+ch_h+2)
-                        dc.SetPen(oldpen)
-                    delta+=len(ptxtlist[line][0])+ptxtlist[line][1]
-                    if line==len(ptxtlist)-1:break
-                    h+=ch_h+self.linespace
-                    line+=1
+                if line>=self.blockline:
+                    h=0
+                    newx=self.maxWidth/2+self.centralmargin
+                    while line<2*self.blockline:
+                        dc.DrawText(ptxtlist[line][0],newx,h)
+                        self.curPageTextList.append(ptxtlist[line])
+    ##                    if self.under_line:
+    ##                        oldpen=dc.GetPen()
+    ##                        newpen=wx.Pen(self.under_line_color,style=self.under_line_style)
+    ##                        dc.SetPen(newpen)
+    ##                        dc.DrawLine(self.maxWidth/2+self.centralmargin,h+ch_h+2,self.maxWidth-self.bookmargin,h+ch_h+2)
+    ##                        dc.SetPen(oldpen)
+                        delta+=len(ptxtlist[line][0])+ptxtlist[line][1]
+                        if line==len(ptxtlist)-1:break
+                        h+=ch_h+self.linespace
+                        line+=1
                 self.start_pos=self.current_pos
                 self.current_pos+=delta
 
@@ -822,21 +1125,24 @@ class LiteView(wx.ScrolledWindow):
                     while line<2*self.blockline:
                         dc.DrawText(ptxtlist[line][0],newx,h)
                         self.curPageTextList.append(ptxtlist[line])
-                        if self.under_line:
-                            oldpen=dc.GetPen()
-                            newpen=wx.Pen(self.under_line_color,style=self.under_line_style)
-                            dc.SetPen(newpen)
-                            dc.DrawLine(self.maxWidth/2+self.centralmargin,h+ch_h+2,self.maxWidth-self.bookmargin,h+ch_h+2)
-                            dc.SetPen(oldpen)
+##                        if self.under_line:
+##                            oldpen=dc.GetPen()
+##                            print "i am e"
+##                            #newpen=wx.Pen(self.under_line_color,style=self.under_line_style)
+##                            print "style is ",self.under_line_style
+##                            print "dot is ",wx.DOT
+##                            print "newpen sty is ",newpen.GetStyle()
+##                            dc.SetPen(newpen)
+##                            dc.DrawLine(self.maxWidth/2+self.centralmargin,h+ch_h+2,self.maxWidth-self.bookmargin,h+ch_h+2)
+##                            dc.SetPen(oldpen)
                         delta+=len(ptxtlist[line][0])+ptxtlist[line][1]
                         if line==len(ptxtlist)-1:break
                         h+=ch_h+self.linespace
                         line+=1
-                    self.start_pos=0
+                    self.start_pos=delta
                     self.current_pos=delta
-                    dc.EndDrawing()
-                    return
                 else:
+                    elist_right=[]
                     line=tlen+self.blockline
                     #draw left page
                     while line>tlen:
@@ -857,13 +1163,13 @@ class LiteView(wx.ScrolledWindow):
                     line=len(ptxtlist)-1
                     while line>tlen+self.blockline:
                         dc.DrawText(ptxtlist[line][0],newx,h)
-                        if self.under_line:
-                            oldpen=dc.GetPen()
-                            newpen=wx.Pen(self.under_line_color,style=self.under_line_style)
-                            dc.SetPen(newpen)
-                            dc.DrawLine(self.pagemargin,h+ch_h+2,self.maxWidth-self.pagemargin,h+ch_h+2)
-                            dc.SetPen(oldpen)
-                        elist.append(ptxtlist[line])
+##                        if self.under_line:
+##                            oldpen=dc.GetPen()
+##                            newpen=wx.Pen(self.under_line_color,style=self.under_line_style)
+##                            dc.SetPen(newpen)
+##                            dc.DrawLine(self.pagemargin,h+ch_h+2,self.maxWidth-self.pagemargin,h+ch_h+2)
+##                            dc.SetPen(oldpen)
+                        elist_right.append(ptxtlist[line])
                         delta+=len(ptxtlist[line][0])+ptxtlist[line][1]
                         h-=(ch_h+self.linespace)
                         line-=1
@@ -874,9 +1180,16 @@ class LiteView(wx.ScrolledWindow):
                 while i>=0:
                     self.curPageTextList.append(elist[i])
                     i-=1
+                if self.RenderDirection==-1 & self.start_pos<>0:
+                    i=len(elist_right)-1
+                    while i>=0:
+                        self.curPageTextList.append(elist_right[i])
+                        i-=1
+
         elif self.show_mode=='vertical_book':
             #draw vertical book
             ch_w=dc.GetTextExtent(u'我')[0]
+            print "show ch_w is ",ch_w
             h=0
             cur_pos=self.current_pos
             cur_x=0
@@ -898,6 +1211,7 @@ class LiteView(wx.ScrolledWindow):
                 x=self.maxWidth-self.vbookmargin
                 while line<=self.blockline:
                     y=self.vbookmargin
+                    print "i am drawing at x,",x
                     for chh in ptxtlist[line][0]:
                         dc.DrawText(chh,x,y)
                         y+=(ch_h+2)
@@ -914,24 +1228,25 @@ class LiteView(wx.ScrolledWindow):
                     if line==len(ptxtlist)-1:break
                     line+=1
                 #draw left page
-                x=self.maxWidth/2-self.centralmargin-2*ch_w
-                while line<=2*self.blockline:
-                    y=self.vbookmargin
-                    for chh in ptxtlist[line][0]:
-                        dc.DrawText(chh,x,y)
-                        y+=(ch_h+2)
-                    x-=(self.vlinespace/2)
-                    self.curPageTextList.append(ptxtlist[line])
-                    if self.under_line:
-                        oldpen=dc.GetPen()
-                        newpen=wx.Pen(self.under_line_color,style=self.under_line_style)
-                        dc.SetPen(newpen)
-                        dc.DrawLine(x,self.vbookmargin,x,self.maxHeight-self.vbookmargin)
-                        dc.SetPen(oldpen)
-                    x-=(ch_w+self.vlinespace/2)
-                    delta+=len(ptxtlist[line][0])+ptxtlist[line][1]
-                    if line==len(ptxtlist)-1:break
-                    line+=1
+                if line>self.blockline:
+                    x=self.maxWidth/2-self.centralmargin-2*ch_w
+                    while line<=2*self.blockline:
+                        y=self.vbookmargin
+                        for chh in ptxtlist[line][0]:
+                            dc.DrawText(chh,x,y)
+                            y+=(ch_h+2)
+                        x-=(self.vlinespace/2)
+                        self.curPageTextList.append(ptxtlist[line])
+                        if self.under_line:
+                            oldpen=dc.GetPen()
+                            newpen=wx.Pen(self.under_line_color,style=self.under_line_style)
+                            dc.SetPen(newpen)
+                            dc.DrawLine(x,self.vbookmargin,x,self.maxHeight-self.vbookmargin)
+                            dc.SetPen(oldpen)
+                        x-=(ch_w+self.vlinespace/2)
+                        delta+=len(ptxtlist[line][0])+ptxtlist[line][1]
+                        if line==len(ptxtlist)-1:break
+                        line+=1
                 self.start_pos=self.current_pos
                 self.current_pos+=delta
 
@@ -976,7 +1291,7 @@ class LiteView(wx.ScrolledWindow):
                         if line==len(ptxtlist)-1:break
                         line+=1
                     #draw left page
-                    x=self.maxWidth/2-self.centralmargin-ch_w
+                    x=self.maxWidth/2-self.centralmargin-2*ch_w
                     while line<=2*self.blockline:
                         y=self.vbookmargin
                         for chh in ptxtlist[line][0]:
@@ -994,15 +1309,14 @@ class LiteView(wx.ScrolledWindow):
                         delta+=len(ptxtlist[line][0])+ptxtlist[line][1]
                         if line==len(ptxtlist)-1:break
                         line+=1
-                    self.start_pos=0
+                    self.start_pos=delta
                     self.current_pos=delta
-                    dc.EndDrawing()
-                    return
                 else:
-                    line=tlen+self.blockline
+                    line=tlen
+                    #line=0
                     #draw right page
                     x=self.maxWidth-self.vbookmargin
-                    while line>tlen:
+                    while line<=tlen+self.blockline:
                         y=self.vbookmargin
                         for chh in ptxtlist[line][0]:
                             dc.DrawText(chh,x,y)
@@ -1018,28 +1332,28 @@ class LiteView(wx.ScrolledWindow):
                         x-=(ch_w+self.vlinespace/2)
                         delta+=len(ptxtlist[line][0])+ptxtlist[line][1]
                         if line==len(ptxtlist)-1:break
-                        line-=1
-                    #draw right page
-                    x=self.vbookmargin
-                    line=len(ptxtlist)-1
-                    while line>tlen+self.blockline:
+                        line+=1
+                    #draw left page
+                    x=self.maxWidth/2-self.centralmargin-2*ch_w
+                    line=tlen+self.blockline+1
+                    while line<len(ptxtlist):
                         y=self.vbookmargin
+                        for chh in ptxtlist[line][0]:
+                            dc.DrawText(chh,x,y)
+                            y+=(ch_h+2)
+                        x-=(self.vlinespace/2)
                         if self.under_line:
                             oldpen=dc.GetPen()
                             newpen=wx.Pen(self.under_line_color,style=self.under_line_style)
                             dc.SetPen(newpen)
                             dc.DrawLine(x,self.vbookmargin,x,self.maxHeight-self.vbookmargin)
                             dc.SetPen(oldpen)
-                        x+=(self.vlinespace/2)
-                        for chh in ptxtlist[line][0]:
-                            dc.DrawText(chh,x,y)
-                            y+=(ch_h+2)
-                        x+=(ch_w+self.vlinespace/2)
+                        x-=(ch_w+self.vlinespace/2)
                         self.curPageTextList.append(ptxtlist[line])
 
 
                         delta+=len(ptxtlist[line][0])+ptxtlist[line][1]
-                        line-=1
+                        line+=1
 
                 self.current_pos=self.start_pos
                 self.start_pos-=delta
@@ -1124,21 +1438,22 @@ if __name__ == "__main__":
     app.SetTopWindow(frame_1)
     frame_1.Show()
     if len(sys.argv)<=1:
-        fp=open("5.txt",'r')
+        fp=open("big.txt",'r')
     else:
         fp=open(sys.argv[1],'r')
     alltxt=fp.read()
-    alltxt=alltxt.decode('gbk')
+    alltxt=alltxt.decode('gbk','ignore')
     if len(sys.argv)<=2:
         frame_1.panel_1.SetImgBackgroup('6.jpg')
         pass
     else:
         frame_1.panel_1.SetImgBackgroup(sys.argv[2])
     if len(sys.argv)<=3:
-        frame_1.panel_1.SetShowMode('paper')
+        frame_1.panel_1.SetShowMode('vertical_book')
     else:
         frame_1.panel_1.SetShowMode(sys.argv[3])
     frame_1.panel_1.SetValue(alltxt)
-##    frame_1.panel_1.SetValue(u'　　一个黑色的小触角，小到什么程度？比旁边贴着地面的茅草还要低矮一点，它扭动着钻出了土层，小心翼翼地点点四周，又努力地挺直自己那黑黝黝不起眼的身躯，探索似的直立在空中，小触角似乎没有发现什么危险，迅速缩了回去，接着，地面开始震动，不停的震动，在触角回缩后的土地上，泥石翻裂，阵风吹过，掀起片片黄烟，似乎预示着，这片荒凉广阔的黄土地上要发生一些令人惊讶的事情来。')
+
+    #frame_1.panel_1.SetValue(u'　　一个黑色的小触角，小到什么程度？比旁边贴着地面的茅草还要低矮一点，它扭动着钻出了土层，小心翼翼地点点四周，又努力地挺直自己那黑黝黝不起眼的身躯，探索似的直立在空中，小触角似乎没有发现什么危险，迅速缩了回去，接着，地面开始震动，不停的震动，在触角回缩后的土地上，泥石翻裂，阵风吹过，掀起片片黄烟，似乎预示着，这片荒凉广阔的黄土地上要发生一些令人惊讶的事情来。')
     app.MainLoop()
 
