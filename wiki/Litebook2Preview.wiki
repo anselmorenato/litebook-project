@@ -1,5 +1,5 @@
+#summary litebook 2.0 预览
 #labels Featured,Phase-Design
-#litebook 2.0 Preview
 
 litebook 2.0中最主要的改进是放弃了1.0中使用的wxpython自带的简单文本控件，而是从头写了一个专为“显示文本”而优化的文本控件：liteview，具备如下特点：
   * 三种不同的显示模式：纸张/书本/竖排书本
