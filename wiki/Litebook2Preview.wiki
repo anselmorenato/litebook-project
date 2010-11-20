@@ -1,0 +1,20 @@
+#LiteBook 2.0 Preview
+
+litebook 2.0中最主要的改进是放弃了1.0中使用的wxpython自带的简单文本控件，而是从头写了一个专为“显示文本”而优化的文本控件：liteview，具备如下特点：
+  * 三种不同的显示模式：纸张/书本/竖排书本
+  * 载入排版速度和文本大小无关，也就是说，载入20M的文本的时间和载入2M文本的时间几乎是一样的。
+  * 支持背景图片
+  * 页边距/行间距可调
+  * 支持不同类型的下划线 
+  * 字体/大小/颜色可调
+  * 在三种显示模式下都可拷贝剪贴
+
+下面是三种显示模式的截屏：
+<a href="http://www.flickr.com/photos/56129552@N06/5191642006/" title="liteview 纸张显示模式 by litebook.author, on Flickr"><img src="http://farm5.static.flickr.com/4154/5191642006_a1e7fedd28.jpg" width="500" height="308" alt="liteview 纸张显示模式" /></a>
+
+
+
+
+
+目前以完成第一个beta版，所有主要的功能
+
