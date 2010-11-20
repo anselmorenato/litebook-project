@@ -3,7 +3,7 @@
 
 u"""LiteView is a read-only optimized wxpython text control, which provides
 following features:
-- 3 show modes: paper/book/vertical-book
+- 3 show modes: paper/book/vbook
 - configurable: background(picture)/font/underline/margin
 - render speed is almost independent of file size
 
@@ -30,6 +30,7 @@ class LiteView(wx.ScrolledWindow):
         -只读
         -支持 背景（图片）/行间距/下划线/页边距/字体 等可设置
         -支持三种不同的显示模式（纸张/书本/竖排书本）
+        -支持文字选择和拷贝（鼠标右键单击拷贝）
 
     """
     def __init__(self, parent, id = -1, bg_img=None):
@@ -55,6 +56,7 @@ class LiteView(wx.ScrolledWindow):
         self.curPageTextList=[]
         self.bg_buff=None
         self.newbmp=None
+        self.newnewbmp=None
         self.SetImgBackgroup(bg_img)
         self.bg_style='tile'
         self.show_mode='paper'
@@ -65,7 +67,7 @@ class LiteView(wx.ScrolledWindow):
         #defaul selection color
         self.DefaultSelectionColor=wx.Color(255,  0,  0,128)
         #setup the default font
-        self.SetFont(wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.NORMAL, 0, ""))
+        self.SetFont(wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL, 0, ""))
         self.current_pos=0
         self.start_pos=0
         self.SelectedRange=[0,0]
@@ -84,7 +86,7 @@ class LiteView(wx.ScrolledWindow):
 
 
     def GetHitPos(self,pos):
-        #返回坐标所在字在self.Value中的[index,字的坐标]
+        """返回坐标所在字在self.Value中的[index,字的坐标]"""
         r={}
         dc=wx.MemoryDC()
         dc.SetFont(self.GetFont())
@@ -176,7 +178,7 @@ class LiteView(wx.ScrolledWindow):
             r['line']=line
             r['row']=i
             return r
-        elif self.show_mode=='vertical_book':
+        elif self.show_mode=='vbook':
 ##            if self.RenderDirection==1:
             newwidth=self.maxWidth/2-self.vbookmargin-self.centralmargin
             newheight=self.maxHeight-2*self.vbookmargin
@@ -211,14 +213,10 @@ class LiteView(wx.ScrolledWindow):
 
 
             r['index']=self.start_pos+delta
-            #print self.Value[r['index']:r['index']+3]
             r['pos']=(x,y)
             r['line']=line
             r['row']=ti
-            print "line-1 is",line
             v1=r['index']
-            print "value is ", self.Value[v1:v1+3]
-            print "x is",x
             return r
 
 
@@ -283,6 +281,7 @@ class LiteView(wx.ScrolledWindow):
 
 
     def DrawSelection(self,dc,r1,r2):
+        """内部函数，画出选择文字时的选择条"""
         dc.SetFont(self.GetFont())
 
         ch_h=dc.GetCharHeight()
@@ -426,7 +425,7 @@ class LiteView(wx.ScrolledWindow):
                                 y+=ch_h+self.linespace
                             gc.DrawRectangle(self.maxWidth/2+self.centralmargin/2,y,x2-(self.maxWidth/2+self.centralmargin/2),ch_h)
 
-        elif self.show_mode=='vertical_book':
+        elif self.show_mode=='vbook':
             newwidth=self.maxWidth/2-self.vbookmargin-self.centralmargin
             newheight=self.maxHeight-2*self.vbookmargin
             self.blockline=newwidth/(ch_w+self.vlinespace)
@@ -470,7 +469,7 @@ class LiteView(wx.ScrolledWindow):
 
                 #draw right page
                 if l1<=self.blockline:
-                    print "drawing right"
+
                     line=l1
                     gc.DrawRectangle(x1,y1,bar_wid,self.maxHeight-self.vbookmargin-y1)
                     line+=1
@@ -491,7 +490,7 @@ class LiteView(wx.ScrolledWindow):
                 #draw left page
                 if l2>self.blockline:
                     if l1>self.blockline:
-                        print "drawing left only"
+
                         line=l1
                         gc.DrawRectangle(x1,y1,bar_wid,self.maxHeight-self.vbookmargin-y1)
                         line+=1
@@ -503,7 +502,7 @@ class LiteView(wx.ScrolledWindow):
                             x-=(ch_w+self.vlinespace/2+self.vlinespace/2)
                         gc.DrawRectangle(x,y,bar_wid,(ch_h+2)*i2)
                     else:
-                        print "left goon"
+
                         line=self.blockline
                         x=self.maxWidth/2-self.centralmargin-2*ch_w
                         y=self.vbookmargin
@@ -515,37 +514,37 @@ class LiteView(wx.ScrolledWindow):
 
 
 
-
-
-
-
-
-
-
-
-
         dc.EndDrawing()
 
 
     def OnMouseDrag(self,evt):
+        """处理鼠标事件的函数，主要是用来处理选择文字极其拷贝的操作"""
         if evt.ButtonDown(wx.MOUSE_BTN_LEFT):
             self.LastMousePos=evt.GetPositionTuple()
             self.FirstMousePos=evt.GetPositionTuple()
             if self.buffer_bak<>None:
-                self.buffer=self.buffer_bak.GetSubBitmap(wx.Rect(0, 0, self.buffer_bak.GetWidth(), self.buffer_bak.GetHeight()))
-                dc = wx.BufferedDC(wx.ClientDC(self), self.buffer)
+                if self.bg_img==None or self.bg_buff==None or self.newbmp==None:
+                    self.buffer=self.buffer_bak.GetSubBitmap(wx.Rect(0, 0, self.buffer_bak.GetWidth(), self.buffer_bak.GetHeight()))
+                    dc = wx.BufferedDC(wx.ClientDC(self), self.buffer)
+                else:
+                    self.newbmp=self.buffer_bak.GetSubBitmap(wx.Rect(0, 0, self.buffer_bak.GetWidth(), self.buffer_bak.GetHeight()))
+                    dc = wx.BufferedDC(wx.ClientDC(self), self.newbmp)
                 dc.BeginDrawing()
                 dc.EndDrawing()
             return
         if evt.Dragging():
-            print "I am dragging"
+
             current_mouse_pos=evt.GetPositionTuple()
             if current_mouse_pos==self.LastMousePos:return
             else:
                 r1=self.GetHitPos(self.FirstMousePos)
                 r2=self.GetHitPos(current_mouse_pos)
-                self.buffer=self.buffer_bak.GetSubBitmap(wx.Rect(0, 0, self.buffer_bak.GetWidth(), self.buffer_bak.GetHeight()))
-                dc = wx.BufferedDC(wx.ClientDC(self), self.buffer)
+                if self.bg_img==None or self.bg_buff==None or self.newbmp==None:
+                    self.buffer=self.buffer_bak.GetSubBitmap(wx.Rect(0, 0, self.buffer_bak.GetWidth(), self.buffer_bak.GetHeight()))
+                    dc = wx.BufferedDC(wx.ClientDC(self), self.buffer)
+                else:
+                    self.newbmp=self.buffer_bak.GetSubBitmap(wx.Rect(0, 0, self.buffer_bak.GetWidth(), self.buffer_bak.GetHeight()))
+                    dc = wx.BufferedDC(wx.ClientDC(self), self.newbmp)
                 self.DrawSelection(dc,r1,r2)
             self.LastMousePos=current_mouse_pos
         elif evt.ButtonUp(wx.MOUSE_BTN_LEFT) and not evt.LeftDClick():
@@ -570,8 +569,12 @@ class LiteView(wx.ScrolledWindow):
                 wx.TheClipboard.SetData(clipdata)
                 wx.TheClipboard.Close()
             if self.buffer_bak<>None:
-                self.buffer=self.buffer_bak.GetSubBitmap(wx.Rect(0, 0, self.buffer_bak.GetWidth(), self.buffer_bak.GetHeight()))
-                dc = wx.BufferedDC(wx.ClientDC(self), self.buffer)
+                if self.bg_img==None or self.bg_buff==None or self.newbmp==None:
+                    self.buffer=self.buffer_bak.GetSubBitmap(wx.Rect(0, 0, self.buffer_bak.GetWidth(), self.buffer_bak.GetHeight()))
+                    dc = wx.BufferedDC(wx.ClientDC(self), self.buffer)
+                else:
+                    self.newbmp=self.buffer_bak.GetSubBitmap(wx.Rect(0, 0, self.buffer_bak.GetWidth(), self.buffer_bak.GetHeight()))
+                    dc = wx.BufferedDC(wx.ClientDC(self), self.newbmp)
                 dc.BeginDrawing()
                 dc.EndDrawing()
 
@@ -585,12 +588,6 @@ class LiteView(wx.ScrolledWindow):
         if key == wx.WXK_PAGEUP or key==wx.WXK_LEFT :
             self.ScrollP(-1)
             return
-##        if key == wx.WXK_DOWN:
-##            pass
-##            return
-##        if key == wx.WXK_UP :
-##            self.ScrollL(-1)
-##            return
         if key == wx.WXK_HOME :
             self.ScrollTop()
             return
@@ -620,7 +617,7 @@ class LiteView(wx.ScrolledWindow):
             if starty<0:starty=0
             dc.DrawBitmap(self.bg_img,startx,starty)
 
-##        if self.show_mode=='vertical_book':
+##        if self.show_mode=='vbook':
 ##            oldpen=dc.GetPen()
 ##            oldbrush=dc.GetBrush()
 ##            dc.SetPen(wx.Pen('grey',width=5))
@@ -630,7 +627,7 @@ class LiteView(wx.ScrolledWindow):
 ##            dc.SetPen(oldpen)
 ##            dc.SetBrush(oldbrush)
 
-        if self.show_mode=='book' or self.show_mode=='vertical_book':
+        if self.show_mode=='book' or self.show_mode=='vbook':
             dc.DrawLine(3,0,3,sz.height)
             dc.DrawLine(4,0,4,sz.height)
             dc.DrawLine(6,0,6,sz.height)
@@ -682,7 +679,7 @@ class LiteView(wx.ScrolledWindow):
 
 
     def SetShowMode(self,m):
-        """设置显示模式，支持的有'book/paper/vertical_book'"""
+        """设置显示模式，支持的有'book/paper/vbook'"""
         self.show_mode=m
 
     def GetPos(self):
@@ -761,6 +758,7 @@ class LiteView(wx.ScrolledWindow):
 ##                self.ScollP(1)
 ##        evt.Skip()
     def OnResize(self,evt):
+        """处理窗口尺寸变化的事件"""
         self.isdirty=True
         self.ReDraw()
 
@@ -768,26 +766,27 @@ class LiteView(wx.ScrolledWindow):
 
 
     def OnPaint(self, event):
+        """处理重画事件"""
         delta=(self.GetSize()[1]-self.GetClientSize()[1])+1
         self.maxHeight=self.GetClientSize()[1]
         self.maxWidth=self.GetClientSize()[0]-delta
         self.SetVirtualSize((self.maxWidth, self.maxHeight))
-            # Create a buffered paint DC.  It will create the real
-            # wx.PaintDC and then blit the bitmap to it when dc is
-            # deleted.  Since we don't need to draw anything else
-            # here that's all there is to it.
+
         if self.buffer<>None and not self.isdirty:
-##            print "if yes"
+
             if self.bg_img==None or self.bg_buff==None or self.newbmp==None:
+
                 dc = wx.BufferedPaintDC(self, self.buffer, wx.BUFFER_VIRTUAL_AREA)
             else:
+
                 dc = wx.BufferedPaintDC(self, self.newbmp, wx.BUFFER_VIRTUAL_AREA)
         else:
-##            print "if no"
+
             self.ShowPos(1)
 
 
     def SetValue(self,txt):
+        """赋值函数，载入并显示一个字符串"""
         self.Value=txt
         self.ValueCharCount=len(self.Value)
         self.current_pos=0
@@ -796,6 +795,7 @@ class LiteView(wx.ScrolledWindow):
 
 
     def SetImgBackgroup(self,img,style='tile'):
+        """设置图片背景"""
         self.bg_style=style
         if isinstance(img,wx.Bitmap):
             self.bg_img=img
@@ -811,6 +811,7 @@ class LiteView(wx.ScrolledWindow):
 
 
     def breakline(self,line,dc):
+        """内部函数，断句"""
         rr=line
         rlist=[]
 
@@ -820,7 +821,7 @@ class LiteView(wx.ScrolledWindow):
         elif self.show_mode=='book':
             newwidth=self.maxWidth/2-self.bookmargin-self.centralmargin
             delta=dc.GetCharHeight()
-        elif self.show_mode=='vertical_book':
+        elif self.show_mode=='vbook':
             ch_h=dc.GetCharHeight()
             ch_w=dc.GetCharWidth()
             newwidth=self.maxWidth-2*self.vbookmargin
@@ -846,7 +847,7 @@ class LiteView(wx.ScrolledWindow):
                 mylen=llist[n]-llist[mid-1]
             rlist.append([rr[mid:],1])
             return rlist
-        elif self.show_mode=='vertical_book':
+        elif self.show_mode=='vbook':
             n=newheight/(ch_h+2)
             i=0
             while i<len(line):
@@ -861,6 +862,7 @@ class LiteView(wx.ScrolledWindow):
 
 
     def mywrap(self,txt):
+        """排版"""
         dc=wx.MemoryDC()
         dc.SetFont(self.GetFont())
         ch_h=dc.GetCharHeight()
@@ -869,7 +871,7 @@ class LiteView(wx.ScrolledWindow):
             newwidth=self.maxWidth-2*self.pagemargin
         elif self.show_mode=='book':
             newwidth=self.maxWidth/2-self.bookmargin-self.centralmargin
-        elif self.show_mode=='vertical_book':
+        elif self.show_mode=='vbook':
             newwidth=self.maxWidth-2*self.vbookmargin
             newheight=self.maxHeight-2*self.vbookmargin
         rlist=[]
@@ -887,7 +889,7 @@ class LiteView(wx.ScrolledWindow):
                 else:
                     trlist=self.breakline(line,dc)
                     rlist+=trlist
-        elif self.show_mode=='vertical_book':
+        elif self.show_mode=='vbook':
             for line in txt.splitlines():
                 if len(line)*(self.linespace+ch_h)<=newheight:
                     rlist.append([line,1])
@@ -1186,10 +1188,10 @@ class LiteView(wx.ScrolledWindow):
                         self.curPageTextList.append(elist_right[i])
                         i-=1
 
-        elif self.show_mode=='vertical_book':
+        elif self.show_mode=='vbook':
             #draw vertical book
             ch_w=dc.GetTextExtent(u'我')[0]
-            print "show ch_w is ",ch_w
+
             h=0
             cur_pos=self.current_pos
             cur_x=0
@@ -1211,7 +1213,7 @@ class LiteView(wx.ScrolledWindow):
                 x=self.maxWidth-self.vbookmargin
                 while line<=self.blockline:
                     y=self.vbookmargin
-                    print "i am drawing at x,",x
+
                     for chh in ptxtlist[line][0]:
                         dc.DrawText(chh,x,y)
                         y+=(ch_h+2)
@@ -1371,6 +1373,8 @@ class LiteView(wx.ScrolledWindow):
         memory.SelectObject( wx.NullBitmap)
 
 
+
+
 class MyFrame(wx.Frame):
     def __init__(self, *args, **kwds):
         # begin wxGlade: MyFrame.__init__
@@ -1449,11 +1453,10 @@ if __name__ == "__main__":
     else:
         frame_1.panel_1.SetImgBackgroup(sys.argv[2])
     if len(sys.argv)<=3:
-        frame_1.panel_1.SetShowMode('vertical_book')
+        frame_1.panel_1.SetShowMode('vbook')
     else:
         frame_1.panel_1.SetShowMode(sys.argv[3])
     frame_1.panel_1.SetValue(alltxt)
 
-    #frame_1.panel_1.SetValue(u'　　一个黑色的小触角，小到什么程度？比旁边贴着地面的茅草还要低矮一点，它扭动着钻出了土层，小心翼翼地点点四周，又努力地挺直自己那黑黝黝不起眼的身躯，探索似的直立在空中，小触角似乎没有发现什么危险，迅速缩了回去，接着，地面开始震动，不停的震动，在触角回缩后的土地上，泥石翻裂，阵风吹过，掀起片片黄烟，似乎预示着，这片荒凉广阔的黄土地上要发生一些令人惊讶的事情来。')
     app.MainLoop()
 
