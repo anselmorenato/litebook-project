@@ -658,7 +658,9 @@ class LiteView(wx.ScrolledWindow):
 
             dc.GradientFillLinear((sz.width/2-self.centralmargin,0, self.centralmargin,sz.height),wx.Color(r,g,b,0),'grey')
             dc.GradientFillLinear((sz.width/2,0, self.centralmargin,sz.height),'grey',wx.Color(r,g,b,0))
-
+    def Clear(self):
+        self.SetValue('')
+        self.ReDraw()
 
     def ReDraw(self):
         """ReDraw self"""
@@ -685,6 +687,8 @@ class LiteView(wx.ScrolledWindow):
     def GetPos(self):
         """返回当前页面显示最后一个字在self.ValueList中的index"""
         return self.current_pos
+    def GetStartPos(self):
+        return self.start_pos
 
     def ScrollTop(self):
         """显示第一页"""
@@ -761,6 +765,7 @@ class LiteView(wx.ScrolledWindow):
         """处理窗口尺寸变化的事件"""
         self.isdirty=True
         self.ReDraw()
+        evt.Skip()
 
 
 
@@ -784,14 +789,22 @@ class LiteView(wx.ScrolledWindow):
 
             self.ShowPos(1)
 
+    def GetValue(self):
+        return self.Value
 
-    def SetValue(self,txt):
+    def SetValue(self,txt,pos=0):
         """赋值函数，载入并显示一个字符串"""
+
         self.Value=txt
         self.ValueCharCount=len(self.Value)
-        self.current_pos=0
+        self.current_pos=pos
         self.start_pos=0
         self.Refresh()
+
+    def JumpTo(self,pos):
+        self.current_pos=pos
+        self.start_pos=0
+        self.ShowPos(1)
 
 
     def SetImgBackgroup(self,img,style='tile'):
@@ -900,8 +913,26 @@ class LiteView(wx.ScrolledWindow):
 
 
 
+    def Find(self,key,pos=0,direction=1):
+        if direction==1:
+            next_index=self.Value.find(key,pos)
+        else:
+            next_index=self.Value.rfind(key,0,pos)
+        if next_index==-1:return False
+        self.JumpTo(next_index)
+        self.ReDraw()
+        return next_index
+
+
+
+    def ShowPostition(self,pos):
+        self.start_pos=pos
+        self.ShowPos()
+
+
     def ShowPos(self,direction=1):
         """从指定位置开始，画出一页的文本"""
+
         self.isdirty=False
 ##        if self.start_pos<0: self.start_pos=0
         if self.Value==None:
@@ -1375,7 +1406,9 @@ class LiteView(wx.ScrolledWindow):
 
 
 
-class MyFrame(wx.Frame):
+
+
+class MyTestFrame(wx.Frame):
     def __init__(self, *args, **kwds):
         # begin wxGlade: MyFrame.__init__
         kwds["style"] = wx.DEFAULT_FRAME_STYLE
@@ -1438,7 +1471,7 @@ if __name__ == "__main__":
     psyco.full()
     app = wx.PySimpleApp(0)
     wx.InitAllImageHandlers()
-    frame_1 = MyFrame(None, -1, "")
+    frame_1 = MyTestFrame(None, -1, "")
     app.SetTopWindow(frame_1)
     frame_1.Show()
     if len(sys.argv)<=1:
@@ -1453,10 +1486,13 @@ if __name__ == "__main__":
     else:
         frame_1.panel_1.SetImgBackgroup(sys.argv[2])
     if len(sys.argv)<=3:
-        frame_1.panel_1.SetShowMode('vbook')
+        frame_1.panel_1.SetShowMode('paper')
     else:
         frame_1.panel_1.SetShowMode(sys.argv[3])
-    frame_1.panel_1.SetValue(alltxt)
+    frame_1.panel_1.SetValue(alltxt,2083)
+    frame_1.panel_1.Refresh()
+    frame_1.panel_1.Update()
 
     app.MainLoop()
+
 
