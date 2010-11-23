@@ -18,6 +18,7 @@ import wx
 import sys
 import re
 import time
+import os
 
 
 
@@ -57,7 +58,7 @@ class LiteView(wx.ScrolledWindow):
         self.bg_buff=None
         self.newbmp=None
         self.newnewbmp=None
-        self.SetImgBackgroup(bg_img)
+        self.SetImgBackground(bg_img)
         self.bg_style='tile'
         self.show_mode='paper'
         self.buffer_bak=None
@@ -73,6 +74,9 @@ class LiteView(wx.ScrolledWindow):
         self.SelectedRange=[0,0]
         # Initialize the buffer bitmap.  No real DC is needed at this point.
         self.buffer=None
+        # Initialize the mouse dragging value
+        self.LastMousePos=None
+        self.FirstMousePos=None
 
         #绑定事件处理
 ##        self.Bind(wx.EVT_SCROLLWIN,self.OnScroll)
@@ -82,7 +86,7 @@ class LiteView(wx.ScrolledWindow):
         self.Bind(wx.EVT_LEFT_DOWN,self.OnMouseDrag)
         self.Bind(wx.EVT_LEFT_UP,self.OnMouseDrag)
         self.Bind(wx.EVT_MOTION,self.OnMouseDrag)
-        self.Bind(wx.EVT_RIGHT_UP,self.OnMouseDrag)
+        #self.Bind(wx.EVT_RIGHT_UP,self.OnMouseDrag)
 
 
     def GetHitPos(self,pos):
@@ -106,6 +110,7 @@ class LiteView(wx.ScrolledWindow):
                 i=len(self.curPageTextList[line][0])
             m=0
             delta=0
+
             while m<line:
                 delta+=len(self.curPageTextList[m][0])+self.curPageTextList[m][1]
                 m+=1
@@ -115,11 +120,12 @@ class LiteView(wx.ScrolledWindow):
             else:
                 x=self.pagemargin+dc.GetTextExtent(self.curPageTextList[line][0][:i])[0]
 
-            if self.RenderDirection==1 or self.start_pos==0:
-                y=(ch_h+self.linespace)*line
-            else:
-                y=(ch_h+self.linespace)*line+1.5*self.linespace
+##            if self.RenderDirection==1 or self.start_pos==0:
+##                y=(ch_h+self.linespace)*line
+##            else:
+##                y=(ch_h+self.linespace)*line+1.5*self.linespace
 
+            y=self.curPageTextList[line][2]
             r['index']=self.start_pos+delta
             r['pos']=(x,y)
             r['line']=line
@@ -160,19 +166,20 @@ class LiteView(wx.ScrolledWindow):
                     x=self.bookmargin
                 else:
                     x=self.bookmargin+dc.GetTextExtent(self.curPageTextList[line][0][:i])[0]
-                if self.RenderDirection==1 or self.start_pos==0:
-                    y=(ch_h+self.linespace)*line
-                else:
-                    y=(ch_h+self.linespace)*line+self.linespace*1.5
+##                if self.RenderDirection==1 or self.start_pos==0:
+##                    y=(ch_h+self.linespace)*line
+##                else:
+##                    y=(ch_h+self.linespace)*line+self.linespace*1.5
             else:
                 if len(self.curPageTextList[line][0])==0:
                     x=self.centralmargin+self.maxWidth/2
                 else:
                     x=self.centralmargin+self.maxWidth/2+dc.GetTextExtent(self.curPageTextList[line][0][:i])[0]
-                if self.RenderDirection==1 or self.start_pos==0:
-                    y=(ch_h+self.linespace)*(line-len(self.curPageTextList)/2)
-                else:
-                    y=(ch_h+self.linespace)*(line-len(self.curPageTextList)/2)+self.linespace*1.5
+##                if self.RenderDirection==1 or self.start_pos==0:
+##                    y=(ch_h+self.linespace)*(line-len(self.curPageTextList)/2)
+##                else:
+##                    y=(ch_h+self.linespace)*(line-len(self.curPageTextList)/2)+self.linespace*1.5
+            y=self.curPageTextList[line][2]
             r['index']=self.start_pos+delta
             r['pos']=(x,y)
             r['line']=line
@@ -533,9 +540,9 @@ class LiteView(wx.ScrolledWindow):
                 dc.EndDrawing()
             return
         if evt.Dragging():
-
             current_mouse_pos=evt.GetPositionTuple()
-            if current_mouse_pos==self.LastMousePos:return
+            if current_mouse_pos==self.LastMousePos or self.FirstMousePos==None:
+                return
             else:
                 r1=self.GetHitPos(self.FirstMousePos)
                 r2=self.GetHitPos(current_mouse_pos)
@@ -548,6 +555,7 @@ class LiteView(wx.ScrolledWindow):
                 self.DrawSelection(dc,r1,r2)
             self.LastMousePos=current_mouse_pos
         elif evt.ButtonUp(wx.MOUSE_BTN_LEFT) and not evt.LeftDClick():
+            if self.FirstMousePos==None:return
             current_mouse_pos=evt.GetPositionTuple()
             r1=self.GetHitPos(self.FirstMousePos)
             r2=self.GetHitPos(current_mouse_pos)
@@ -561,23 +569,39 @@ class LiteView(wx.ScrolledWindow):
 ##                self.SelectedRange=[r1['index'],r2['index']]
 
 
-        if evt.RightUp():
-            clipdata = wx.TextDataObject()
-            clipdata.SetText(self.Value[self.SelectedRange[0]:self.SelectedRange[1]])
-            if not wx.TheClipboard.IsOpened():
-                wx.TheClipboard.Open()
-                wx.TheClipboard.SetData(clipdata)
-                wx.TheClipboard.Close()
-            if self.buffer_bak<>None:
-                if self.bg_img==None or self.bg_buff==None or self.newbmp==None:
-                    self.buffer=self.buffer_bak.GetSubBitmap(wx.Rect(0, 0, self.buffer_bak.GetWidth(), self.buffer_bak.GetHeight()))
-                    dc = wx.BufferedDC(wx.ClientDC(self), self.buffer)
-                else:
-                    self.newbmp=self.buffer_bak.GetSubBitmap(wx.Rect(0, 0, self.buffer_bak.GetWidth(), self.buffer_bak.GetHeight()))
-                    dc = wx.BufferedDC(wx.ClientDC(self), self.newbmp)
-                dc.BeginDrawing()
-                dc.EndDrawing()
+##        if evt.RightUp():
+##            clipdata = wx.TextDataObject()
+##            clipdata.SetText(self.Value[self.SelectedRange[0]:self.SelectedRange[1]])
+##            if not wx.TheClipboard.IsOpened():
+##                wx.TheClipboard.Open()
+##                wx.TheClipboard.SetData(clipdata)
+##                wx.TheClipboard.Close()
+##            if self.buffer_bak<>None:
+##                if self.bg_img==None or self.bg_buff==None or self.newbmp==None:
+##                    self.buffer=self.buffer_bak.GetSubBitmap(wx.Rect(0, 0, self.buffer_bak.GetWidth(), self.buffer_bak.GetHeight()))
+##                    dc = wx.BufferedDC(wx.ClientDC(self), self.buffer)
+##                else:
+##                    self.newbmp=self.buffer_bak.GetSubBitmap(wx.Rect(0, 0, self.buffer_bak.GetWidth(), self.buffer_bak.GetHeight()))
+##                    dc = wx.BufferedDC(wx.ClientDC(self), self.newbmp)
+##                dc.BeginDrawing()
+##                dc.EndDrawing()
 
+    def CopyText(self):
+        clipdata = wx.TextDataObject()
+        clipdata.SetText(self.Value[self.SelectedRange[0]:self.SelectedRange[1]])
+        if not wx.TheClipboard.IsOpened():
+            wx.TheClipboard.Open()
+            wx.TheClipboard.SetData(clipdata)
+            wx.TheClipboard.Close()
+        if self.buffer_bak<>None:
+            if self.bg_img==None or self.bg_buff==None or self.newbmp==None:
+                self.buffer=self.buffer_bak.GetSubBitmap(wx.Rect(0, 0, self.buffer_bak.GetWidth(), self.buffer_bak.GetHeight()))
+                dc = wx.BufferedDC(wx.ClientDC(self), self.buffer)
+            else:
+                self.newbmp=self.buffer_bak.GetSubBitmap(wx.Rect(0, 0, self.buffer_bak.GetWidth(), self.buffer_bak.GetHeight()))
+                dc = wx.BufferedDC(wx.ClientDC(self), self.newbmp)
+            dc.BeginDrawing()
+            dc.EndDrawing()
 
     def OnChar(self,event):
         """键盘输入控制函数"""
@@ -666,7 +690,7 @@ class LiteView(wx.ScrolledWindow):
         """ReDraw self"""
         delta=(self.GetSize()[1]-self.GetClientSize()[1])+1
         self.maxHeight=self.GetClientSize()[1]
-        self.maxWidth=self.GetClientSize()[0]-delta
+        self.maxWidth=self.GetClientSize()[0]
         self.SetVirtualSize((self.maxWidth, self.maxHeight))
         self.current_pos=self.start_pos
         self.bg_buff=None
@@ -794,26 +818,29 @@ class LiteView(wx.ScrolledWindow):
 
     def SetValue(self,txt,pos=0):
         """赋值函数，载入并显示一个字符串"""
-
-        self.Value=txt
+        #把DOS ending转换成UNIX Ending，否则选择文字的时候会出问题
+        self.Value=txt.replace("\r\n","\n")
         self.ValueCharCount=len(self.Value)
         self.current_pos=pos
         self.start_pos=0
         self.Refresh()
+        self.ReDraw()
 
     def JumpTo(self,pos):
         self.current_pos=pos
         self.start_pos=0
         self.ShowPos(1)
+        self.ReDraw()
 
 
-    def SetImgBackgroup(self,img,style='tile'):
+    def SetImgBackground(self,img,style='tile'):
         """设置图片背景"""
         self.bg_style=style
         if isinstance(img,wx.Bitmap):
             self.bg_img=img
         else:
             if isinstance(img,str) or isinstance(img,unicode):
+                if not os.path.exists(img):return False
                 self.bg_img=wx.Bitmap(img, wx.BITMAP_TYPE_ANY)
             else:
                 self.bg_img=None
@@ -998,7 +1025,7 @@ class LiteView(wx.ScrolledWindow):
                 delta=0
                 while line<self.blockline:
                     dc.DrawText(ptxtlist[line][0],self.pagemargin,h)
-                    self.curPageTextList.append(ptxtlist[line])
+                    self.curPageTextList.append([ptxtlist[line][0],ptxtlist[line][1],h])
                     if self.under_line:
                         oldpen=dc.GetPen()
                         newpen=wx.Pen(self.under_line_color,style=self.under_line_style)
@@ -1034,7 +1061,7 @@ class LiteView(wx.ScrolledWindow):
                     h=0
                     while line<self.blockline:
                         dc.DrawText(ptxtlist[line][0],self.pagemargin,h)
-                        self.curPageTextList.append(ptxtlist[line])
+                        self.curPageTextList.append([ptxtlist[line][0],ptxtlist[line][1],h])
                         if self.under_line:
                             oldpen=dc.GetPen()
                             newpen=wx.Pen(self.under_line_color,style=self.under_line_style)
@@ -1057,7 +1084,7 @@ class LiteView(wx.ScrolledWindow):
                             dc.SetPen(newpen)
                             dc.DrawLine(self.pagemargin,h+ch_h+2,self.maxWidth-self.pagemargin,h+ch_h+2)
                             dc.SetPen(oldpen)
-                        elist.append(ptxtlist[line])
+                        elist.append([ptxtlist[line][0],ptxtlist[line][1],h])
                         delta+=len(ptxtlist[line][0])+ptxtlist[line][1]
                         h-=(ch_h+self.linespace)
                         line-=1
@@ -1087,7 +1114,7 @@ class LiteView(wx.ScrolledWindow):
                 #draw left page
                 while line<self.blockline:
                     dc.DrawText(ptxtlist[line][0],self.bookmargin,h)
-                    self.curPageTextList.append(ptxtlist[line])
+                    self.curPageTextList.append([ptxtlist[line][0],ptxtlist[line][1],h])
                     if self.under_line:
                         oldpen=dc.GetPen()
                         newpen=wx.Pen(self.under_line_color,style=self.under_line_style)
@@ -1104,7 +1131,7 @@ class LiteView(wx.ScrolledWindow):
                     newx=self.maxWidth/2+self.centralmargin
                     while line<2*self.blockline:
                         dc.DrawText(ptxtlist[line][0],newx,h)
-                        self.curPageTextList.append(ptxtlist[line])
+                        self.curPageTextList.append([ptxtlist[line][0],ptxtlist[line][1],h])
     ##                    if self.under_line:
     ##                        oldpen=dc.GetPen()
     ##                        newpen=wx.Pen(self.under_line_color,style=self.under_line_style)
@@ -1141,7 +1168,7 @@ class LiteView(wx.ScrolledWindow):
                     #draw left page
                     while line<self.blockline:
                         dc.DrawText(ptxtlist[line][0],self.pagemargin,h)
-                        self.curPageTextList.append(ptxtlist[line])
+                        self.curPageTextList.append([ptxtlist[line][0],ptxtlist[line][1],h])
                         if self.under_line:
                             oldpen=dc.GetPen()
                             newpen=wx.Pen(self.under_line_color,style=self.under_line_style)
@@ -1157,7 +1184,7 @@ class LiteView(wx.ScrolledWindow):
                     newx=self.maxWidth/2+self.centralmargin
                     while line<2*self.blockline:
                         dc.DrawText(ptxtlist[line][0],newx,h)
-                        self.curPageTextList.append(ptxtlist[line])
+                        self.curPageTextList.append([ptxtlist[line][0],ptxtlist[line][1],h])
 ##                        if self.under_line:
 ##                            oldpen=dc.GetPen()
 ##                            print "i am e"
@@ -1186,7 +1213,7 @@ class LiteView(wx.ScrolledWindow):
                             dc.SetPen(newpen)
                             dc.DrawLine(self.pagemargin,h+ch_h+2,self.maxWidth-self.pagemargin,h+ch_h+2)
                             dc.SetPen(oldpen)
-                        elist.append(ptxtlist[line])
+                        elist.append([ptxtlist[line][0],ptxtlist[line][1],h])
                         delta+=len(ptxtlist[line][0])+ptxtlist[line][1]
                         h-=(ch_h+self.linespace)
                         line-=1
@@ -1202,7 +1229,7 @@ class LiteView(wx.ScrolledWindow):
 ##                            dc.SetPen(newpen)
 ##                            dc.DrawLine(self.pagemargin,h+ch_h+2,self.maxWidth-self.pagemargin,h+ch_h+2)
 ##                            dc.SetPen(oldpen)
-                        elist_right.append(ptxtlist[line])
+                        elist_right.append([ptxtlist[line][0],ptxtlist[line][1],h])
                         delta+=len(ptxtlist[line][0])+ptxtlist[line][1]
                         h-=(ch_h+self.linespace)
                         line-=1
@@ -1475,13 +1502,13 @@ if __name__ == "__main__":
     app.SetTopWindow(frame_1)
     frame_1.Show()
     if len(sys.argv)<=1:
-        fp=open("big.txt",'r')
+        fp=open("test.txt",'r')
     else:
         fp=open(sys.argv[1],'r')
     alltxt=fp.read()
     alltxt=alltxt.decode('gbk','ignore')
     if len(sys.argv)<=2:
-        frame_1.panel_1.SetImgBackgroup('6.jpg')
+        frame_1.panel_1.SetImgBackground('6.jpg')
         pass
     else:
         frame_1.panel_1.SetImgBackgroup(sys.argv[2])

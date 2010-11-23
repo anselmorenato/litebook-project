@@ -1479,6 +1479,7 @@ def readConfigFile():
             GlobalConfig['ConfigDir']=''
             GlobalConfig['LastDir']=os.path.dirname(AnyToUnicode(sys.argv[0]))
             GlobalConfig['IconDir']=os.path.dirname(AnyToUnicode(sys.argv[0]))+u"\\icon"
+            #GlobalConfig['BackgroundDir']=os.path.dirname(AnyToUnicode(sys.argv[0]))+u"\\background"
             OpenedFileList=[]
             GlobalConfig['LastFile']=''
             GlobalConfig['LastZipFile']=''
@@ -1509,7 +1510,24 @@ def readConfigFile():
             GlobalConfig['defaultsavedir']=GlobalConfig['LastDir']
             GlobalConfig['numberofthreads']=10
             GlobalConfig['lastweb']=''
+            GlobalConfig['backgroundimg']=os.path.dirname(AnyToUnicode(sys.argv[0]))+u"\\background"+"\\default.jpg"
+            GlobalConfig['backgroundimglayout']='tile'
+            GlobalConfig['showmode']='paper'
             return
+    try:
+        GlobalConfig['backgroundimg']=config.get('Appearance','backgroundimg')
+    except:
+        GlobalConfig['backgroundimg']=os.path.dirname(AnyToUnicode(sys.argv[0]))+u"\\background"+"\\default.jpg"
+
+    try:
+        GlobalConfig['showmode']=config.get('Appearance','showmode')
+    except:
+        GlobalConfig['showmode']='paper'
+
+    try:
+        GlobalConfig['backgroundimglayout']=config.get('Appearance','backgroundimglayout')
+    except:
+        GlobalConfig['backgroundimglayout']='tile'
 
 
     try:
@@ -1786,6 +1804,9 @@ def writeConfigFile(lastpos):
     config.add_section('Appearance')
     ft=GlobalConfig['CurFont']
     config.set('Appearance','last',unicode(ft.GetPointSize())+u':'+unicode(ft.GetFamily())+u':'+unicode(ft.GetStyle())+u':'+unicode(ft.GetWeight())+u':'+unicode(ft.GetUnderlined())+u':'+ft.GetFaceName()+u':'+unicode(ft.GetDefaultEncoding())+u':'+unicode(GlobalConfig['CurFColor'])+u':'+unicode(GlobalConfig['CurBColor']))
+    config.set('Appearance','backgroundimg',unicode(GlobalConfig['backgroundimg']))
+    config.set('Appearance','showmode',unicode(GlobalConfig['showmode']))
+    config.set('Appearance','backgroundimglayout',unicode(GlobalConfig['backgroundimglayout']))
 
     # Save Theme List
     for t in ThemeList:
@@ -2556,6 +2577,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.window_1_pane_1 = wx.Panel(self.window_1, -1)
         self.list_ctrl_1 = wx.ListCtrl(self.window_1_pane_1, -1, style=wx.LC_REPORT)
         self.text_ctrl_1 = liteview.LiteView(self.window_1_pane_2)
+        #self.text_ctrl_1.SetShowMode('book')
+        self.text_ctrl_1.SetImgBackground(GlobalConfig['backgroundimg'],GlobalConfig['backgroundimglayout'])
         self.text_ctrl_2 = wx.TextCtrl(self.window_1_pane_1, -1, "",style=wx.TE_PROCESS_TAB|wx.TE_PROCESS_ENTER)
 
 
@@ -2595,7 +2618,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         wxglade_tmp_menu.Append(107, u"退出(&X)\tAlt+X", u"退出本程序", wx.ITEM_NORMAL)
         self.frame_1_menubar.Append(wxglade_tmp_menu, u"文件(&F)")
         wxglade_tmp_menu = wx.Menu()
-        wxglade_tmp_menu.Append(201, u"全选(&A)\tCtrl+A", u"选择全部内容", wx.ITEM_NORMAL)
+
+        #wxglade_tmp_menu.Append(201, u"全选(&A)\tCtrl+A", u"选择全部内容", wx.ITEM_NORMAL)
         wxglade_tmp_menu.Append(202, u"拷贝(&C)\tCtrl+C", u"将选中的内容拷贝到剪贴板", wx.ITEM_NORMAL)
         wxglade_tmp_menu.AppendSeparator()
         wxglade_tmp_menu.Append(203, u"查找(&S)\tCtrl+F", u"在打开的文件中查找", wx.ITEM_NORMAL)
@@ -2604,6 +2628,11 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.frame_1_menubar.Append(wxglade_tmp_menu, u"查找(&S)")
         wxglade_tmp_menu = wx.Menu()
         self.ViewMenu=wxglade_tmp_menu
+        wxglade_tmp_menu.AppendRadioItem(601,u'纸张显示模式',u'设置当前显示模式为纸张')
+        wxglade_tmp_menu.AppendRadioItem(602,u'书本显示模式',u'设置当前显示模式为书本')
+        wxglade_tmp_menu.AppendRadioItem(603,u'竖排书本显示模式',u'设置当前显示模式为竖排书本')
+        wxglade_tmp_menu.AppendSeparator()
+
         wxglade_tmp_menu.Append(501, u"显示工具栏\tCtrl+T", u"是否显示工具栏", wx.ITEM_CHECK)
         wxglade_tmp_menu.Append(503, u"全屏显示\tCtrl+I", u"全屏显示", wx.ITEM_CHECK)
         wxglade_tmp_menu.Append(502, u"显示文件侧边栏\tAlt+D", u"是否显示文件侧边栏", wx.ITEM_CHECK)
@@ -2644,6 +2673,10 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.frame_1_toolbar.AddLabelTool(15, u"下一个", wx.Bitmap(GlobalConfig['IconDir']+u"\\next-32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"下一个文件", u"下一个文件")
         self.frame_1_toolbar.AddLabelTool(14, u"上一个", wx.Bitmap(GlobalConfig['IconDir']+u"\\previous-32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"上一个文件", u"上一个文件")
         self.frame_1_toolbar.AddSeparator()
+        self.frame_1_toolbar.AddRadioLabelTool(61,u'纸张显示模式',wx.Bitmap(GlobalConfig['IconDir']+u"\\paper.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap,u'纸张显示模式',u'纸张显示模式')
+        self.frame_1_toolbar.AddRadioLabelTool(62,u'书本显示模式',wx.Bitmap(GlobalConfig['IconDir']+u"\\openbook.jpg", wx.BITMAP_TYPE_ANY), wx.NullBitmap,u'书本显示模式',u'书本显示模式')
+        self.frame_1_toolbar.AddRadioLabelTool(63,u'竖排书本显示模式',wx.Bitmap(GlobalConfig['IconDir']+u"\\vbook.jpg", wx.BITMAP_TYPE_ANY), wx.NullBitmap,u'竖排书本显示模式',u'竖排书本显示模式')
+        self.frame_1_toolbar.AddSeparator()
         self.frame_1_toolbar.AddLabelTool(23, u"查找", wx.Bitmap(GlobalConfig['IconDir']+u"\\search-32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"搜索", u"搜索")
         self.frame_1_toolbar.AddLabelTool(24, u"查找下一个", wx.Bitmap(GlobalConfig['IconDir']+u"\\search-next-32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"搜索下一个", u"搜索下一个")
         self.frame_1_toolbar.AddLabelTool(25, u"查找上一个", wx.Bitmap(GlobalConfig['IconDir']+u"\\search-previous-32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"搜索上一个", u"搜索上一个")
@@ -2661,8 +2694,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 
         #self.list_ctrl_1 = wx.ListCtrl(self, -1, style=wx.LC_REPORT) # add ListBox for Directory sidebar
 
-        self.__set_properties()
-        self.__do_layout()
+
 
         self.Bind(wx.EVT_MENU, self.Menu101, id=101)
         self.Bind(wx.EVT_MENU, self.Menu102, id=102)
@@ -2675,7 +2707,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.Bind(wx.EVT_MENU, self.Menu109, id=109)
         self.Bind(wx.EVT_MENU, self.Menu110, id=110)
         self.Bind(wx.EVT_MENU, self.Menu111, id=111)
-        self.Bind(wx.EVT_MENU, self.Menu201, id=201)
+        #self.Bind(wx.EVT_MENU, self.Menu201, id=201)
         self.Bind(wx.EVT_MENU, self.Menu202, id=202)
         self.Bind(wx.EVT_MENU, self.Menu203, id=203)
         self.Bind(wx.EVT_MENU, self.Menu204, id=204)
@@ -2689,6 +2721,10 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.Bind(wx.EVT_MENU, self.Menu501, id=501)
         self.Bind(wx.EVT_MENU, self.Menu502, id=502) # bind the sidebar menu to menu502()
         self.Bind(wx.EVT_MENU, self.Menu503, id=503)
+        self.Bind(wx.EVT_MENU, self.Menu601, id=601)
+        self.Bind(wx.EVT_MENU, self.Menu602, id=602)
+        self.Bind(wx.EVT_MENU, self.Menu603, id=603)
+
         self.Bind(wx.EVT_MENU, self.Tool44, id=504)
         self.Bind(wx.EVT_TOOL, self.Menu110, id=110)
         self.Bind(wx.EVT_TOOL, self.Menu101, id=11)
@@ -2706,6 +2742,9 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.Bind(wx.EVT_TOOL, self.Tool42, id=42)
         self.Bind(wx.EVT_TOOL, self.Tool43, id=43)
         self.Bind(wx.EVT_TOOL, self.Tool44, id=44)
+        self.Bind(wx.EVT_TOOL, self.Menu601, id=61)
+        self.Bind(wx.EVT_TOOL, self.Menu602, id=62)
+        self.Bind(wx.EVT_TOOL, self.Menu603, id=63)
         # end wxGlade
         self.Bind(wx.EVT_TOOL, self.Menu502, id=52)
         self.text_ctrl_1.Bind(wx.EVT_CHAR,self.OnChar)
@@ -2761,9 +2800,9 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 
         #Start Clocking
         self.clk_thread=ClockThread(self)
-
-        #max the window
-        self.Maximize(True)
+##
+##        #max the window
+##        self.Maximize(True)
 
 
        #start the display pos thread
@@ -2828,14 +2867,13 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         if GlobalConfig['VerCheckOnStartup']:
             self.version_check_thread=VersionCheckThread(self,False)
 
-        #hide the text_ctrl's cursor
-##        self.text_ctrl_1.Bind(wx.EVT_SET_FOCUS, self.TextOnFocus)
         self.list_ctrl_1.Bind(wx.EVT_SET_FOCUS, self.ListOnFocus)
-        #self.text_ctrl_1.HideNativeCaret()
 
 
 
 
+        self.__set_properties()
+        self.__do_layout()
 ##    def TextOnFocus(self,event):
 ##        self.text_ctrl_1.HideNativeCaret()
 ##        event.Skip()
@@ -2860,13 +2898,13 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.text_ctrl_1.SetFont(wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL, 0, ""))
         # end wxGlade
         # load last appearance
-        if str(type(GlobalConfig['CurFont']))=="<class 'wx._gdi.Font'>":
-            self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
-        if GlobalConfig['CurFColor']<>'':
-            self.text_ctrl_1.SetForegroundColour(GlobalConfig['CurFColor'])
-        if GlobalConfig['CurBColor']<>'':
-            self.text_ctrl_1.SetBackgroundColour(GlobalConfig['CurBColor'])
-        self.text_ctrl_1.Refresh()
+##        if str(type(GlobalConfig['CurFont']))=="<class 'wx._gdi.Font'>":
+##            self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
+##        if GlobalConfig['CurFColor']<>'':
+##            self.text_ctrl_1.SetForegroundColour(GlobalConfig['CurFColor'])
+##        if GlobalConfig['CurBColor']<>'':
+##            self.text_ctrl_1.SetBackgroundColour(GlobalConfig['CurBColor'])
+  #      self.text_ctrl_1.Refresh()
 
 
     def __do_layout(self):
@@ -3028,11 +3066,11 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 
 
 
-    def Menu201(self, event): # wxGlade: MyFrame.<event_handler>
-        self.text_ctrl_1.SetSelection(-1,-1)
+##    def Menu201(self, event): # wxGlade: MyFrame.<event_handler>
+##        self.text_ctrl_1.SetSelection(-1,-1)
 
     def Menu202(self, event): # wxGlade: MyFrame.<event_handler>
-        self.text_ctrl_1.Copy()
+        self.text_ctrl_1.CopyText()
 
     def Menu203(self, event): # wxGlade: MyFrame.<event_handler>
         searchdata = wx.FindReplaceData()
@@ -3147,6 +3185,25 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         else:
             self.text_ctrl_1.Bind(wx.EVT_CONTEXT_MENU, None)
 
+    def Menu601(self,event):
+        self.text_ctrl_1.SetShowMode('paper')
+        self.text_ctrl_1.ReDraw()
+        self.ViewMenu.Check(601,True)
+        self.frame_1_toolbar.ToggleTool(61,True)
+
+    def Menu602(self,event):
+        self.text_ctrl_1.SetShowMode('book')
+        self.text_ctrl_1.ReDraw()
+        self.ViewMenu.Check(602,True)
+        self.frame_1_toolbar.ToggleTool(62,True)
+
+    def Menu603(self,event):
+        self.text_ctrl_1.SetShowMode('vbook')
+        self.text_ctrl_1.ReDraw()
+        self.ViewMenu.Check(603,True)
+        self.frame_1_toolbar.ToggleTool(63,True)
+
+
     def ShowPopMenu(self,event):
         if not self.showfullscr:
             if not hasattr(self,"popupID_1"):
@@ -3208,16 +3265,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 ##        of=codecs.open(u'1.txt',encoding='gbk',mode='w')
 ##        of.write(txt)
 ##        of.close()
-        self.text_ctrl_1.SetValue('')
         self.text_ctrl_1.SetValue(txt)
-        GlobalConfig['CurFont'].SetPointSize(GlobalConfig['CurFont'].GetPointSize()+2)
-        self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
-        GlobalConfig['CurFont'].SetPointSize(GlobalConfig['CurFont'].GetPointSize()-2)
-        self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
-        self.text_ctrl_1.SetForegroundColour(GlobalConfig['CurFColor'])
-        self.text_ctrl_1.SetBackgroundColour(GlobalConfig['CurBColor'])
-        self.text_ctrl_1.Refresh()
-        self.text_ctrl_1.Update()
 
 
 
@@ -3228,8 +3276,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         txt=txt.decode('utf-8')
         pos=self.GetCurrentPos()
         self.text_ctrl_1.SetValue(txt)
-        self.text_ctrl_1.SetSelection(pos,pos)
-        self.text_ctrl_1.ShowPosition(pos)
+        self.text_ctrl_1.JumpTo(pos)
 
     def Tool43(self, event): # wxGlade: MyFrame.<event_handler>
         txt=self.text_ctrl_1.GetValue()
@@ -3238,8 +3285,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         txt=txt.decode('utf-8')
         pos=self.GetCurrentPos()
         self.text_ctrl_1.SetValue(txt)
-        self.text_ctrl_1.SetSelection(pos,pos)
-        self.text_ctrl_1.ShowPosition(pos)
+        self.text_ctrl_1.JumpTo(pos)
 
     def fenduan(self):  #HJ: auto optimize the paragraph layout
         self.BackupValue=self.text_ctrl_1.GetValue()
@@ -3387,14 +3433,14 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                     self.buff+="--------------"+eachfile+"--------------LiteBook-ID:"+unicode(id)+u"\n\n"
                     self.buff+=utext
                     self.text_ctrl_1.SetValue(self.buff)
-                    GlobalConfig['CurFont'].SetPointSize(GlobalConfig['CurFont'].GetPointSize()+2)
-                    self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
-                    GlobalConfig['CurFont'].SetPointSize(GlobalConfig['CurFont'].GetPointSize()-2)
-                    self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
-                    self.text_ctrl_1.SetForegroundColour(GlobalConfig['CurFColor'])
-                    self.text_ctrl_1.SetBackgroundColour(GlobalConfig['CurBColor'])
-                    self.text_ctrl_1.Refresh()
-                    self.text_ctrl_1.Update()
+##                    GlobalConfig['CurFont'].SetPointSize(GlobalConfig['CurFont'].GetPointSize()+2)
+##                    self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
+##                    GlobalConfig['CurFont'].SetPointSize(GlobalConfig['CurFont'].GetPointSize()-2)
+##                    self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
+##                    self.text_ctrl_1.SetForegroundColour(GlobalConfig['CurFColor'])
+##                    self.text_ctrl_1.SetBackgroundColour(GlobalConfig['CurBColor'])
+##                    self.text_ctrl_1.Refresh()
+##                    self.text_ctrl_1.Update()
 
                     UpdateOpenedFileList(eachfile,'normal')
                     self.UpdateLastFileMenu()
@@ -3458,14 +3504,14 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                             self.buff+=u"--------------"+zipfilepath+u' | '+eachfile.decode('gbk')+u"--------------LiteBook-ID:"+unicode(id)+u"\n\n"
                             self.buff+=utext
                             self.text_ctrl_1.SetValue(self.buff)
-                            GlobalConfig['CurFont'].SetPointSize(GlobalConfig['CurFont'].GetPointSize()+2)
-                            self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
-                            GlobalConfig['CurFont'].SetPointSize(GlobalConfig['CurFont'].GetPointSize()-2)
-                            self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
-                            self.text_ctrl_1.SetForegroundColour(GlobalConfig['CurFColor'])
-                            self.text_ctrl_1.SetBackgroundColour(GlobalConfig['CurBColor'])
-                            self.text_ctrl_1.Refresh()
-                            self.text_ctrl_1.Update()
+##                            GlobalConfig['CurFont'].SetPointSize(GlobalConfig['CurFont'].GetPointSize()+2)
+##                            self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
+##                            GlobalConfig['CurFont'].SetPointSize(GlobalConfig['CurFont'].GetPointSize()-2)
+##                            self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
+##                            self.text_ctrl_1.SetForegroundColour(GlobalConfig['CurFColor'])
+##                            self.text_ctrl_1.SetBackgroundColour(GlobalConfig['CurBColor'])
+##                            self.text_ctrl_1.Refresh()
+##                            self.text_ctrl_1.Update()
 
                             UpdateOpenedFileList(eachfile.decode('gbk'),'zip',zipfilepath)
                             current_file=eachfile.decode('gbk')
@@ -3515,14 +3561,14 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                                 self.buff+=u"--------------"+zipfilepath+u'|'+eachfile.decode('gbk')+u"--------------LiteBook-ID:"+unicode(id)+u"\n\n"
                                 self.buff+=utext
                                 self.text_ctrl_1.SetValue(self.buff)
-                                GlobalConfig['CurFont'].SetPointSize(GlobalConfig['CurFont'].GetPointSize()+2)
-                                self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
-                                GlobalConfig['CurFont'].SetPointSize(GlobalConfig['CurFont'].GetPointSize()-2)
-                                self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
-                                self.text_ctrl_1.SetForegroundColour(GlobalConfig['CurFColor'])
-                                self.text_ctrl_1.SetBackgroundColour(GlobalConfig['CurBColor'])
-                                self.text_ctrl_1.Refresh()
-                                self.text_ctrl_1.Update()
+##                                GlobalConfig['CurFont'].SetPointSize(GlobalConfig['CurFont'].GetPointSize()+2)
+##                                self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
+##                                GlobalConfig['CurFont'].SetPointSize(GlobalConfig['CurFont'].GetPointSize()-2)
+##                                self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
+##                                self.text_ctrl_1.SetForegroundColour(GlobalConfig['CurFColor'])
+##                                self.text_ctrl_1.SetBackgroundColour(GlobalConfig['CurBColor'])
+##                                self.text_ctrl_1.Refresh()
+##                                self.text_ctrl_1.Update()
 
                                 UpdateOpenedFileList(eachfile.decode('gbk'),'rar',zipfilepath)
                                 current_file=eachfile.decode('gbk')
@@ -3539,7 +3585,6 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                         break
 
         if tpos<>0:self.text_ctrl_1.JumpTo(tpos)
-        self.text_ctrl_1.ReDraw()
         #Auto Format the paragraph if it is enabled
         if self.FormatMenu.IsChecked(504):
             self.fenduan()
