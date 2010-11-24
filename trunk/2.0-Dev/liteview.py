@@ -52,7 +52,7 @@ class LiteView(wx.ScrolledWindow):
         self.vlinespace=15
         self.Value=None
         self.under_line=True
-        self.under_line_color="LIGHTGREEN"
+        self.under_line_color="GREY"
         self.under_line_style=wx.DOT
         self.curPageTextList=[]
         self.bg_buff=None
@@ -640,6 +640,7 @@ class LiteView(wx.ScrolledWindow):
             starty=(sz.height-h)/2
             if starty<0:starty=0
             dc.DrawBitmap(self.bg_img,startx,starty)
+        self.DrawBookCentral(dc)
 
 ##        if self.show_mode=='vbook':
 ##            oldpen=dc.GetPen()
@@ -651,6 +652,42 @@ class LiteView(wx.ScrolledWindow):
 ##            dc.SetPen(oldpen)
 ##            dc.SetBrush(oldbrush)
 
+##        if self.show_mode=='book' or self.show_mode=='vbook':
+##            dc.DrawLine(3,0,3,sz.height)
+##            dc.DrawLine(4,0,4,sz.height)
+##            dc.DrawLine(6,0,6,sz.height)
+##            dc.DrawLine(8,0,8,sz.height)
+##            dc.DrawLine(10,0,10,sz.height)
+##
+##            dc.DrawLine(sz.width-3,0,sz.width-3,sz.height)
+##            dc.DrawLine(sz.width-4,0,sz.width-4,sz.height)
+##            dc.DrawLine(sz.width-6,0,sz.width-6,sz.height)
+##            dc.DrawLine(sz.width-8,0,sz.width-8,sz.height)
+##            dc.DrawLine(sz.width-10,0,sz.width-10,sz.height)
+##            x=sz.width/2-20
+##            y=self.pagemargin+10
+##            n=self.pagemargin+10
+##            xt=x+n
+##            b=0
+##            g=0
+##            r=0
+##            while x<xt:
+##                tc=dc.GetPixel(x,y)
+##                b+=tc.Blue()
+##                g+=tc.Green()
+##                r+=tc.Red()
+##                x+=1
+##            b/=n
+##            g/=n
+##            r/=n
+##
+##            dc.GradientFillLinear((sz.width/2-self.centralmargin,0, self.centralmargin,sz.height),wx.Color(r,g,b,0),'grey')
+##            dc.GradientFillLinear((sz.width/2,0, self.centralmargin,sz.height),'grey',wx.Color(r,g,b,0))
+
+
+
+    def DrawBookCentral(self,dc):
+        sz = dc.GetSize()
         if self.show_mode=='book' or self.show_mode=='vbook':
             dc.DrawLine(3,0,3,sz.height)
             dc.DrawLine(4,0,4,sz.height)
@@ -679,9 +716,10 @@ class LiteView(wx.ScrolledWindow):
             b/=n
             g/=n
             r/=n
-
             dc.GradientFillLinear((sz.width/2-self.centralmargin,0, self.centralmargin,sz.height),wx.Color(r,g,b,0),'grey')
             dc.GradientFillLinear((sz.width/2,0, self.centralmargin,sz.height),'grey',wx.Color(r,g,b,0))
+
+
     def Clear(self):
         self.SetValue('')
         self.ReDraw()
@@ -711,8 +749,17 @@ class LiteView(wx.ScrolledWindow):
     def GetPos(self):
         """返回当前页面显示最后一个字在self.ValueList中的index"""
         return self.current_pos
+
+
     def GetStartPos(self):
         return self.start_pos
+
+    def GetPosPercent(self):
+        try:
+            return (float(self.current_pos)/float(self.ValueCharCount))*100
+        except:
+            return False
+
 
     def ScrollTop(self):
         """显示第一页"""
@@ -832,6 +879,18 @@ class LiteView(wx.ScrolledWindow):
         self.ShowPos(1)
         self.ReDraw()
 
+    def SetSpace(self,pagemargin=50,bookmargin=50,vbookmargin=50,centralmargin=20,linespace=5,vlinespace=15):
+        self.pagemargin=pagemargin
+        self.bookmargin=bookmargin
+        self.vbookmargin=vbookmargin
+        self.centralmargin=centralmargin
+        self.linespace=linespace
+        self.vlinespace=vlinespace
+
+    def SetUnderline(self,visual=True,style=wx.DOT,color='LIGTGREEN'):
+        self.under_line=visual
+        self.under_line_color=color
+        self.under_line_style=style
 
     def SetImgBackground(self,img,style='tile'):
         """设置图片背景"""
@@ -996,6 +1055,7 @@ class LiteView(wx.ScrolledWindow):
         dc.BeginDrawing()
 
         #draw backgroup
+
         if self.bg_img<>None and self.bg_buff==None:
             self.DrawBackground(dc)
             if self.bg_buff==None:
@@ -1005,6 +1065,8 @@ class LiteView(wx.ScrolledWindow):
                 memory.SelectObject( self.bg_buff )
                 memory.Blit( 0,0,x,y, dc, 0,0)
                 memory.SelectObject( wx.NullBitmap)
+        if self.bg_img==None:
+            self.DrawBookCentral(dc)
 
 
         if self.show_mode=='paper':
@@ -1502,18 +1564,18 @@ if __name__ == "__main__":
     app.SetTopWindow(frame_1)
     frame_1.Show()
     if len(sys.argv)<=1:
-        fp=open("test.txt",'r')
+        fp=open("lsh.txt",'r')
     else:
         fp=open(sys.argv[1],'r')
     alltxt=fp.read()
     alltxt=alltxt.decode('gbk','ignore')
     if len(sys.argv)<=2:
-        frame_1.panel_1.SetImgBackground('6.jpg')
+        #frame_1.panel_1.SetImgBackground('6.jpg')
         pass
     else:
         frame_1.panel_1.SetImgBackgroup(sys.argv[2])
     if len(sys.argv)<=3:
-        frame_1.panel_1.SetShowMode('paper')
+        frame_1.panel_1.SetShowMode('vbook')
     else:
         frame_1.panel_1.SetShowMode(sys.argv[3])
     frame_1.panel_1.SetValue(alltxt,2083)
