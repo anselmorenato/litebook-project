@@ -1376,8 +1376,8 @@ SupportedFileTypes=['.zip','.txt','.rar','.umd','.jar','.epub']
 Version='2.0 alpha'
 I_Version=2  # this is used to check updated version
 SqlCon=None
-
-
+linestyle={u'虚线':wx.DOT,u'实线':wx.SOLID,u'长虚线':wx.LONG_DASH,u'点虚线':wx.DOT_DASH}
+rlinestyle={wx.DOT:u'虚线',wx.SOLID:u'实线',wx.LONG_DASH:u'长虚线',wx.DOT_DASH:u'点虚线'}
 
 def DetectFileCoding(filepath,type='txt',zipfilepath=''):
     """Return a file's encoding, need import chardet """
@@ -1463,7 +1463,7 @@ def AnyToUnicode(input_str,coding=None):
 
 def readConfigFile():
     """This function will read config from litebook.ini to a global dict var: GlobalConfig"""
-    global GlobalConfig,OpenedFileList,BookMarkList,ThemeList,BookDB
+    global GlobalConfig,OpenedFileList,BookMarkList,ThemeList,BookDB,linestyle
     config = MyConfig()
     try:
         ffp=codecs.open(os.environ['APPDATA'].decode('gbk')+u"\\litebook.ini",encoding='utf-8',mode='r')
@@ -1513,21 +1513,83 @@ def readConfigFile():
             GlobalConfig['backgroundimg']=os.path.dirname(AnyToUnicode(sys.argv[0]))+u"\\background"+"\\default.jpg"
             GlobalConfig['backgroundimglayout']='tile'
             GlobalConfig['showmode']='paper'
+            GlobalConfig['underline']=True
+            GlobalConfig['underlinecolor']='LIGHTGREY'
+            GlobalConfig['underlinestyle']=wx.DOT
+            GlobalConfig['pagemargin']=50
+            GlobalConfig['bookmargin']=50
+            GlobalConfig['vbookmargin']=50
+            GlobalConfig['centralmargin']=20
+            GlobalConfig['linespace']=5
+            GlobalConfig['vlinespace']=15
             return
-    try:
-        GlobalConfig['backgroundimg']=config.get('Appearance','backgroundimg')
-    except:
-        GlobalConfig['backgroundimg']=os.path.dirname(AnyToUnicode(sys.argv[0]))+u"\\background"+"\\default.jpg"
 
-    try:
-        GlobalConfig['showmode']=config.get('Appearance','showmode')
-    except:
-        GlobalConfig['showmode']='paper'
-
-    try:
-        GlobalConfig['backgroundimglayout']=config.get('Appearance','backgroundimglayout')
-    except:
-        GlobalConfig['backgroundimglayout']='tile'
+##    try:
+##        GlobalConfig['pagemargin']=config.getint('Appearance','pagemargin')
+##    except:
+##        GlobalConfig['pagemargin']=50
+##
+##    try:
+##        GlobalConfig['bookmargin']=config.getint('Appearance','bookmargin')
+##    except:
+##        GlobalConfig['bookmargin']=50
+##
+##    try:
+##        GlobalConfig['vbookmargin']=config.getint('Appearance','vbookmargin')
+##    except:
+##        GlobalConfig['vbookmargin']=50
+##
+##    try:
+##        GlobalConfig['centralmargin']=config.getint('Appearance','centralmargin')
+##    except:
+##        GlobalConfig['centralmargin']=20
+##
+##
+##    try:
+##        GlobalConfig['linespace']=config.getint('Appearance','linespace')
+##    except:
+##        GlobalConfig['linespace']=5
+##
+##
+##    try:
+##        GlobalConfig['vlinespace']=config.getint('Appearance','vlinespace')
+##    except:
+##        GlobalConfig['vlinespace']=15
+##
+##
+##    try:
+##        GlobalConfig['underline']=config.getboolean('Appearance','underline')
+##    except:
+##        GlobalConfig['underline']=True
+##
+##
+##    try:
+##        GlobalConfig['underlinecolor']=config.get('Appearance','underlinecolor')
+##    except:
+##        GlobalConfig['underlinecolor']='LIGHTGREY'
+##
+##
+##    try:
+##        GlobalConfig['underlinestyle']=linestyle[config.get('Appearance','underlinestyle')]
+##    except:
+##        GlobalConfig['underlinestyle']=wx.DOT
+##
+##
+##
+##    try:
+##        GlobalConfig['backgroundimg']=config.get('Appearance','backgroundimg')
+##    except:
+##        GlobalConfig['backgroundimg']=os.path.dirname(AnyToUnicode(sys.argv[0]))+u"\\background"+"\\default.jpg"
+##
+##    try:
+##        GlobalConfig['showmode']=config.get('Appearance','showmode')
+##    except:
+##        GlobalConfig['showmode']='paper'
+##
+##    try:
+##        GlobalConfig['backgroundimglayout']=config.get('Appearance','backgroundimglayout')
+##    except:
+##        GlobalConfig['backgroundimglayout']='tile'
 
 
     try:
@@ -1700,26 +1762,88 @@ def readConfigFile():
     #Read Font and Color
     try:
         ft_list=(config.items('Appearance'))
+        gen_last=False
         for ft in ft_list:
             name=ft[0]
-            f=ft[1].split(':')
+            f=ft[1].split('|')
             if name=='last':
                 GlobalConfig['CurFont']=wx.Font(int(f[0]),int(f[1]),int(f[2]),int(f[3]),eval(f[4]),f[5],int(f[6]))
                 GlobalConfig['CurFColor']=eval(f[7])
                 GlobalConfig['CurBColor']=eval(f[8])
+                if len(f)>9:
+                    GlobalConfig['backgroundimg']=f[9]
+                    GlobalConfig['showmode']=f[10]
+                    GlobalConfig['backgroundimglayout']=f[11]
+                    GlobalConfig['underline']=eval(f[12])
+                    GlobalConfig['underlinestyle']=int(f[13])
+                    GlobalConfig['underlinecolor']=f[14]
+                    GlobalConfig['pagemargin']=int(f[15])
+                    GlobalConfig['bookmargin']=int(f[16])
+                    GlobalConfig['vbookmargin']=int(f[17])
+                    GlobalConfig['centralmargin']=int(f[18])
+                    GlobalConfig['linespace']=int(f[19])
+                    GlobalConfig['vlinespace']=int(f[20])
+                gen_last=True
             else:
                 l={}
                 l['font']=wx.Font(int(f[0]),int(f[1]),int(f[2]),int(f[3]),eval(f[4]),f[5],int(f[6]))
                 l['fcolor']=eval(f[7])
                 l['bcolor']=eval(f[8])
+                l['backgroundimg']=f[9]
+                l['showmode']=f[10]
+                l['backgroundimglayout']=f[11]
+                l['underline']=eval(f[12])
+                l['underlinestyle']=int(f[13])
+                l['underlinecolor']=f[14]
+                l['pagemargin']=int(f[15])
+                l['bookmargin']=int(f[16])
+                l['vbookmargin']=int(f[17])
+                l['centralmargin']=int(f[18])
+                l['linespace']=int(f[19])
+                l['vlinespace']=int(f[20])
+
                 l['name']=name
                 l['config']=ft[1]
                 ThemeList.append(l)
 
     except:
+
         GlobalConfig['CurFont']=wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL, 0, "")
         GlobalConfig['CurFColor']='BLACK'
         GlobalConfig['CurBColor']='LIGHT BLUE'
+        GlobalConfig['backgroundimg']=os.path.dirname(AnyToUnicode(sys.argv[0]))+u"\\background"+"\\default.jpg"
+        GlobalConfig['backgroundimglayout']='tile'
+        GlobalConfig['showmode']='paper'
+        GlobalConfig['underline']=True
+        GlobalConfig['underlinecolor']='LIGHTGREY'
+        GlobalConfig['underlinestyle']=wx.DOT
+        GlobalConfig['pagemargin']=50
+        GlobalConfig['bookmargin']=50
+        GlobalConfig['vbookmargin']=50
+        GlobalConfig['centralmargin']=20
+        GlobalConfig['linespace']=5
+        GlobalConfig['vlinespace']=15
+
+
+
+    if gen_last==False:
+
+        GlobalConfig['CurFont']=wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL, 0, "")
+        GlobalConfig['CurFColor']='BLACK'
+        GlobalConfig['CurBColor']='LIGHT BLUE'
+        GlobalConfig['backgroundimg']=os.path.dirname(AnyToUnicode(sys.argv[0]))+u"\\background"+"\\default.jpg"
+        GlobalConfig['backgroundimglayout']='tile'
+        GlobalConfig['showmode']='paper'
+        GlobalConfig['underline']=True
+        GlobalConfig['underlinecolor']='LIGHTGREY'
+        GlobalConfig['underlinestyle']=wx.DOT
+        GlobalConfig['pagemargin']=50
+        GlobalConfig['bookmargin']=50
+        GlobalConfig['vbookmargin']=50
+        GlobalConfig['centralmargin']=20
+        GlobalConfig['linespace']=5
+        GlobalConfig['vlinespace']=15
+
 
 
     #Read BookDB
@@ -1741,7 +1865,7 @@ def readConfigFile():
 
 def writeConfigFile(lastpos):
     """write config to config.ini in the app data dir"""
-    global GlobalConfig,OpenedFileList,load_zip,current_file,current_zip_file,OnScreenFileList,BookMarkList,ThemeList,BookDB
+    global GlobalConfig,OpenedFileList,load_zip,current_file,current_zip_file,OnScreenFileList,BookMarkList,ThemeList,BookDB,rlinestyle
     # save settings
     config = MyConfig()
     config.add_section('settings')
@@ -1803,11 +1927,33 @@ def writeConfigFile(lastpos):
     # Save font and color
     config.add_section('Appearance')
     ft=GlobalConfig['CurFont']
-    config.set('Appearance','last',unicode(ft.GetPointSize())+u':'+unicode(ft.GetFamily())+u':'+unicode(ft.GetStyle())+u':'+unicode(ft.GetWeight())+u':'+unicode(ft.GetUnderlined())+u':'+ft.GetFaceName()+u':'+unicode(ft.GetDefaultEncoding())+u':'+unicode(GlobalConfig['CurFColor'])+u':'+unicode(GlobalConfig['CurBColor']))
-    config.set('Appearance','backgroundimg',unicode(GlobalConfig['backgroundimg']))
-    config.set('Appearance','showmode',unicode(GlobalConfig['showmode']))
-    config.set('Appearance','backgroundimglayout',unicode(GlobalConfig['backgroundimglayout']))
+    save_str=unicode(ft.GetPointSize())+u'|'+unicode(ft.GetFamily())+u'|'+unicode(ft.GetStyle())+u'|'+unicode(ft.GetWeight())+u'|'+unicode(ft.GetUnderlined())+u'|'+ft.GetFaceName()+u'|'+unicode(ft.GetDefaultEncoding())+u'|'+unicode(GlobalConfig['CurFColor'])+u'|'+unicode(GlobalConfig['CurBColor'])
+    save_str+=u'|'+unicode(GlobalConfig['backgroundimg'])
+    save_str+=u'|'+unicode(GlobalConfig['showmode'])
+    save_str+=u'|'+unicode(GlobalConfig['backgroundimglayout'])
+    save_str+=u'|'+unicode(GlobalConfig['underline'])
+    save_str+=u'|'+unicode(GlobalConfig['underlinestyle'])
+    save_str+=u'|'+unicode(GlobalConfig['underlinecolor'])
+    save_str+=u'|'+unicode(GlobalConfig['pagemargin'])
+    save_str+=u'|'+unicode(GlobalConfig['bookmargin'])
+    save_str+=u'|'+unicode(GlobalConfig['vbookmargin'])
+    save_str+=u'|'+unicode(GlobalConfig['centralmargin'])
+    save_str+=u'|'+unicode(GlobalConfig['linespace'])
+    save_str+=u'|'+unicode(GlobalConfig['vlinespace'])
 
+    config.set('Appearance','last',save_str)
+##    config.set('Appearance','backgroundimg',unicode(GlobalConfig['backgroundimg']))
+##    config.set('Appearance','showmode',unicode(GlobalConfig['showmode']))
+##    config.set('Appearance','backgroundimglayout',unicode(GlobalConfig['backgroundimglayout']))
+##    config.set('Appearance','underline',unicode(GlobalConfig['underline']))
+##    config.set('Appearance','underlinestyle',unicode(rlinestyle[GlobalConfig['underlinestyle']]))
+##    config.set('Appearance','underlinecolor',unicode(GlobalConfig['underlinecolor']))
+##    config.set('Appearance','pagemargin',unicode(GlobalConfig['pagemargin']))
+##    config.set('Appearance','bookmargin',unicode(GlobalConfig['bookmargin']))
+##    config.set('Appearance','vbookmargin',unicode(GlobalConfig['vbookmargin']))
+##    config.set('Appearance','centralmargin',unicode(GlobalConfig['centralmargin']))
+##    config.set('Appearance','linespace',unicode(GlobalConfig['linespace']))
+##    config.set('Appearance','vlinespace',unicode(GlobalConfig['vlinespace']))
     # Save Theme List
     for t in ThemeList:
         config.set('Appearance',t['name'],t['config'])
@@ -2568,6 +2714,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.toolbar_visable=True
         self.FileHistoryDiag=None
         self.cnsort=cnsort()
+
         # begin wxGlade: MyFrame.__init__
         kwds["style"] = wx.DEFAULT_FRAME_STYLE
         wx.Frame.__init__(self, *args, **kwds)
@@ -2577,8 +2724,21 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.window_1_pane_1 = wx.Panel(self.window_1, -1)
         self.list_ctrl_1 = wx.ListCtrl(self.window_1_pane_1, -1, style=wx.LC_REPORT)
         self.text_ctrl_1 = liteview.LiteView(self.window_1_pane_2)
-        #self.text_ctrl_1.SetShowMode('book')
-        self.text_ctrl_1.SetImgBackground(GlobalConfig['backgroundimg'],GlobalConfig['backgroundimglayout'])
+
+        #load apperance
+        self.text_ctrl_1.SetShowMode(GlobalConfig['showmode'])
+        if GlobalConfig['backgroundimg']<>'' and GlobalConfig['backgroundimg']<>None:
+            self.text_ctrl_1.SetImgBackground(GlobalConfig['backgroundimg'],GlobalConfig['backgroundimglayout'])
+        else:
+            self.text_ctrl_1.SetBackgroundColour(GlobalConfig['CurBColor'])
+        self.text_ctrl_1.SetForegroundColour(GlobalConfig['CurFColor'])
+        self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
+        self.text_ctrl_1.SetUnderline(GlobalConfig['underline'],GlobalConfig['underlinestyle'],GlobalConfig['underlinecolor'])
+        self.text_ctrl_1.SetSpace(GlobalConfig['pagemargin'],GlobalConfig['bookmargin'],GlobalConfig['vbookmargin'],GlobalConfig['centralmargin'],GlobalConfig['linespace'],GlobalConfig['vlinespace'])
+
+
+
+
         self.text_ctrl_2 = wx.TextCtrl(self.window_1_pane_1, -1, "",style=wx.TE_PROCESS_TAB|wx.TE_PROCESS_ENTER)
 
 
@@ -2636,6 +2796,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         wxglade_tmp_menu.Append(501, u"显示工具栏\tCtrl+T", u"是否显示工具栏", wx.ITEM_CHECK)
         wxglade_tmp_menu.Append(503, u"全屏显示\tCtrl+I", u"全屏显示", wx.ITEM_CHECK)
         wxglade_tmp_menu.Append(502, u"显示文件侧边栏\tAlt+D", u"是否显示文件侧边栏", wx.ITEM_CHECK)
+        wxglade_tmp_menu.Append(505, u"自动翻页\tENTER", u"是否自动翻页", wx.ITEM_CHECK)
         if not GlobalConfig['HideToolbar']:
             self.toolbar_visable=True
             wxglade_tmp_menu.Check(501,True)
@@ -2721,6 +2882,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.Bind(wx.EVT_MENU, self.Menu501, id=501)
         self.Bind(wx.EVT_MENU, self.Menu502, id=502) # bind the sidebar menu to menu502()
         self.Bind(wx.EVT_MENU, self.Menu503, id=503)
+        self.Bind(wx.EVT_MENU, self.Menu505, id=505)
         self.Bind(wx.EVT_MENU, self.Menu601, id=601)
         self.Bind(wx.EVT_MENU, self.Menu602, id=602)
         self.Bind(wx.EVT_MENU, self.Menu603, id=603)
@@ -2801,8 +2963,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         #Start Clocking
         self.clk_thread=ClockThread(self)
 ##
-##        #max the window
-##        self.Maximize(True)
+        #max the window
+        self.Maximize(True)
 
 
        #start the display pos thread
@@ -2983,14 +3145,14 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.LoadNextFile(1)
 
     def Menu106(self, event): # wxGlade: MyFrame.<event_handler>
-        option_dlg=OptionDialog(self)
+        option_dlg=NewOptionDialog(self)
         option_dlg.ShowModal()
         option_dlg.Destroy()
-        self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
-        self.text_ctrl_1.SetForegroundColour(GlobalConfig['CurFColor'])
-        self.text_ctrl_1.SetBackgroundColour(GlobalConfig['CurBColor'])
-        self.text_ctrl_1.Refresh()
-        self.text_ctrl_1.Update()
+##        self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
+##        self.text_ctrl_1.SetForegroundColour(GlobalConfig['CurFColor'])
+##        self.text_ctrl_1.SetBackgroundColour(GlobalConfig['CurBColor'])
+##        self.text_ctrl_1.Refresh()
+##        self.text_ctrl_1.Update()
 
 
 
@@ -3184,6 +3346,10 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             self.text_ctrl_1.Bind(wx.EVT_CONTEXT_MENU, self.ShowFullScrMenu)
         else:
             self.text_ctrl_1.Bind(wx.EVT_CONTEXT_MENU, None)
+
+    def Menu505(self,event):
+
+        self.autoscroll=not self.autoscroll
 
     def Menu601(self,event):
         self.text_ctrl_1.SetShowMode('paper')
@@ -3730,6 +3896,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 ##        if key==wx.WXK_ESCAPE:
 ##            self.Iconize()
         if key==wx.WXK_RETURN:
+
             self.autoscroll=not self.autoscroll
         if key==72: #ALT+H, filter out HTML tag
             self.Tool41(None)
@@ -3932,6 +4099,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
     def UpdateStatusBar(self,event):
         self.frame_1_statusbar.SetStatusText(event.Value,event.FieldNum)
 
+
     def ReadTimeAlert(self,event):
         ttxt=u'现在是'+time.strftime("%H:%M:%S",time.localtime())+"\n"
         ttxt+=u'你已经连续阅读了'+event.ReadTime
@@ -3940,7 +4108,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         dlg.Destroy()
 
     def scrolldownpage(self,event):
-        self.text_ctrl_1.ScrollPages(1)
+        self.text_ctrl_1.ScrollP(1)
+        self.text_ctrl_1.ReDraw()
 
     def getPos(self,event):
         try:
@@ -5601,23 +5770,24 @@ class DisplayPosThread():
         while self.running:
             evt=GetPosEvent()
             wx.PostEvent(self.win, evt)
-            if self.win.last_pos<>0:
-                percent=int((float(self.win.current_pos)/float(self.win.last_pos))*100)
-                if percent>100: percent=100
-                allsize=0
-                i=0
-                self.win.current_pos+=2700
-                for f in OnScreenFileList:
-                    allsize+=f[2]
-                    if self.win.current_pos<allsize: break
-                    i+=1
-                if i>=OnScreenFileList.__len__():
-                    i=OnScreenFileList.__len__()-1
-                if OnScreenFileList.__len__()<>0:fname=OnScreenFileList[i][0]
-                else:
-                    fname=''
-                evt = UpdateStatusBarEvent(FieldNum = 0, Value =fname+u' , '+unicode(percent)+u'%')
-                wx.PostEvent(self.win, evt)
+            percent=self.win.text_ctrl_1.GetPosPercent()
+            if percent<>False:
+                percent=int(self.win.text_ctrl_1.GetPosPercent())
+                dc=wx.ClientDC(self.win.frame_1_statusbar)
+                field=self.win.frame_1_statusbar.GetFieldRect(0)
+                field_len=field[2]-field[0]
+
+                txt=OnScreenFileList[0][0]+u' , '+unicode(percent)+u'%'
+                txt_len=dc.GetTextExtent(txt)[0]
+                if txt_len>field_len:
+                    ch_w=dc.GetCharWidth()
+                    ch_num=(field_len-ch_w*6)/(2*ch_w)-1
+                    txt=txt[:ch_num]+'...'+txt[-1*ch_num:]
+                evt = UpdateStatusBarEvent(FieldNum = 0, Value =txt)
+
+            else:
+                evt = UpdateStatusBarEvent(FieldNum = 0, Value ='')
+            wx.PostEvent(self.win, evt)
             time.sleep(0.5)
 
 class VersionCheckThread():
@@ -5676,6 +5846,7 @@ class AutoCountThread():
         i=int(GlobalConfig['AutoScrollInterval']/1000)
         while self.running:
             if self.win.autoscroll:
+
                 evt = UpdateStatusBarEvent(FieldNum = 1, Value =u"自动翻页已开启:"+unicode(i))
                 wx.PostEvent(self.win, evt)
                 if i==0:
@@ -6390,6 +6561,315 @@ class cnsort:
            else:
                rstr+=self.searchdict(self.dic_py,ichr)[:-1]
         return rstr
+
+
+
+
+class NewOptionDialog(wx.Dialog):
+    def __init__(self, parent):
+        # begin wxGlade: NewOptionDialog.__init__
+        #kwds["style"] = wx.DEFAULT_DIALOG_STYLE
+        wx.Dialog.__init__(self, parent=parent,title=u'选项对话框',pos=(0,0))
+        self.notebook_1 = wx.Notebook(self, -1, style=0)
+        self.notebook_1_pane_3 = wx.Panel(self.notebook_1, -1)
+        self.notebook_1_pane_2 = wx.Panel(self.notebook_1, -1)
+        self.notebook_1_pane_1 = wx.ScrolledWindow(self.notebook_1, -1, style=wx.TAB_TRAVERSAL)
+        self.sizer_5_staticbox = wx.StaticBox(self.notebook_1_pane_1, -1, u"显示主题")
+        self.sizer_6_staticbox = wx.StaticBox(self.notebook_1_pane_1, -1, u"显示模式")
+        self.sizer_9_staticbox = wx.StaticBox(self.notebook_1_pane_1, -1, u"背景色或图片背景")
+        self.sizer_13_staticbox = wx.StaticBox(self.notebook_1_pane_1, -1, u"字体")
+        self.sizer_14_staticbox = wx.StaticBox(self.notebook_1_pane_1, -1, u"下划线")
+        self.sizer_16_staticbox = wx.StaticBox(self.notebook_1_pane_1, -1, u"间距设置")
+        self.sizer_2_staticbox = wx.StaticBox(self.notebook_1_pane_2, -1, u"启动设置")
+        self.sizer_8_staticbox = wx.StaticBox(self.notebook_1_pane_2, -1, u"时间间隔")
+        self.sizer_25_staticbox = wx.StaticBox(self.notebook_1_pane_2, -1, u"其他")
+        self.sizer_32_staticbox = wx.StaticBox(self.notebook_1_pane_3, -1, u"下载")
+        self.sizer_36_staticbox = wx.StaticBox(self.notebook_1_pane_3, -1, u"代理服务器")
+        self.sizer_15_staticbox = wx.StaticBox(self.notebook_1_pane_1, -1, u"显示效果预览")
+        self.text_ctrl_3 = liteview.LiteView(self.notebook_1_pane_1, -1, "")
+        self.combo_box_1 = wx.ComboBox(self.notebook_1_pane_1, -1, choices=[], style=wx.CB_DROPDOWN)
+        self.button_1 = wx.Button(self.notebook_1_pane_1, -1, u"另存为")
+        self.button_2 = wx.Button(self.notebook_1_pane_1, -1, u"删除")
+        self.label_1 = wx.StaticText(self.notebook_1_pane_1, -1, u"选择显示模式：")
+        self.combo_box_2 = wx.ComboBox(self.notebook_1_pane_1, -1, choices=[u"纸张模式", u"书本模式", u"竖排书本模式"], style=wx.CB_DROPDOWN|wx.CB_READONLY)
+        self.label_3 = wx.StaticText(self.notebook_1_pane_1, -1, u"选择背景图片：")
+        self.text_ctrl_2 = wx.TextCtrl(self.notebook_1_pane_1, -1, "")
+        self.button_3 = wx.Button(self.notebook_1_pane_1, -1, u"选择")
+        self.label_4 = wx.StaticText(self.notebook_1_pane_1, -1, u"背景图片排列方式：")
+        self.combo_box_3 = wx.ComboBox(self.notebook_1_pane_1, -1, choices=[u"平铺", u"居中"], style=wx.CB_DROPDOWN|wx.CB_READONLY)
+        self.label_5 = wx.StaticText(self.notebook_1_pane_1, -1, u"选择背景色或背景图片：")
+        self.combo_box_4 = wx.ComboBox(self.notebook_1_pane_1, -1, choices=[u"使用背景图片", u"使背景色"], style=wx.CB_DROPDOWN|wx.CB_DROPDOWN|wx.CB_READONLY)
+        self.button_4 = wx.Button(self.notebook_1_pane_1, -1, u"选择背景色")
+        self.button_5 = wx.Button(self.notebook_1_pane_1, -1, u"选择字体")
+        self.button_6 = wx.Button(self.notebook_1_pane_1, -1, u"字体颜色")
+        self.label_6 = wx.StaticText(self.notebook_1_pane_1, -1, u"下划线样式")
+        self.combo_box_5 = wx.ComboBox(self.notebook_1_pane_1, -1, choices=[u"不使用下划线", u"实线", u"虚线", u"长虚线", u"点虚线"], style=wx.CB_DROPDOWN|wx.CB_DROPDOWN|wx.CB_READONLY)
+        self.button_7 = wx.Button(self.notebook_1_pane_1, -1, u"下划线颜色")
+        self.label_7 = wx.StaticText(self.notebook_1_pane_1, -1, u"纸张模式页边距：")
+        self.spin_ctrl_1 = wx.SpinCtrl(self.notebook_1_pane_1, -1, "", min=0, max=100)
+        self.label_8 = wx.StaticText(self.notebook_1_pane_1, -1, u"书本模式页边距：")
+        self.spin_ctrl_2 = wx.SpinCtrl(self.notebook_1_pane_1, -1, "", min=0, max=100)
+        self.label_9 = wx.StaticText(self.notebook_1_pane_1, -1, u"竖排书本模式页边距：")
+        self.spin_ctrl_3 = wx.SpinCtrl(self.notebook_1_pane_1, -1, "", min=0, max=100)
+        self.label_10 = wx.StaticText(self.notebook_1_pane_1, -1, u"（竖排）书本模式页中距：")
+        self.spin_ctrl_4 = wx.SpinCtrl(self.notebook_1_pane_1, -1, "", min=0, max=100)
+        self.label_11 = wx.StaticText(self.notebook_1_pane_1, -1, u"行间距：")
+        self.spin_ctrl_5 = wx.SpinCtrl(self.notebook_1_pane_1, -1, "", min=0, max=100)
+        self.label_12 = wx.StaticText(self.notebook_1_pane_1, -1, u"竖排书本行间距：")
+        self.spin_ctrl_6 = wx.SpinCtrl(self.notebook_1_pane_1, -1, "", min=0, max=100)
+        self.checkbox_1 = wx.CheckBox(self.notebook_1_pane_2, -1, u"启动时自动载入上次阅读文件")
+        self.checkbox_2 = wx.CheckBox(self.notebook_1_pane_2, -1, u"启动时检查版本更新")
+        self.label_13 = wx.StaticText(self.notebook_1_pane_2, -1, u"自动翻页间隔（秒）：")
+        self.spin_ctrl_8 = wx.SpinCtrl(self.notebook_1_pane_2, -1, "", min=0, max=100)
+        self.label_14 = wx.StaticText(self.notebook_1_pane_2, -1, u"连续阅读提醒时间（分钟）：")
+        self.spin_ctrl_9 = wx.SpinCtrl(self.notebook_1_pane_2, -1, "", min=0, max=100)
+        self.checkbox_3 = wx.CheckBox(self.notebook_1_pane_2, -1, u"是否启用ESC作为老板键")
+        self.checkbox_4 = wx.CheckBox(self.notebook_1_pane_2, -1, u"是否在文件选择侧边栏中预览文件内容")
+        self.checkbox_5 = wx.CheckBox(self.notebook_1_pane_2, -1, u"是否只在文件选择侧边栏中只显示支持的文件类型")
+        self.label_15 = wx.StaticText(self.notebook_1_pane_2, -1, u"最大曾经打开文件菜单数：")
+        self.spin_ctrl_10 = wx.SpinCtrl(self.notebook_1_pane_2, -1, "", min=0, max=100)
+        self.label_16 = wx.StaticText(self.notebook_1_pane_3, -1, u"下载完毕后的缺省动作：")
+        self.combo_box_6 = wx.ComboBox(self.notebook_1_pane_3, -1, choices=[u"直接阅读", u"另存为文件", u"直接保存在缺省目录下"], style=wx.CB_DROPDOWN|wx.CB_DROPDOWN|wx.CB_READONLY)
+        self.label_17 = wx.StaticText(self.notebook_1_pane_3, -1, u"保存的缺省目录：")
+        self.text_ctrl_1 = wx.TextCtrl(self.notebook_1_pane_3, -1, "")
+        self.button_12 = wx.Button(self.notebook_1_pane_3, -1, u"选择")
+        self.label_18 = wx.StaticText(self.notebook_1_pane_3, -1, u"同时下载的线程个数（需插件支持；不能超过50）：")
+        self.spin_ctrl_11 = wx.SpinCtrl(self.notebook_1_pane_3, -1, "20", min=1, max=50)
+        self.checkbox_6 = wx.CheckBox(self.notebook_1_pane_3, -1, u"启用代理服务器")
+        self.label_19 = wx.StaticText(self.notebook_1_pane_3, -1, u"代理服务器地址：")
+        self.text_ctrl_4 = wx.TextCtrl(self.notebook_1_pane_3, -1, "")
+        self.label_20 = wx.StaticText(self.notebook_1_pane_3, -1, u"代理服务器端口：")
+        self.spin_ctrl_12 = wx.SpinCtrl(self.notebook_1_pane_3, -1, "", min=1, max=65536)
+        self.label_21 = wx.StaticText(self.notebook_1_pane_3, -1, u"用户名：")
+        self.text_ctrl_5 = wx.TextCtrl(self.notebook_1_pane_3, -1, "")
+        self.label_22 = wx.StaticText(self.notebook_1_pane_3, -1, u"密码：")
+        self.text_ctrl_6 = wx.TextCtrl(self.notebook_1_pane_3, -1, "", style=wx.TE_PASSWORD)
+        self.button_10 = wx.Button(self, -1, u"确定")
+        self.button_11 = wx.Button(self, -1, u"取消")
+
+        self.__set_properties()
+        self.__do_layout()
+        # end wxGlade
+
+    def __set_properties(self):
+        # begin wxGlade: NewOptionDialog.__set_properties
+        self.SetTitle(u"选项对话框")
+        self.SetSize((500, 700))
+        self.text_ctrl_3.SetSize((450,300))
+        self.combo_box_2.SetSelection(-1)
+        self.text_ctrl_2.SetMinSize((200, -1))
+        self.combo_box_3.SetSelection(-1)
+        self.combo_box_4.SetSelection(-1)
+        self.combo_box_5.SetSelection(0)
+        self.notebook_1_pane_1.SetScrollRate(10, 10)
+        self.combo_box_6.SetSelection(-1)
+        self.text_ctrl_1.SetMinSize((150, -1))
+        self.text_ctrl_4.SetMinSize((200, -1))
+        #set preview area to current setting
+        self.text_ctrl_3.SetShowMode(GlobalConfig['showmode'])
+        if GlobalConfig['backgroundimg']<>'' and GlobalConfig['backgroundimg']<>None:
+            self.text_ctrl_3.SetImgBackground(GlobalConfig['backgroundimg'],GlobalConfig['backgroundimglayout'])
+        else:
+            self.text_ctrl_3.SetBackgroundColour(GlobalConfig['CurBColor'])
+        self.text_ctrl_3.SetForegroundColour(GlobalConfig['CurFColor'])
+        self.text_ctrl_3.SetFont(GlobalConfig['CurFont'])
+        self.text_ctrl_3.SetUnderline(GlobalConfig['underline'],GlobalConfig['underlinestyle'],GlobalConfig['underlinecolor'])
+        self.text_ctrl_3.SetSpace(GlobalConfig['pagemargin'],GlobalConfig['bookmargin'],GlobalConfig['vbookmargin'],GlobalConfig['centralmargin'],GlobalConfig['linespace'],GlobalConfig['vlinespace'])
+        self.text_ctrl_3.SetValue(u"《老子》八十一章\n\n　1.道可道，非常道。名可名，非常名。无名天地之始。有名万物之母。故常无欲以观其妙。常有欲以观其徼。此两者同出而异名，同谓之玄。玄之又玄，众妙之门。\n\n　2.天下皆知美之为美，斯恶矣；皆知善之为善，斯不善已。故有无相生，难易相成，长短相形，高下相倾，音声相和，前後相随。是以圣人处无为之事，行不言之教。万物作焉而不辞。生而不有，为而不恃，功成而弗居。夫唯弗居，是以不去。\n\n　3.不尚贤， 使民不争。不贵难得之货，使民不为盗。不见可欲，使民心不乱。是以圣人之治，虚其心，实其腹，弱其志，强其骨；常使民无知、无欲，使夫智者不敢为也。为无为，则无不治。\n\n　4.道冲而用之，或不盈。渊兮似万物之宗。解其纷，和其光，同其尘，湛兮似或存。吾不知谁之子，象帝之先。\n\n　5.天地不仁，以万物为刍狗。圣人不仁，以百姓为刍狗。天地之间，其犹橐迭乎？虚而不屈，动而愈出。多言数穷，不如守中。")
+        #set initial value for display tab
+        self.combo_box_1.Append(u'当前设置')
+        for x in ThemeList:
+            self.combo_box_1.Append(x['name'])
+        self.combo_box_1.Select(0)
+
+        if GlobalConfig['showmode']=='paper':
+            self.combo_box_2.Select(0)
+        else:
+            if GlobalConfig['showmode']=='book': self.combo_box_2.Select(1)
+            else:
+                if GlobalConfig['showmode']=='vbook': self.combo_box_2.Select(2)
+
+        if GlobalConfig['backgroundimg']<>'' and GlobalConfig['backgroundimg']<>None:
+            self.combo_box_4.Select(0)
+            self.button_4.Disable()
+            self.text_ctrl_2.SetValue(GlobalConfig['backgroundimg'])
+            if GlobalConfig['backgroundimglayout']=='tile':
+                self.combo_box_3.Select(0)
+            else:
+                self.combo_box_3.Select(1)
+        else:
+            self.combo_box_4.Select(1)
+            self.text_ctrl_2.Disable()
+            self.button_3.Disable()
+            self.combo_box_3.Disable()
+
+        if GlobalConfig['underline']==False:
+            self.combo_box_5.Select(0)
+        else:
+            if GlobalConfig['underlinestyle']==wx.SOLID: self.combo_box_5.Select(1)
+            else:
+                if GlobalConfig['underlinestyle']==wx.DOT: self.combo_box_5.Select(2)
+                else:
+                    if GlobalConfig['underlinestyle']==wx.LONG_DASH: self.combo_box_5.Select(3)
+                    else:
+                        if GlobalConfig['underlinestyle']==wx.DOT_DASH: self.combo_box_5.Select(4)
+        self.spin_ctrl_1.SetValue(GlobalConfig['pagemargin'])
+        self.spin_ctrl_2.SetValue(GlobalConfig['bookmargin'])
+        self.spin_ctrl_3.SetValue(GlobalConfig['vbookmargin'])
+        self.spin_ctrl_4.SetValue(GlobalConfig['centralmargin'])
+        self.spin_ctrl_5.SetValue(GlobalConfig['linespace'])
+        self.spin_ctrl_6.SetValue(GlobalConfig['vlinespace'])
+
+        # end wxGlade
+
+    def __do_layout(self):
+        # begin wxGlade: NewOptionDialog.__do_layout
+        sizer_3 = wx.BoxSizer(wx.VERTICAL)
+        sizer_30 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_31 = wx.BoxSizer(wx.VERTICAL)
+        sizer_36 = wx.StaticBoxSizer(self.sizer_36_staticbox, wx.VERTICAL)
+        sizer_40 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_39 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_38 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_37 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_32 = wx.StaticBoxSizer(self.sizer_32_staticbox, wx.VERTICAL)
+        sizer_35 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_34 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_33 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_1 = wx.BoxSizer(wx.VERTICAL)
+        sizer_25 = wx.StaticBoxSizer(self.sizer_25_staticbox, wx.VERTICAL)
+        sizer_29 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_8 = wx.StaticBoxSizer(self.sizer_8_staticbox, wx.VERTICAL)
+        sizer_24 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_23 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_2 = wx.StaticBoxSizer(self.sizer_2_staticbox, wx.VERTICAL)
+        sizer_4 = wx.BoxSizer(wx.VERTICAL)
+        sizer_16 = wx.StaticBoxSizer(self.sizer_16_staticbox, wx.VERTICAL)
+        sizer_22 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_21 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_20 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_19 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_18 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_17 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_14 = wx.StaticBoxSizer(self.sizer_14_staticbox, wx.HORIZONTAL)
+        sizer_13 = wx.StaticBoxSizer(self.sizer_13_staticbox, wx.HORIZONTAL)
+        sizer_9 = wx.StaticBoxSizer(self.sizer_9_staticbox, wx.VERTICAL)
+        sizer_12 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_11 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_10 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_6 = wx.StaticBoxSizer(self.sizer_6_staticbox, wx.HORIZONTAL)
+        sizer_5 = wx.StaticBoxSizer(self.sizer_5_staticbox, wx.HORIZONTAL)
+        sizer_15 = wx.StaticBoxSizer(self.sizer_15_staticbox, wx.HORIZONTAL)
+        sizer_15.Add(self.text_ctrl_3, 1, wx.EXPAND, 0)
+        sizer_4.Add(sizer_15, 1, wx.EXPAND, 0)
+        sizer_5.Add(self.combo_box_1, 0, 0, 0)
+        sizer_5.Add(self.button_1, 0, 0, 0)
+        sizer_5.Add(self.button_2, 0, 0, 0)
+        sizer_4.Add(sizer_5, 0, wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL, 0)
+        sizer_6.Add(self.label_1, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_6.Add(self.combo_box_2, 0, 0, 0)
+        sizer_4.Add(sizer_6, 0, wx.EXPAND, 0)
+        sizer_10.Add(self.label_3, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_10.Add(self.text_ctrl_2, 0, 0, 0)
+        sizer_10.Add(self.button_3, 0, 0, 0)
+        sizer_9.Add(sizer_10, 1, wx.EXPAND, 0)
+        sizer_11.Add(self.label_4, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_11.Add(self.combo_box_3, 0, 0, 0)
+        sizer_9.Add(sizer_11, 1, wx.EXPAND, 0)
+        sizer_12.Add(self.label_5, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_12.Add(self.combo_box_4, 0, 0, 0)
+        sizer_12.Add(self.button_4, 0, 0, 0)
+        sizer_9.Add(sizer_12, 1, wx.EXPAND, 0)
+        sizer_4.Add(sizer_9, 0, wx.EXPAND, 0)
+        sizer_13.Add(self.button_5, 0, 0, 0)
+        sizer_13.Add(self.button_6, 0, 0, 0)
+        sizer_4.Add(sizer_13, 0, wx.EXPAND, 0)
+        sizer_14.Add(self.label_6, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_14.Add(self.combo_box_5, 0, 0, 0)
+        sizer_14.Add(self.button_7, 0, 0, 0)
+        sizer_4.Add(sizer_14, 0, wx.EXPAND, 0)
+        sizer_17.Add(self.label_7, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_17.Add(self.spin_ctrl_1, 0, 0, 0)
+        sizer_16.Add(sizer_17, 1, wx.EXPAND, 0)
+        sizer_18.Add(self.label_8, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_18.Add(self.spin_ctrl_2, 0, 0, 0)
+        sizer_16.Add(sizer_18, 1, wx.EXPAND, 0)
+        sizer_19.Add(self.label_9, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_19.Add(self.spin_ctrl_3, 0, 0, 0)
+        sizer_16.Add(sizer_19, 1, wx.EXPAND, 0)
+        sizer_20.Add(self.label_10, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_20.Add(self.spin_ctrl_4, 0, 0, 0)
+        sizer_16.Add(sizer_20, 1, wx.EXPAND, 0)
+        sizer_21.Add(self.label_11, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_21.Add(self.spin_ctrl_5, 0, 0, 0)
+        sizer_16.Add(sizer_21, 1, wx.EXPAND, 0)
+        sizer_22.Add(self.label_12, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_22.Add(self.spin_ctrl_6, 0, 0, 0)
+        sizer_16.Add(sizer_22, 1, wx.EXPAND, 0)
+        sizer_4.Add(sizer_16, 0, wx.EXPAND, 0)
+        self.notebook_1_pane_1.SetSizer(sizer_4)
+        sizer_2.Add(self.checkbox_1, 0, 0, 0)
+        sizer_2.Add(self.checkbox_2, 0, 0, 0)
+        sizer_1.Add(sizer_2, 0, wx.EXPAND, 0)
+        sizer_23.Add(self.label_13, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_23.Add(self.spin_ctrl_8, 0, 0, 0)
+        sizer_8.Add(sizer_23, 1, wx.EXPAND, 0)
+        sizer_24.Add(self.label_14, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_24.Add(self.spin_ctrl_9, 0, 0, 0)
+        sizer_8.Add(sizer_24, 1, wx.EXPAND, 0)
+        sizer_1.Add(sizer_8, 0, wx.EXPAND, 0)
+        sizer_25.Add(self.checkbox_3, 0, 0, 0)
+        sizer_25.Add(self.checkbox_4, 0, 0, 0)
+        sizer_25.Add(self.checkbox_5, 0, 0, 0)
+        sizer_29.Add(self.label_15, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_29.Add(self.spin_ctrl_10, 0, 0, 0)
+        sizer_25.Add(sizer_29, 1, wx.EXPAND, 0)
+        sizer_1.Add(sizer_25, 0, wx.EXPAND, 0)
+        self.notebook_1_pane_2.SetSizer(sizer_1)
+        sizer_33.Add(self.label_16, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_33.Add(self.combo_box_6, 0, 0, 0)
+        sizer_32.Add(sizer_33, 1, wx.EXPAND, 0)
+        sizer_34.Add(self.label_17, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_34.Add(self.text_ctrl_1, 0, 0, 0)
+        sizer_34.Add(self.button_12, 0, 0, 0)
+        sizer_32.Add(sizer_34, 1, wx.EXPAND, 0)
+        sizer_35.Add(self.label_18, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_35.Add(self.spin_ctrl_11, 0, 0, 0)
+        sizer_32.Add(sizer_35, 1, wx.EXPAND, 0)
+        sizer_31.Add(sizer_32, 0, wx.EXPAND, 0)
+        sizer_36.Add(self.checkbox_6, 0, 0, 0)
+        sizer_37.Add(self.label_19, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_37.Add(self.text_ctrl_4, 0, 0, 0)
+        sizer_36.Add(sizer_37, 1, wx.EXPAND, 0)
+        sizer_38.Add(self.label_20, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_38.Add(self.spin_ctrl_12, 0, 0, 0)
+        sizer_36.Add(sizer_38, 1, wx.EXPAND, 0)
+        sizer_39.Add(self.label_21, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_39.Add(self.text_ctrl_5, 0, 0, 0)
+        sizer_36.Add(sizer_39, 1, wx.EXPAND, 0)
+        sizer_40.Add(self.label_22, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_40.Add(self.text_ctrl_6, 0, 0, 0)
+        sizer_36.Add(sizer_40, 1, wx.EXPAND, 0)
+        sizer_31.Add(sizer_36, 0, wx.EXPAND, 0)
+        self.notebook_1_pane_3.SetSizer(sizer_31)
+        self.notebook_1.AddPage(self.notebook_1_pane_1, u"显示设置")
+        self.notebook_1.AddPage(self.notebook_1_pane_2, u"控制设置")
+        self.notebook_1.AddPage(self.notebook_1_pane_3, u"下载设置")
+        sizer_3.Add(self.notebook_1, 1, wx.EXPAND, 0)
+        sizer_30.Add((100, 10), 1, wx.EXPAND, 0)
+        sizer_30.Add(self.button_10, 0, 0, 0)
+        sizer_30.Add((20, 10), 1, wx.EXPAND, 0)
+        sizer_30.Add(self.button_11, 0, 0, 0)
+        sizer_30.Add((50, 10), 1, wx.EXPAND, 0)
+        sizer_3.Add(sizer_30, 0, wx.EXPAND, 0)
+        self.SetSizer(sizer_3)
+        self.Layout()
+        # end wxGlade
+
+# end of class NewOptionDialog
+
+
+
 
 
 if __name__ == "__main__":
