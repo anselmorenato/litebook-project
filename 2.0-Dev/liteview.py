@@ -50,7 +50,8 @@ class LiteView(wx.ScrolledWindow):
         self.centralmargin=20
         self.linespace=5
         self.vlinespace=15
-        self.Value=None
+        self.Value=""
+        self.ValueCharCount=0
         self.under_line=True
         self.under_line_color="GREY"
         self.under_line_style=wx.DOT
@@ -58,6 +59,7 @@ class LiteView(wx.ScrolledWindow):
         self.bg_buff=None
         self.newbmp=None
         self.newnewbmp=None
+        self.bg_img_path=None
         self.SetImgBackground(bg_img)
         self.bg_style='tile'
         self.show_mode='paper'
@@ -81,7 +83,7 @@ class LiteView(wx.ScrolledWindow):
         #绑定事件处理
 ##        self.Bind(wx.EVT_SCROLLWIN,self.OnScroll)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
-        self.Bind(wx.EVT_CHAR,self.OnChar)
+        #self.Bind(wx.EVT_CHAR,self.OnChar)
         self.Bind(wx.EVT_SIZE,self.OnResize)
         self.Bind(wx.EVT_LEFT_DOWN,self.OnMouseDrag)
         self.Bind(wx.EVT_LEFT_UP,self.OnMouseDrag)
@@ -760,6 +762,24 @@ class LiteView(wx.ScrolledWindow):
         except:
             return False
 
+    def GetConfig(self):
+        r={}
+        r['pagemargin']=self.pagemargin
+        r['bookmargin']=self.bookmargin
+        r['vbookmargin']=self.vbookmargin
+        r['centralmargin']=self.centralmargin
+        r['linespace']=self.linespace
+        r['vlinespace']=self.vlinespace
+        r['underline']=self.under_line
+        r['underlinecolor']=self.under_line_color
+        r['underlinestyle']=self.under_line_style
+        r['backgroundimg']=self.bg_img_path
+        r['backgroundimglayout']=self.bg_style
+        r['showmode']=self.show_mode
+        return r
+
+
+
 
     def ScrollTop(self):
         """显示第一页"""
@@ -879,18 +899,24 @@ class LiteView(wx.ScrolledWindow):
         self.ShowPos(1)
         self.ReDraw()
 
-    def SetSpace(self,pagemargin=50,bookmargin=50,vbookmargin=50,centralmargin=20,linespace=5,vlinespace=15):
-        self.pagemargin=pagemargin
-        self.bookmargin=bookmargin
-        self.vbookmargin=vbookmargin
-        self.centralmargin=centralmargin
-        self.linespace=linespace
-        self.vlinespace=vlinespace
+    def SetSpace(self,pagemargin=None,bookmargin=None,vbookmargin=None,centralmargin=None,linespace=None,vlinespace=None):
+        if pagemargin<>None:self.pagemargin=pagemargin
+        if bookmargin<>None:self.bookmargin=bookmargin
+        if vbookmargin<>None:self.vbookmargin=vbookmargin
+        if centralmargin<>None:self.centralmargin=centralmargin
+        if linespace<>None:self.linespace=linespace
+        if vlinespace<>None:self.vlinespace=vlinespace
 
-    def SetUnderline(self,visual=True,style=wx.DOT,color='LIGTGREEN'):
-        self.under_line=visual
-        self.under_line_color=color
-        self.under_line_style=style
+    def SetUnderline(self,visual=None,style=None,color=None):
+        if visual<>None:self.under_line=visual
+        if color<>None:self.under_line_color=color
+        if style<>None:self.under_line_style=style
+
+    def SetFColor(self,color):
+        self.TextForeground=color
+
+    def GetFColor(self):
+        return self.TextForeground
 
     def SetImgBackground(self,img,style='tile'):
         """设置图片背景"""
@@ -899,7 +925,12 @@ class LiteView(wx.ScrolledWindow):
             self.bg_img=img
         else:
             if isinstance(img,str) or isinstance(img,unicode):
-                if not os.path.exists(img):return False
+                if img=='' or img==None:
+                    self.bg_img=None
+                    return
+                if not os.path.exists(img):
+                    return False
+                self.bg_img_path=img
                 self.bg_img=wx.Bitmap(img, wx.BITMAP_TYPE_ANY)
             else:
                 self.bg_img=None
@@ -1019,18 +1050,27 @@ class LiteView(wx.ScrolledWindow):
     def ShowPos(self,direction=1):
         """从指定位置开始，画出一页的文本"""
 
+
+##        if self.Value==None or self.Value=='':
+##            print "value"
+##            self.Value=u"LiteBook 2.0"
+##            self.ValueCharCount=len(u"LiteBook 2.0")
+
         self.isdirty=False
 ##        if self.start_pos<0: self.start_pos=0
         if self.Value==None:
             return
         if direction==1:
-            if self.current_pos>=self.ValueCharCount: return
+            if self.current_pos>=self.ValueCharCount & self.ValueCharCount<>0:
+                return
         else:
             if self.start_pos<=0:
 ##                self.start_pos=0
                 return
-        if direction==1:
-            if self.current_pos>=len(self.Value):return
+##        if direction==1:
+##            if self.current_pos>=len(self.Value) & self.ValueCharCount<>0:
+##                return
+
 
         self.RenderDirection=direction
         dc=wx.MemoryDC()
@@ -1068,6 +1108,15 @@ class LiteView(wx.ScrolledWindow):
         if self.bg_img==None:
             self.DrawBookCentral(dc)
 
+        if self.ValueCharCount==0:
+            dc.EndDrawing()
+            memory = wx.MemoryDC( )
+            x,y = self.GetClientSizeTuple()
+            self.buffer_bak = wx.EmptyBitmap( x,y, -1 )
+            memory.SelectObject( self.buffer_bak )
+            memory.Blit( 0,0,x,y, dc, 0,0)
+            memory.SelectObject( wx.NullBitmap)
+            return
 
         if self.show_mode=='paper':
             #draw paper mode
@@ -1570,7 +1619,7 @@ if __name__ == "__main__":
     alltxt=fp.read()
     alltxt=alltxt.decode('gbk','ignore')
     if len(sys.argv)<=2:
-        #frame_1.panel_1.SetImgBackground('6.jpg')
+        frame_1.panel_1.SetImgBackground('6.jpg')
         pass
     else:
         frame_1.panel_1.SetImgBackgroup(sys.argv[2])
@@ -1578,9 +1627,9 @@ if __name__ == "__main__":
         frame_1.panel_1.SetShowMode('vbook')
     else:
         frame_1.panel_1.SetShowMode(sys.argv[3])
-    frame_1.panel_1.SetValue(alltxt,2083)
-    frame_1.panel_1.Refresh()
-    frame_1.panel_1.Update()
+#    frame_1.panel_1.SetValue(alltxt,2083)
+##    frame_1.panel_1.Refresh()
+##    frame_1.panel_1.Update()
 
     app.MainLoop()
 
