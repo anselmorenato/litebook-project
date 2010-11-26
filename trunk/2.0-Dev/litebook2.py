@@ -3297,7 +3297,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                 tstr=tstr[:-1]
                 bookmark['filename']=tstr
             bookmark['pos']=pos
-            bookmark['line']=self.text_ctrl_1.GetValue()[pos:pos+10].splitlines()
+            bookmark['line']=self.text_ctrl_1.GetValue()[pos:pos+30].splitlines()[0]
+            #print "line is ",bookmark['line']
             BookMarkList.append(bookmark)
             dlg = wx.MessageDialog(self, u'当前阅读位置已加入收藏夹！',u"提示！",wx.OK|wx.ICON_INFORMATION)
             dlg.ShowModal()
