@@ -4138,7 +4138,25 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 
 
     def UpdateStatusBar(self,event):
-        self.frame_1_statusbar.SetStatusText(event.Value,event.FieldNum)
+        if event.FieldNum<>0:
+            self.frame_1_statusbar.SetStatusText(event.Value,event.FieldNum)
+        else:
+            dc=wx.ClientDC(self.frame_1_statusbar)
+            field=self.frame_1_statusbar.GetFieldRect(0)
+            field_len=field[2]-field[0]
+            txt=event.Value
+            txt_len=dc.GetTextExtent(txt)[0]
+            if txt_len>field_len:
+                llist=dc.GetPartialTextExtents(txt)
+                m=len(llist)
+                i=m-1
+                while i>=0:
+                    if llist[i]<=field_len:break
+                    i-=1
+                if i>=3:i-=3
+                txt="..."+txt[:i]
+            self.frame_1_statusbar.SetStatusText(txt,0)
+
 
 
     def ReadTimeAlert(self,event):
@@ -4227,6 +4245,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             self.list_ctrl_1.DeleteAllItems()
             try:
                 tlist=os.listdir(GlobalConfig['LastDir'])
+
             except:
                 dlg = wx.MessageDialog(None, GlobalConfig['LastDir']+u' 目录打开错误！',u"错误！",wx.OK|wx.ICON_ERROR)
                 dlg.ShowModal()
@@ -4276,9 +4295,11 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                     pure_file_list.append(filename)
             RPos+=1
 
+
             for filename in pure_file_list:
                 current_path=GlobalConfig['LastDir']+u"\\"+filename
                 rr=filename.rsplit('.',1)
+                not_visable=False
                 if rr.__len__()==1:
                     file_ext=''
                 else:
@@ -4306,9 +4327,12 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                                          else:
                                              if GlobalConfig['ShowAllFileInSidebar']:
                                                  index=self.list_ctrl_1.InsertImageStringItem(sys.maxint,filename,self.file_icon_list['file'])
-                self.sideitemlist.append({'py':self.cnsort.strToPYS(filename.lower()),'item':self.list_ctrl_1.GetItem(index)})
-                self.list_ctrl_1.SetItemData(index,index)
-                self.itemDataMap[index]=(filename,)
+                                             else:
+                                                 not_visable=True
+                if not_visable==False:
+                    self.sideitemlist.append({'py':self.cnsort.strToPYS(filename.lower()),'item':self.list_ctrl_1.GetItem(index)})
+                    self.list_ctrl_1.SetItemData(index,index)
+                    self.itemDataMap[index]=(filename,)
         else:
             #List all windows drives
             i=0
@@ -5813,19 +5837,9 @@ class DisplayPosThread():
             wx.PostEvent(self.win, evt)
             percent=self.win.text_ctrl_1.GetPosPercent()
             if percent<>False:
-                percent=int(self.win.text_ctrl_1.GetPosPercent())
-                dc=wx.ClientDC(self.win.frame_1_statusbar)
-                field=self.win.frame_1_statusbar.GetFieldRect(0)
-                field_len=field[2]-field[0]
-
+                percent=int(percent)
                 txt=OnScreenFileList[0][0]+u' , '+unicode(percent)+u'%'
-                txt_len=dc.GetTextExtent(txt)[0]
-                if txt_len>field_len:
-                    ch_w=dc.GetCharWidth()
-                    ch_num=(field_len-ch_w*6)/(2*ch_w)-1
-                    txt=txt[:ch_num]+'...'+txt[-1*ch_num:]
                 evt = UpdateStatusBarEvent(FieldNum = 0, Value =txt)
-
             else:
                 evt = UpdateStatusBarEvent(FieldNum = 0, Value ='')
             wx.PostEvent(self.win, evt)
@@ -6713,6 +6727,7 @@ class NewOptionDialog(wx.Dialog):
         self.Bind(wx.EVT_SPINCTRL,self.OnUpdateSpace,self.spin_ctrl_5)
         self.Bind(wx.EVT_SPINCTRL,self.OnUpdateSpace,self.spin_ctrl_6)
 
+
         self.__set_properties()
         self.__do_layout()
         # end wxGlade
@@ -6953,6 +6968,7 @@ class NewOptionDialog(wx.Dialog):
 
     def OnCancell(self,event):
         self.Destroy()
+
 
     def OnOK(self,event):
         global ThemeList,GlobalConfig
