@@ -6735,7 +6735,7 @@ class NewOptionDialog(wx.Dialog):
     def __set_properties(self):
         # begin wxGlade: NewOptionDialog.__set_properties
         self.SetTitle(u"选项对话框")
-        self.SetSize((500, 700))
+        self.SetSize((500, 500))
         self.text_ctrl_3.SetSize((450,300))
         self.combo_box_2.SetSelection(-1)
         self.text_ctrl_2.SetMinSize((300, -1))
