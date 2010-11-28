@@ -3065,7 +3065,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         _icon = wx.EmptyIcon()
         _icon.CopyFromBitmap(wx.Bitmap(GlobalConfig['IconDir']+u"\\litebook-icon.png", wx.BITMAP_TYPE_ANY))
         self.SetIcon(_icon)
-        self.SetTitle("LiteBook")
+        self.SetTitle(u"轻巧看书 LiteBook")
         self.SetSize((640, 480))
         # statusbar fields
         self.frame_1_statusbar.SetStatusWidths([-2, -1,-1,-3])
@@ -3324,12 +3324,12 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         global Version
         # First we create and fill the info object
         info = wx.AboutDialogInfo()
-        info.Name = "LiteBook"
+        info.Name = u"轻巧看书(LiteBook)"
         info.Version = Version
         info.Copyright = "(C) 2010 Hu Jun"
-        info.Description = u"LiteBook，简单好用的看书软件！"
+        info.Description = u"轻巧看书，简单好用的看书软件！"
 
-        info.WebSite = (u"http://code.google.com/p/litebook-project/", u"LiteBook官方网站")
+        info.WebSite = (u"http://code.google.com/p/litebook-project/", u"官方网站")
 
         #info.License = wordwrap(licenseText, 500, wx.ClientDC(self))
 
