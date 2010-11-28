@@ -2638,12 +2638,12 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.toolbar_visable=True
         self.FileHistoryDiag=None
         self.cnsort=cnsort()
-   
+
         # begin wxGlade: MyFrame.__init__
         kwds["style"] = wx.DEFAULT_FRAME_STYLE
         wx.Frame.__init__(self, *args, **kwds)
         #display the splash
-        bitmap = wx.Bitmap("l2_splash.gif", wx.BITMAP_TYPE_ANY)
+        bitmap = wx.Bitmap(GlobalConfig['IconDir']+"/l2_splash.gif", wx.BITMAP_TYPE_ANY)
         splash_frame = wx.SplashScreen(bitmap,wx.SPLASH_NO_TIMEOUT |wx.SPLASH_CENTRE_ON_SCREEN,3000,parent=self )
 
 
@@ -3018,7 +3018,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         # end wxGlade
 
     def onSize(self, event):
-        
+
         event.Skip()
         return
 
