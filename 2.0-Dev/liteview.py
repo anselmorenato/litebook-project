@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 u"""LiteView is a read-only optimized wxpython text control, which provides
@@ -19,6 +19,7 @@ import sys
 import re
 import time
 import os
+import platform
 
 
 
@@ -40,7 +41,8 @@ class LiteView(wx.ScrolledWindow):
         """
         sdc=wx.ScreenDC()
         wx.ScrolledWindow.__init__(self, parent, id, (0, 0), size=sdc.GetSize(), style=wx.SUNKEN_BORDER|wx.CLIP_CHILDREN)
-
+        if platform.system()=='Linux': #this is to fix resize problem under linux
+            self.SetMinSize((300,300))
         #初始化一些设置
         self.TextBackground='white'
         self.SetBackgroundColour(self.TextBackground)
