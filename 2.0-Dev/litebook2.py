@@ -5838,7 +5838,10 @@ class DisplayPosThread():
             percent=self.win.text_ctrl_1.GetPosPercent()
             if percent<>False:
                 percent=int(percent)
-                txt=OnScreenFileList[0][0]+u' , '+unicode(percent)+u'%'
+                try:
+                    txt=OnScreenFileList[0][0]+u' , '+unicode(percent)+u'%'
+                except:
+                    txt=" "
                 evt = UpdateStatusBarEvent(FieldNum = 0, Value =txt)
             else:
                 evt = UpdateStatusBarEvent(FieldNum = 0, Value ='')

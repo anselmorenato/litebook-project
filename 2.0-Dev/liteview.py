@@ -48,6 +48,8 @@ class LiteView(wx.ScrolledWindow):
         wx.ScrolledWindow.__init__(self, parent, id, (0, 0), size=sdc.GetSize(), style=wx.SUNKEN_BORDER|wx.CLIP_CHILDREN)
         if platform.system()=='Linux': #this is to fix resize problem under linux
             self.SetMinSize((300,300))
+        else:
+            self.SetMinSize((150,150))
         #初始化一些设置
         self.TextBackground='white'
         self.SetBackgroundColour(self.TextBackground)
