@@ -13,6 +13,11 @@
 #
 
 #
+#update on 2010.12.2
+# fix a bug of resizing not working under linux
+#
+
+#
 #update on 2010.11.27
 # 1st 2.0 beta for linux
 #
@@ -1344,8 +1349,8 @@ BookMarkList=[]
 ThemeList=[]
 BookDB=[]
 Ticking=True
-Version='2.0 Linux Beta1'
-I_Version=2.00 # this is used to check updated version
+Version='2.0 Linux Beta2'
+I_Version=2.01 # this is used to check updated version
 
 def cur_file_dir():
     #获取脚本路径

@@ -14,6 +14,11 @@ Updated: 19/11/2010
 
 """
 
+#
+#update on 2010.12.2
+# fix a bug of resizing not working under linux
+#
+
 import wx
 import sys
 import re
