@@ -3018,7 +3018,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         # end wxGlade
 
     def onSize(self, event):
-
+        self.text_ctrl_1.SetSize(self.GetClientSize())
         event.Skip()
         return
 
