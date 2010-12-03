@@ -2981,7 +2981,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.frame_1_toolbar.SetToolBitmapSize((32, 32))
         self.frame_1_toolbar.SetToolSeparation(5)
         self.frame_1_toolbar.Realize()
-        self.text_ctrl_1.SetFont(wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL, 0, ""))
+
         # end wxGlade
 
         # load last appearance

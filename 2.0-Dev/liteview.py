@@ -1085,6 +1085,7 @@ class LiteView(wx.ScrolledWindow):
         dc=wx.MemoryDC()
         dc.SetFont(self.GetFont())
 
+
         ch_h=dc.GetCharHeight()
         ch_w=dc.GetCharWidth()
         maxcount=(self.maxHeight/(ch_h+self.linespace))*((self.maxWidth-2*self.pagemargin)/ch_w)
