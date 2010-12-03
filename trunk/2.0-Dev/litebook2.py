@@ -18,6 +18,7 @@ import platform
 import imp
 import math
 import wx
+import wx.grid as  gridlib
 import types
 import wx.lib.mixins.listctrl
 import wx.lib.newevent
@@ -2748,6 +2749,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 
 
 
+
         self.text_ctrl_2 = wx.TextCtrl(self.window_1_pane_1, -1, "",style=wx.TE_PROCESS_TAB|wx.TE_PROCESS_ENTER)
 
 
@@ -3075,7 +3077,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.frame_1_toolbar.SetToolBitmapSize((32, 32))
         self.frame_1_toolbar.SetToolSeparation(5)
         self.frame_1_toolbar.Realize()
-        self.text_ctrl_1.SetFont(wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL, 0, ""))
+
         # end wxGlade
         # load last appearance
 ##        if str(type(GlobalConfig['CurFont']))=="<class 'wx._gdi.Font'>":
@@ -6629,6 +6631,7 @@ class NewOptionDialog(wx.Dialog):
         #kwds["style"] = wx.DEFAULT_DIALOG_STYLE
         wx.Dialog.__init__(self, parent=parent,title=u'选项对话框',pos=(0,0))
         self.notebook_1 = wx.Notebook(self, -1, style=0)
+        self.notebook_1_pane_4 = wx.Panel(self.notebook_1, -1)
         self.notebook_1_pane_3 = wx.Panel(self.notebook_1, -1)
         self.notebook_1_pane_2 = wx.Panel(self.notebook_1, -1)
         self.notebook_1_pane_1 = wx.ScrolledWindow(self.notebook_1, -1, style=wx.TAB_TRAVERSAL)
@@ -6644,6 +6647,7 @@ class NewOptionDialog(wx.Dialog):
         self.sizer_32_staticbox = wx.StaticBox(self.notebook_1_pane_3, -1, u"下载")
         self.sizer_36_staticbox = wx.StaticBox(self.notebook_1_pane_3, -1, u"代理服务器")
         self.sizer_15_staticbox = wx.StaticBox(self.notebook_1_pane_1, -1, u"显示效果预览")
+        self.sizer_26_staticbox = wx.StaticBox(self.notebook_1_pane_4, -1, u"按键方案")
         self.text_ctrl_3 = liteview.LiteView(self.notebook_1_pane_1, -1, "")
         self.combo_box_1 = wx.ComboBox(self.notebook_1_pane_1, -1, choices=[], style=wx.CB_DROPDOWN|wx.CB_READONLY)
         self.button_1 = wx.Button(self.notebook_1_pane_1, -1, u"另存为")
@@ -6702,6 +6706,12 @@ class NewOptionDialog(wx.Dialog):
         self.text_ctrl_5 = wx.TextCtrl(self.notebook_1_pane_3, -1, "")
         self.label_22 = wx.StaticText(self.notebook_1_pane_3, -1, u"密码：")
         self.text_ctrl_6 = wx.TextCtrl(self.notebook_1_pane_3, -1, "", style=wx.TE_PASSWORD)
+
+        self.combo_box_7 = wx.ComboBox(self.notebook_1_pane_4, -1, choices=[], style=wx.CB_DROPDOWN)
+        self.button_Key_Save = wx.Button(self.notebook_1_pane_4, -1, u"另存为")
+        self.button_Key_Del = wx.Button(self.notebook_1_pane_4, -1, u"删除")
+        self.grid_1 = gridlib.Grid(self.notebook_1_pane_4, -1, size=(1, 1))
+
         self.button_10 = wx.Button(self, -1, u"确定")
         self.button_11 = wx.Button(self, -1, u"取消")
 
@@ -6750,6 +6760,10 @@ class NewOptionDialog(wx.Dialog):
         self.text_ctrl_1.SetMinSize((150, -1))
         self.text_ctrl_4.SetMinSize((200, -1))
         self.spin_ctrl_11.SetMinSize((100,-1))
+        self.grid_1.CreateGrid(3, 2)
+        self.grid_1.SetColLabelValue(0, u"功能")
+        self.grid_1.SetColLabelValue(1, u"按键")
+
         #set preview area to current setting
         self.text_ctrl_3.SetShowMode(GlobalConfig['showmode'])
         if GlobalConfig['backgroundimg']<>'' and GlobalConfig['backgroundimg']<>None:
@@ -6829,6 +6843,8 @@ class NewOptionDialog(wx.Dialog):
         # begin wxGlade: NewOptionDialog.__do_layout
         sizer_3 = wx.BoxSizer(wx.VERTICAL)
         sizer_30 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_7 = wx.BoxSizer(wx.VERTICAL)
+        sizer_26 = wx.StaticBoxSizer(self.sizer_26_staticbox, wx.HORIZONTAL)
         sizer_31 = wx.BoxSizer(wx.VERTICAL)
         sizer_36 = wx.StaticBoxSizer(self.sizer_36_staticbox, wx.VERTICAL)
         sizer_40 = wx.BoxSizer(wx.HORIZONTAL)
@@ -6955,9 +6971,16 @@ class NewOptionDialog(wx.Dialog):
         sizer_36.Add(sizer_40, 1, wx.EXPAND, 0)
         sizer_31.Add(sizer_36, 0, wx.EXPAND, 0)
         self.notebook_1_pane_3.SetSizer(sizer_31)
+        sizer_26.Add(self.combo_box_7, 0, 0, 0)
+        sizer_26.Add(self.button_Key_Save, 0, 0, 0)
+        sizer_26.Add(self.button_Key_Del, 0, 0, 0)
+        sizer_7.Add(sizer_26, 0, wx.EXPAND, 0)
+        sizer_7.Add(self.grid_1, 1, wx.EXPAND, 0)
+        self.notebook_1_pane_4.SetSizer(sizer_7)
         self.notebook_1.AddPage(self.notebook_1_pane_1, u"显示设置")
         self.notebook_1.AddPage(self.notebook_1_pane_2, u"控制设置")
         self.notebook_1.AddPage(self.notebook_1_pane_3, u"下载设置")
+        self.notebook_1.AddPage(self.notebook_1_pane_4, u"按键设置")
         sizer_3.Add(self.notebook_1, 1, wx.EXPAND, 0)
         sizer_30.Add((100, 10), 1, wx.EXPAND, 0)
         sizer_30.Add(self.button_10, 0, 0, 0)
