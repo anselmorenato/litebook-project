@@ -1351,8 +1351,8 @@ BookMarkList=[]
 ThemeList=[]
 BookDB=[]
 Ticking=True
-Version='2.0 Linux Beta2'
-I_Version=2.01 # this is used to check updated version
+Version='2.0 Linux Beta3'
+I_Version=2.02 # this is used to check updated version
 
 def cur_file_dir():
     #获取脚本路径
@@ -3259,10 +3259,10 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.frame_1_toolbar.AddLabelTool(41, "HTML", wx.Bitmap(GlobalConfig['IconDir']+u"/html--32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"过滤HTML标记", u"过滤HTML标记")
         self.frame_1_toolbar.AddLabelTool(42, u"切换为简体字", wx.Bitmap(GlobalConfig['IconDir']+u"/jian.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"切换为简体字", u"切换为简体字")
         self.frame_1_toolbar.AddLabelTool(43, u"切换为繁体字", wx.Bitmap(GlobalConfig['IconDir']+u"/fan.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"切换为繁体字", u"切换为繁体字")
-        self.frame_1_toolbar.AddSeparator()
-        self.sliderControl=wx.Slider(self.frame_1_toolbar, -1, 0, 0, 100,style=wx.SL_LABELS)
-        self.frame_1_toolbar.AddControl(self.sliderControl)
-        self.sliderControl.Bind(wx.EVT_SCROLL,self.OnSScroll)
+#        self.frame_1_toolbar.AddSeparator()
+#        self.sliderControl=wx.Slider(self.frame_1_toolbar, -1, 0, 0, 100,style=wx.SL_LABELS)
+#        self.frame_1_toolbar.AddControl(self.sliderControl)
+#        self.sliderControl.Bind(wx.EVT_SCROLL,self.OnSScroll)
 
         # Tool Bar end
         #self.text_ctrl_1 = wx.TextCtrl(self, -1, "", style=wx.TE_MULTILINE|wx.TE_READONLY|wx.TE_RICH2)
@@ -3881,14 +3881,14 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.ViewMenu.Check(503,False)
 
 
-    def OnSScroll(self,evt):
-        tval=self.sliderControl.GetValue()
-        if tval<>100:
-            tpos=int(float(self.text_ctrl_1.ValueCharCount)*(float(tval)/100.0))
-            self.text_ctrl_1.JumpTo(tpos)
-        else:
-            self.text_ctrl_1.ScrollBottom()
-        self.text_ctrl_1.SetFocus()
+#    def OnSScroll(self,evt):
+#        tval=self.sliderControl.GetValue()
+#        if tval<>100:
+#            tpos=int(float(self.text_ctrl_1.ValueCharCount)*(float(tval)/100.0))
+#            self.text_ctrl_1.JumpTo(tpos)
+#        else:
+#            self.text_ctrl_1.ScrollBottom()
+#        self.text_ctrl_1.SetFocus()
 
 
     def Tool41(self, event): # wxGlade: MyFrame.<event_handler>
@@ -4596,8 +4596,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                 if i>=3:i-=3
                 txt="..."+txt[-1*i:]
             self.frame_1_statusbar.SetStatusText(txt,0)
-            pos=int(self.text_ctrl_1.GetPosPercent())
-            self.sliderControl.SetValue(pos)
+#            pos=int(self.text_ctrl_1.GetPosPercent())
+#            self.sliderControl.SetValue(pos)
     def ReadTimeAlert(self,event):
         ttxt=u'现在是'+time.strftime("%H:%M:%S",time.localtime())+"\n"
         ttxt+=u'你已经连续阅读了'+event.ReadTime
@@ -7655,13 +7655,15 @@ class SliderDialog(wx.Dialog):
         self.sizer_1_staticbox = wx.StaticBox(self, -1, u"当前进度")
         self.slider_1 = wx.Slider(self, -1, val, 0, 100, style=wx.SL_LABELS)
 
-        self.slider_1.Bind(wx.EVT_KEY_UP,self.OnChar)
+        self.Bind(wx.EVT_KEY_UP,self.OnChar)
         self.slider_1.Bind(wx.EVT_SCROLL,self.OnScroll)
+        self.Bind(wx.EVT_CLOSE,self.Closeme)
         self.Bind(wx.EVT_KILL_FOCUS,self.Closeme)
         self.slider_1.Bind(wx.EVT_KILL_FOCUS,self.Closeme)
         self.__set_properties()
         self.__do_layout()
         self.win=self.GetParent()
+        self.SetFocus()
         # end wxGlade
 
 
@@ -7715,7 +7717,6 @@ class SliderDialog(wx.Dialog):
         for f in k:
             if f[0]==u'显示进度条':
                 break
-
         key=evt.GetKeyCode()
         if key==wx.WXK_ESCAPE or keystr==f[1]:
             self.Closeme()
