@@ -7190,6 +7190,7 @@ class NewOptionDialog(wx.Dialog):
         self.notebook_1.AddPage(self.notebook_1_pane_1, u"显示设置")
         self.notebook_1.AddPage(self.notebook_1_pane_2, u"控制设置")
         self.notebook_1.AddPage(self.notebook_1_pane_3, u"下载设置")
+        self.notebook_1.AddPage(self.notebook_1_pane_4, u"按键设置")
         sizer_3.Add(self.notebook_1, 1, wx.EXPAND, 0)
         sizer_30.Add((100, 10), 1, wx.EXPAND, 0)
         sizer_30.Add(self.button_10, 0, 0, 0)
@@ -7652,7 +7653,7 @@ class SliderDialog(wx.Dialog):
         #kwds["style"] = wx.RESIZE_BORDER|wx.THICK_FRAME
         wx.Dialog.__init__(self,parent, pos=inpos,style=wx.CLOSE_BOX|wx.THICK_FRAME)
         self.sizer_1_staticbox = wx.StaticBox(self, -1, u"当前进度")
-        self.slider_1 = wx.Slider(self, -1, val, 0, 100, style=wx.SL_VERTICAL|wx.SL_LABELS)
+        self.slider_1 = wx.Slider(self, -1, val, 0, 100, style=wx.SL_LABELS)
 
         self.slider_1.Bind(wx.EVT_KEY_UP,self.OnChar)
         self.slider_1.Bind(wx.EVT_SCROLL,self.OnScroll)
@@ -7668,6 +7669,9 @@ class SliderDialog(wx.Dialog):
         # begin wxGlade: MyDialog.__set_properties
         # end wxGlade
         self.SetTransparent(220)
+        self.slider_1.SetLineSize(1)
+        
+        
 
 
     def __do_layout(self):
@@ -7678,6 +7682,7 @@ class SliderDialog(wx.Dialog):
         sizer_1.Fit(self)
         self.Layout()
         # end wxGlade
+        self.SetSize((200,-1))
 
 # end of class MyDialog
     def Closeme(self,evt=None):
