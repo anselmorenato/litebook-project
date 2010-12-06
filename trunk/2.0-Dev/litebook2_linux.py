@@ -23,6 +23,7 @@
 #
 
 import liteview
+import keygrid
 import platform
 import imp
 import urllib2
@@ -1337,6 +1338,7 @@ def FtoJ(data):
 
 OnDirectSeenPage=False
 GlobalConfig={}
+KeyConfigList=[]
 PluginList={}
 OpenedFileList=[]
 current_file=''
@@ -1483,6 +1485,441 @@ def readPlugin():
 
 
 
+def readKeyConfig():
+    global KeyConfigList
+    config=MyConfig()
+    try:
+        ffp=codecs.open(unicode(os.environ['HOME'],'utf-8')+u"/.litebook_key.ini",encoding='utf-8',mode='r')
+        #GlobalConfig['ConfigDir']=os.environ['APPDATA'].decode('gbk')
+        config.readfp(ffp)
+    except:
+        kconfig=[]
+        kconfig.append(('last'))
+        kconfig.append((u'向上翻页',"----+WXK_PAGEUP"))
+        kconfig.append((u'向上翻页',"----+WXK_LEFT"))
+        kconfig.append((u'向下翻页',"----+WXK_PAGEDOWN"))
+        kconfig.append((u'向下翻页',"----+WXK_RIGHT"))
+        kconfig.append((u'向下翻页',"----+WXK_SPACE"))
+        kconfig.append((u'跳到首页',"----+WXK_HOME"))
+        kconfig.append((u'跳到结尾',"----+WXK_END"))
+        kconfig.append((u'文件列表','C---+"O"'))
+        kconfig.append((u'打开文件','C---+"P"'))
+        kconfig.append((u'另存为','C---+"S"'))
+        kconfig.append((u'关闭','C---+"Z"'))
+        kconfig.append((u'上一个文件','C---+"["'))
+        kconfig.append((u'下一个文件','C---+"]"'))
+        kconfig.append((u'搜索小说网站','-A--+"C"'))
+        kconfig.append((u'重新载入插件','C---+"R"'))
+        kconfig.append((u'选项','-A--+"O"'))
+        kconfig.append((u'退出','-A--+"X"'))
+        kconfig.append((u'拷贝','C---+"C"'))
+        kconfig.append((u'查找','C---+"F"'))
+        kconfig.append((u'查找下一个','----+WXK_F3'))
+        kconfig.append((u'查找上一个','----+WXK_F4'))
+        kconfig.append((u'纸张显示模式','-A--+"M"'))
+        kconfig.append((u'书本显示模式','-A--+"B"'))
+        kconfig.append((u'竖排书本显示模式','-A--+"N"'))
+        kconfig.append((u'显示工具栏','C---+"T"'))
+        kconfig.append((u'全屏显示','C---+"I"'))
+        kconfig.append((u'显示文件侧边栏','-A--+"D"'))
+        kconfig.append((u'自动翻页','----+WXK_RETURN'))
+        kconfig.append((u'智能分段','-A--+"P"'))
+        kconfig.append((u'添加到收藏夹','C---+"D"'))
+        kconfig.append((u'整理收藏夹','C---+"M"'))
+        kconfig.append((u'简明帮助','----+WXK_F1'))
+        kconfig.append((u'版本更新内容','----+WXK_F2'))
+        kconfig.append((u'检查更新','----+WXK_F5'))
+        kconfig.append((u'关于','----+WXK_F6'))
+        kconfig.append((u'过滤HTML标记','----+WXK_F9'))
+        kconfig.append((u'切换为简体字','----+WXK_F7'))
+        kconfig.append((u'切换为繁体字','----+WXK_F8'))
+        kconfig.append((u'显示进度条','----+"Z"'))
+        KeyConfigList.append(kconfig)
+        return
+    if not config.has_section('last'):
+        kconfig=[]
+        kconfig.append(('last'))
+        kconfig.append((u'向上翻页',"----+WXK_PAGEUP"))
+        kconfig.append((u'向上翻页',"----+WXK_LEFT"))
+        kconfig.append((u'向下翻页',"----+WXK_PAGEDOWN"))
+        kconfig.append((u'向下翻页',"----+WXK_RIGHT"))
+        kconfig.append((u'向下翻页',"----+WXK_SPACE"))
+        kconfig.append((u'跳到首页',"----+WXK_HOME"))
+        kconfig.append((u'跳到结尾',"----+WXK_END"))
+        kconfig.append((u'文件列表','C---+"O"'))
+        kconfig.append((u'打开文件','C---+"P"'))
+        kconfig.append((u'另存为','C---+"S"'))
+        kconfig.append((u'关闭','C---+"Z"'))
+        kconfig.append((u'上一个文件','C---+"["'))
+        kconfig.append((u'下一个文件','C---+"]"'))
+        kconfig.append((u'搜索小说网站','-A--+"C"'))
+        kconfig.append((u'重新载入插件','C---+"R"'))
+        kconfig.append((u'选项','-A--+"O"'))
+        kconfig.append((u'退出','-A--+"X"'))
+        kconfig.append((u'拷贝','C---+"C"'))
+        kconfig.append((u'查找','C---+"F"'))
+        kconfig.append((u'查找下一个','----+WXK_F3'))
+        kconfig.append((u'查找上一个','----+WXK_F4'))
+        kconfig.append((u'纸张显示模式','-A--+"M"'))
+        kconfig.append((u'书本显示模式','-A--+"B"'))
+        kconfig.append((u'竖排书本显示模式','-A--+"N"'))
+        kconfig.append((u'显示工具栏','C---+"T"'))
+        kconfig.append((u'全屏显示','C---+"I"'))
+        kconfig.append((u'显示文件侧边栏','-A--+"D"'))
+        kconfig.append((u'自动翻页','----+WXK_RETURN'))
+        kconfig.append((u'智能分段','-A--+"P"'))
+        kconfig.append((u'添加到收藏夹','C---+"D"'))
+        kconfig.append((u'整理收藏夹','C---+"M"'))
+        kconfig.append((u'简明帮助','----+WXK_F1'))
+        kconfig.append((u'版本更新内容','----+WXK_F2'))
+        kconfig.append((u'检查更新','----+WXK_F5'))
+        kconfig.append((u'关于','----+WXK_F6'))
+        kconfig.append((u'过滤HTML标记','----+WXK_F9'))
+        kconfig.append((u'切换为简体字','----+WXK_F7'))
+        kconfig.append((u'切换为繁体字','----+WXK_F8'))
+        kconfig.append((u'显示进度条','----+"Z"'))
+        KeyConfigList.append(kconfig)
+    else:
+        kconfig=[]
+        kconfig.append(('last'))
+        try:
+            cstr=config.get('last',u'向上翻页')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'向上翻页',cs))
+        except:
+            kconfig.append((u'向上翻页',"----+WXK_PAGEUP"))
+
+        try:
+            cstr=config.get('last',u'跳到结尾')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'跳到结尾',cs))
+        except:
+            kconfig.append((u'跳到结尾',"----+WXK_END"))
+
+        try:
+            cstr=config.get('last',u'切换为繁体字')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'切换为繁体字',cs))
+        except:
+            kconfig.append((u'切换为繁体字',"----+WXK_F8"))
+
+        try:
+            cstr=config.get('last',u'另存为')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'另存为',cs))
+        except:
+            kconfig.append((u'另存为','C---+"S"'))
+
+        try:
+            cstr=config.get('last',u'向下翻页')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'向下翻页',cs))
+        except:
+            kconfig.append((u'向下翻页','----+WXK_PAGEDOWN'))
+
+        try:
+            cstr=config.get('last',u'智能分段')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'智能分段',cs))
+        except:
+            kconfig.append((u'智能分段','-A--+"P"'))
+
+        try:
+            cstr=config.get('last',u'查找')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'查找',cs))
+        except:
+            kconfig.append((u'查找','C---+"F"'))
+
+        try:
+            cstr=config.get('last',u'关于')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'关于',cs))
+        except:
+            kconfig.append((u'关于','----+WXK_F6'))
+
+        try:
+            cstr=config.get('last',u'查找下一个')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'查找下一个',cs))
+        except:
+            kconfig.append((u'查找下一个','----+WXK_F3'))
+
+        try:
+            cstr=config.get('last',u'自动翻页')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'自动翻页',cs))
+        except:
+            kconfig.append((u'自动翻页','----+WXK_RETURN'))
+
+
+        try:
+            cstr=config.get('last',u'重新载入插件')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'重新载入插件',cs))
+        except:
+            kconfig.append((u'重新载入插件','C---+"R"'))
+
+        try:
+            cstr=config.get('last',u'选项')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'选项',cs))
+        except:
+            kconfig.append((u'选项','-A--+"O"'))
+
+        try:
+            cstr=config.get('last',u'简明帮助')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'简明帮助',cs))
+        except:
+            kconfig.append((u'简明帮助','----+WXK_F1'))
+
+        try:
+            cstr=config.get('last',u'纸张显示模式')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'纸张显示模式',cs))
+        except:
+            kconfig.append((u'纸张显示模式','-A--+"M"'))
+
+        try:
+            cstr=config.get('last',u'下一个文件')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'下一个文件',cs))
+        except:
+            kconfig.append((u'下一个文件','C---+"]"'))
+
+        try:
+            cstr=config.get('last',u'添加到收藏夹')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'添加到收藏夹',cs))
+        except:
+            kconfig.append((u'添加到收藏夹','C---+"D"'))
+
+        try:
+            cstr=config.get('last',u'搜索小说网站')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'搜索小说网站',cs))
+        except:
+            kconfig.append((u'搜索小说网站','-A--+"C"'))
+
+        try:
+            cstr=config.get('last',u'全屏显示')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'全屏显示',cs))
+        except:
+            kconfig.append((u'全屏显示','C---+"I"'))
+
+        try:
+            cstr=config.get('last',u'跳到首页')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'跳到首页',cs))
+        except:
+            kconfig.append((u'跳到首页','----+WXK_HOME'))
+
+        try:
+            cstr=config.get('last',u'拷贝')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'拷贝',cs))
+        except:
+            kconfig.append((u'拷贝','C---+"C"'))
+
+        try:
+            cstr=config.get('last',u'竖排书本显示模式')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'竖排书本显示模式',cs))
+        except:
+            kconfig.append((u'竖排书本显示模式','-A--+"N"'))
+
+        try:
+            cstr=config.get('last',u'显示工具栏')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'显示工具栏',cs))
+        except:
+            kconfig.append((u'显示工具栏','C---+"T"'))
+
+        try:
+            cstr=config.get('last',u'打开文件')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'打开文件',cs))
+        except:
+            kconfig.append((u'打开文件','C---+"P"'))
+
+        try:
+            cstr=config.get('last',u'整理收藏夹')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'整理收藏夹',cs))
+        except:
+            kconfig.append((u'整理收藏夹','C---+"M"'))
+
+        try:
+            cstr=config.get('last',u'文件列表')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'文件列表',cs))
+        except:
+            kconfig.append((u'文件列表','C---+"O"'))
+
+        try:
+            cstr=config.get('last',u'切换为简体字')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'切换为简体字',cs))
+        except:
+            kconfig.append((u'切换为简体字','----+WXK_F7'))
+
+
+        try:
+            cstr=config.get('last',u'过滤HTML标记')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'过滤HTML标记',cs))
+        except:
+            kconfig.append((u'过滤HTML标记','----+WXK_F9'))
+
+
+        try:
+            cstr=config.get('last',u'书本显示模式')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'书本显示模式',cs))
+        except:
+            kconfig.append((u'书本显示模式','-A--+"B"'))
+
+        try:
+            cstr=config.get('last',u'检查更新')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'检查更新',cs))
+        except:
+            kconfig.append((u'检查更新','----+WXK_F5'))
+
+        try:
+            cstr=config.get('last',u'版本更新内容')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'版本更新内容',cs))
+        except:
+            kconfig.append((u'版本更新内容','----+WXK_F2'))
+
+
+        try:
+            cstr=config.get('last',u'查找上一个')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'查找上一个',cs))
+        except:
+            kconfig.append((u'查找上一个','----+WXK_F4'))
+
+        try:
+            cstr=config.get('last',u'显示文件侧边栏')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'显示文件侧边栏',cs))
+        except:
+            kconfig.append((u'显示文件侧边栏','-A--+"D"'))
+
+        try:
+            cstr=config.get('last',u'关闭')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'关闭',cs))
+        except:
+            kconfig.append((u'关闭','C---+"Z"'))
+
+        try:
+            cstr=config.get('last',u'退出')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'退出',cs))
+        except:
+            kconfig.append((u'退出','-A--+"X"'))
+
+        try:
+            cstr=config.get('last',u'上一个文件')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'上一个文件',cs))
+        except:
+            kconfig.append((u'上一个文件','C---+"["'))
+
+        try:
+            cstr=config.get('last',u'显示进度条')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'显示进度条',cs))
+        except:
+            kconfig.append((u'显示进度条','----+"Z"'))
+
+
+        KeyConfigList.append(kconfig)
+    secs=config.sections()
+    secs.remove('last')
+    for sec in secs:
+        kconfig=[]
+        kconfig.append((sec))
+        opts=config.options(sec)
+        for opt in opts:
+            cstr=config.get(sec,opt)
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((opt,cs))
+        KeyConfigList.append(kconfig)
+
+
+
+
+
+
+def writeKeyConfig():
+    global KeyConfigList
+    config=MyConfig()
+    for kconfig in KeyConfigList:
+        config.add_section(kconfig[0])
+        i=1
+        kl=len(kconfig)
+        cstr={}
+        while i<kl:
+            if kconfig[i][0] not in cstr:
+                cstr[kconfig[i][0]]=kconfig[i][1]
+            else:
+                cstr[kconfig[i][0]]+="&&"+kconfig[i][1]
+            i+=1
+        for key,val in cstr.items():
+            config.set(kconfig[0],unicode(key),val)
+
+    try:
+        ConfigFile=codecs.open(unicode(os.environ['HOME'],'utf-8')+u'/.litebook_key.ini',encoding='utf-8',mode='w')
+        config.write(ConfigFile)
+        ConfigFile.close()
+    except:
+        dlg = wx.MessageDialog(None, u'写入按键配置文件错误！',u"错误！",wx.OK|wx.ICON_ERROR)
+        dlg.ShowModal()
+        dlg.Destroy()
+        return False
 
 
 def readConfigFile():
@@ -2632,10 +3069,50 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
     Clock=True
     current_pos=0
     last_pos=0
+    slider=None
     last_mouse_event=None
     UpdateSidebar=False
     SidebarPos=300 # inital postion value for dir sidebar
     Formated=False
+    func_list={
+    u'向上翻页':'self.text_ctrl_1.ScrollP(-1)',
+    u'向下翻页':'self.text_ctrl_1.ScrollP(1)',
+    u'跳到首页':'self.text_ctrl_1.ScrollTop()',
+    u'跳到结尾':'self.text_ctrl_1.ScrollBottom()',
+    u'文件列表':'self.Menu101(None)',
+    u'打开文件':'self.Menu102(None)',
+    u'另存为':'self.Menu108(None)',
+    u'关闭':'self.Menu103(None)',
+    u'上一个文件':'self.Menu104(None)',
+    u'下一个文件':'self.Menu105(None)',
+    u'搜索小说网站':'self.Menu110(None)',
+    u'重新载入插件':'self.Menu111(None)',
+    u'选项':'self.Menu106(None)',
+    u'退出':'self.Menu107(None)',
+    u'拷贝':'self.Menu202(None)',
+    u'查找':'self.Menu203(None)',
+    u'查找下一个':'self.Menu204(None)',
+    u'查找上一个':'self.Menu205(None)',
+    u'纸张显示模式':'self.Menu601(None)',
+    u'书本显示模式':'self.Menu602(None)',
+    u'竖排书本显示模式':'self.Menu603(None)',
+    u'显示工具栏':'self.Menu501(None)',
+    u'全屏显示':'self.Menu503(None)',
+    u'显示文件侧边栏':'self.Menu502(None)',
+    u'自动翻页':'self.Tool44(None)',
+    u'智能分段':'self.Menu504(None)',
+    u'添加到收藏夹':'self.Menu301(None)',
+    u'整理收藏夹':'self.Menu302(None)',
+    u'简明帮助':'self.Menu401(None)',
+    u'版本更新内容':'self.Menu404(None)',
+    u'检查更新':'self.Menu403(None)',
+    u'关于':'self.Menu402(None)',
+    u'过滤HTML标记':'self.Tool41(None)',
+    u'切换为简体字':'self.Tool42(None)',
+    u'切换为繁体字':'self.Tool43(None)',
+    u'显示进度条':'self.ShowSlider()'
+    }
+
     def __init__(self,*args, **kwds):
         global GlobalConfig
         self.buff=u''
@@ -2676,12 +3153,12 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         wxglade_tmp_menu = wx.Menu()
         wxglade_tmp_menu.Append(101, u"文件列表(&L)", u"打开文件列表", wx.ITEM_NORMAL)
         wxglade_tmp_menu.Append(102, u"打开文件(&O)", u"打开文件", wx.ITEM_NORMAL)
-        wxglade_tmp_menu.Append(108, u"另存为...(&S)\tCtrl+S", u"打开文件", wx.ITEM_NORMAL)
-        wxglade_tmp_menu.Append(103, u"关闭(&C)\tCtrl+Z", u"关闭当前文件", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(108, u"另存为...(&S)", u"打开文件", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(103, u"关闭(&C)", u"关闭当前文件", wx.ITEM_NORMAL)
         wxglade_tmp_menu.AppendSeparator()
         wxglade_tmp_menu_sub = wx.Menu()
-        wxglade_tmp_menu_sub.Append(104, u"上一个文件(&P)\tCtrl+[", u"打开上一个文件", wx.ITEM_NORMAL)
-        wxglade_tmp_menu_sub.Append(105, u"下一个文件(&N)\tCtrl+]", u"打开下一个文件", wx.ITEM_NORMAL)
+        wxglade_tmp_menu_sub.Append(104, u"上一个文件(&P)", u"打开上一个文件", wx.ITEM_NORMAL)
+        wxglade_tmp_menu_sub.Append(105, u"下一个文件(&N)", u"打开下一个文件", wx.ITEM_NORMAL)
         wxglade_tmp_menu.AppendMenu(wx.NewId(), u"按文件序号顺序打开", wxglade_tmp_menu_sub, "")
         wxglade_tmp_menu_sub = wx.Menu()
         i=1000
@@ -2695,20 +3172,20 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         wxglade_tmp_menu.AppendMenu(wx.NewId(), u"曾经打开的文件", wxglade_tmp_menu_sub, "")
         wxglade_tmp_menu.Append(109, u"以往打开文件历史", u"显示曾经打开的所有文件列表", wx.ITEM_NORMAL)
         wxglade_tmp_menu.AppendSeparator()
-        wxglade_tmp_menu.Append(110, u"搜索小说网站(&S)\tAlt+C", u"搜索小说网站", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(110, u"搜索小说网站(&S)", u"搜索小说网站", wx.ITEM_NORMAL)
         wxglade_tmp_menu.Append(111, u"重新载入插件", u"重新载入插件", wx.ITEM_NORMAL)
         wxglade_tmp_menu.AppendSeparator()
 
-        wxglade_tmp_menu.Append(106, u"选项(&O)\tAlt+O", u"程序的设置选项", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(106, u"选项(&O)", u"程序的设置选项", wx.ITEM_NORMAL)
         wxglade_tmp_menu.AppendSeparator()
-        wxglade_tmp_menu.Append(107, u"退出(&X)\tAlt+X", u"退出本程序", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(107, u"退出(&X)", u"退出本程序", wx.ITEM_NORMAL)
         self.frame_1_menubar.Append(wxglade_tmp_menu, u"文件(&F)")
         wxglade_tmp_menu = wx.Menu()
-        wxglade_tmp_menu.Append(202, u"拷贝(&C)\tCtrl+C", u"将选中的内容拷贝到剪贴板", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(202, u"拷贝(&C)", u"将选中的内容拷贝到剪贴板", wx.ITEM_NORMAL)
         wxglade_tmp_menu.AppendSeparator()
-        wxglade_tmp_menu.Append(203, u"查找(&S)\tCtrl+F", u"在打开的文件中查找", wx.ITEM_NORMAL)
-        wxglade_tmp_menu.Append(204, u"查找下一个(&N)\tF3", u"查找下一个", wx.ITEM_NORMAL)
-        wxglade_tmp_menu.Append(205, u"查找上一个(&N)\tF4", u"查找上一个", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(203, u"查找(&S)", u"在打开的文件中查找", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(204, u"查找下一个(&N)", u"查找下一个", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(205, u"查找上一个(&N)", u"查找上一个", wx.ITEM_NORMAL)
         self.frame_1_menubar.Append(wxglade_tmp_menu, u"查找(&S)")
         wxglade_tmp_menu = wx.Menu()
         self.ViewMenu=wxglade_tmp_menu
@@ -2717,25 +3194,34 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         wxglade_tmp_menu.AppendRadioItem(603,u'竖排书本显示模式',u'设置当前显示模式为竖排书本')
         wxglade_tmp_menu.AppendSeparator()
 
-        wxglade_tmp_menu.Append(501, u"显示工具栏\tCtrl+T", u"是否显示工具栏", wx.ITEM_CHECK)
-        wxglade_tmp_menu.Append(503, u"全屏显示\tCtrl+I", u"全屏显示", wx.ITEM_CHECK)
-        wxglade_tmp_menu.Append(502, u"显示文件侧边栏\tAlt+D", u"是否显示文件侧边栏", wx.ITEM_CHECK)
+        wxglade_tmp_menu.Append(501, u"显示工具栏", u"是否显示工具栏", wx.ITEM_CHECK)
+        wxglade_tmp_menu.Append(503, u"全屏显示", u"全屏显示", wx.ITEM_CHECK)
+        wxglade_tmp_menu.Append(502, u"显示文件侧边栏", u"是否显示文件侧边栏", wx.ITEM_CHECK)
         wxglade_tmp_menu.Append(505, u"自动翻页", u"是否自动翻页", wx.ITEM_CHECK)
+        wxglade_tmp_menu.Append(506, u"显示进度条", u"显示进度条", wx.ITEM_NORMAL)
         if not GlobalConfig['HideToolbar']:
             self.toolbar_visable=True
             wxglade_tmp_menu.Check(501,True)
         else:
             self.toolbar_visable=False
         self.SidebarMenu=wxglade_tmp_menu
-        wxglade_tmp_menu.Append(504, u"智能分段\tAlt+P", u"智能分段", wx.ITEM_CHECK)
+        wxglade_tmp_menu.Append(504, u"智能分段", u"智能分段", wx.ITEM_CHECK)
         self.FormatMenu=wxglade_tmp_menu
         self.frame_1_menubar.Append(wxglade_tmp_menu, u"视图(&T)")
         wxglade_tmp_menu = wx.Menu()
-        wxglade_tmp_menu.Append(301, u"添加到收藏夹(&A)\tCtrl+D", u"将当前阅读位置添加到收藏夹", wx.ITEM_NORMAL)
-        wxglade_tmp_menu.Append(302, u"整理收藏夹(&M)\tCtrl+M", u"整理收藏夹", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(301, u"添加到收藏夹(&A)", u"将当前阅读位置添加到收藏夹", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(302, u"整理收藏夹(&M)", u"整理收藏夹", wx.ITEM_NORMAL)
         self.frame_1_menubar.Append(wxglade_tmp_menu, u"收藏(&V)")
+
         wxglade_tmp_menu = wx.Menu()
-        wxglade_tmp_menu.Append(401, u"简明帮助(&B)\tF1", u"简明帮助", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(701, u"过滤HTML标签", u"过滤HTML标签", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(702, u"简体转繁体", u"简体转繁体", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(703, u"繁体转简体", u"繁体转简体", wx.ITEM_NORMAL)
+        self.frame_1_menubar.Append(wxglade_tmp_menu, u"工具(&T)")
+
+
+        wxglade_tmp_menu = wx.Menu()
+        wxglade_tmp_menu.Append(401, u"简明帮助(&B)", u"简明帮助", wx.ITEM_NORMAL)
         wxglade_tmp_menu.Append(404, u"版本更新内容", u"版本更新内容", wx.ITEM_NORMAL)
         wxglade_tmp_menu.Append(403, u"检查更新(&C)", u"在线检查是否有更新的版本", wx.ITEM_NORMAL)
         wxglade_tmp_menu.Append(402, u"关于(&A)", u"关于本程序", wx.ITEM_NORMAL)
@@ -2773,6 +3259,11 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.frame_1_toolbar.AddLabelTool(41, "HTML", wx.Bitmap(GlobalConfig['IconDir']+u"/html--32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"过滤HTML标记", u"过滤HTML标记")
         self.frame_1_toolbar.AddLabelTool(42, u"切换为简体字", wx.Bitmap(GlobalConfig['IconDir']+u"/jian.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"切换为简体字", u"切换为简体字")
         self.frame_1_toolbar.AddLabelTool(43, u"切换为繁体字", wx.Bitmap(GlobalConfig['IconDir']+u"/fan.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"切换为繁体字", u"切换为繁体字")
+        self.frame_1_toolbar.AddSeparator()
+        self.sliderControl=wx.Slider(self.frame_1_toolbar, -1, 0, 0, 100,style=wx.SL_LABELS)
+        self.frame_1_toolbar.AddControl(self.sliderControl)
+        self.sliderControl.Bind(wx.EVT_SCROLL,self.OnSScroll)
+
         # Tool Bar end
         #self.text_ctrl_1 = wx.TextCtrl(self, -1, "", style=wx.TE_MULTILINE|wx.TE_READONLY|wx.TE_RICH2)
 
@@ -2802,9 +3293,14 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.Bind(wx.EVT_MENU, self.Menu502, id=502)
         self.Bind(wx.EVT_MENU, self.Menu503, id=503)
         self.Bind(wx.EVT_MENU, self.Menu505, id=505)
+        self.Bind(wx.EVT_MENU, self.ShowSlider, id=506)
         self.Bind(wx.EVT_MENU, self.Menu601, id=601)
         self.Bind(wx.EVT_MENU, self.Menu602, id=602)
         self.Bind(wx.EVT_MENU, self.Menu603, id=603)
+        self.Bind(wx.EVT_MENU, self.Tool41, id=701)
+        self.Bind(wx.EVT_MENU, self.Tool43, id=702)
+        self.Bind(wx.EVT_MENU, self.Tool42, id=703)
+
 
         self.Bind(wx.EVT_MENU, self.Tool44, id=504)
         self.Bind(wx.EVT_TOOL, self.Menu110, id=110)
@@ -2829,7 +3325,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 
         # end wxGlade
         self.Bind(wx.EVT_TOOL, self.Menu502, id=52)
-        self.text_ctrl_1.Bind(wx.EVT_CHAR,self.OnChar)
+        self.text_ctrl_1.Bind(wx.EVT_KEY_UP,self.OnChar)
         self.text_ctrl_2.Bind(wx.EVT_CHAR,self.OnChar3)
         self.list_ctrl_1.Bind(wx.EVT_CHAR,self.OnChar2)
         self.Bind(wx.EVT_FIND, self.OnFind)
@@ -3059,6 +3555,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 
     def Menu103(self, event): # wxGlade: MyFrame.<event_handler>
         global current_file,OnScreenFileList
+        if self.text_ctrl_1.GetValue()<>'':self.SaveBookDB()
         self.text_ctrl_1.Clear()
         self.buff=""
         current_file=''
@@ -3384,17 +3881,14 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.ViewMenu.Check(503,False)
 
 
-    def Tool31(self, event): # wxGlade: MyFrame.<event_handler>
-        print "Event handler `Tool31' not implemented"
-        event.Skip()
-
-    def Tool32(self, event): # wxGlade: MyFrame.<event_handler>
-        print "Event handler `Tool32' not implemented"
-        event.Skip()
-
-    def Tool33(self, event): # wxGlade: MyFrame.<event_handler>
-        print "Event handler `Tool33' not implemented"
-        event.Skip()
+    def OnSScroll(self,evt):
+        tval=self.sliderControl.GetValue()
+        if tval<>100:
+            tpos=int(float(self.text_ctrl_1.ValueCharCount)*(float(tval)/100.0))
+            self.text_ctrl_1.JumpTo(tpos)
+        else:
+            self.text_ctrl_1.ScrollBottom()
+        self.text_ctrl_1.SetFocus()
 
 
     def Tool41(self, event): # wxGlade: MyFrame.<event_handler>
@@ -3812,63 +4306,79 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 
 
 
-
-
-    def OnChar(self, event):
-        usedKeys=(wx.WXK_HOME,wx.WXK_END,wx.WXK_PAGEDOWN,wx.WXK_PAGEUP,wx.WXK_LEFT,wx.WXK_SPACE,wx.WXK_RIGHT,15,70,72,74,wx.WXK_ESCAPE,wx.WXK_TAB,wx.WXK_RETURN)
-        CTRL=2
-        ALT=1
-        SHIFT=4
-        key=event.GetKeyCode()
-        Mod=event.GetModifiers()
-        if key == wx.WXK_PAGEDOWN or key==wx.WXK_SPACE:
-            self.text_ctrl_1.ScrollP(1)
+    def OnChar(self,evt):
+        global KeyConfigList
+        keystr=keygrid.key2str(evt)
+        for kconfig in KeyConfigList:
+            if kconfig[0]=='last':
+                break
+        i=1
+        tl=len(kconfig)
+        while i<tl:
+            if keystr==kconfig[i][1]:break
+            i+=1
+        if i>=tl:
+            evt.Skip()
             return
-        if key==wx.WXK_RIGHT:
-            if Mod==0:
-                self.text_ctrl_1.ScrollP(1)
-                return
-            else:
-                if Mod==2:
-                    self.LoadNextFile(1)
-                    return
-        if key==wx.WXK_LEFT:
-            if Mod==0:
-                self.text_ctrl_1.ScrollP(-1)
-                return
-            else:
-                if Mod==2:
-                    self.LoadNextFile(-1)
-                    return
-        if key == wx.WXK_PAGEUP:
-            self.text_ctrl_1.ScrollP(-1)
-            return
-        if key == wx.WXK_HOME :
-            self.text_ctrl_1.ScrollTop()
-            return
-        if key == wx.WXK_END :
-            self.text_ctrl_1.ScrollBottom()
-            return
-        if key == 12: # Ctrl+L to pop up OnScreenFileList dialog
-           self.ChoseOnScreenFile()
-        if key == 15: # Ctrl+O to open files
-            self.Menu101(self)
-##        if key==wx.WXK_ESCAPE:
-##            self.Iconize()
-        if key==wx.WXK_RETURN:
-            self.autoscroll=not self.autoscroll
-        if key==72: #ALT+H, filter out HTML tag
-            self.Tool41(None)
+        else:
+            eval(self.func_list[kconfig[i][0]])
 
-        if key==74: #ALT+J, Fan to Jian
-            self.Tool42(None)
 
-        if key==70: #ALT+F, Jian to Fan
-            self.Tool43(None)
-
-        if key not in usedKeys:
-            #print key
-            event.Skip()
+##    def OnChar(self, event):
+##        usedKeys=(wx.WXK_HOME,wx.WXK_END,wx.WXK_PAGEDOWN,wx.WXK_PAGEUP,wx.WXK_LEFT,wx.WXK_SPACE,wx.WXK_RIGHT,15,70,72,74,wx.WXK_ESCAPE,wx.WXK_TAB,wx.WXK_RETURN)
+##        CTRL=2
+##        ALT=1
+##        SHIFT=4
+##        key=event.GetKeyCode()
+##        Mod=event.GetModifiers()
+##        if key == wx.WXK_PAGEDOWN or key==wx.WXK_SPACE:
+##            self.text_ctrl_1.ScrollP(1)
+##            return
+##        if key==wx.WXK_RIGHT:
+##            if Mod==0:
+##                self.text_ctrl_1.ScrollP(1)
+##                return
+##            else:
+##                if Mod==2:
+##                    self.LoadNextFile(1)
+##                    return
+##        if key==wx.WXK_LEFT:
+##            if Mod==0:
+##                self.text_ctrl_1.ScrollP(-1)
+##                return
+##            else:
+##                if Mod==2:
+##                    self.LoadNextFile(-1)
+##                    return
+##        if key == wx.WXK_PAGEUP:
+##            self.text_ctrl_1.ScrollP(-1)
+##            return
+##        if key == wx.WXK_HOME :
+##            self.text_ctrl_1.ScrollTop()
+##            return
+##        if key == wx.WXK_END :
+##            self.text_ctrl_1.ScrollBottom()
+##            return
+##        if key == 12: # Ctrl+L to pop up OnScreenFileList dialog
+##           self.ChoseOnScreenFile()
+##        if key == 15: # Ctrl+O to open files
+##            self.Menu101(self)
+####        if key==wx.WXK_ESCAPE:
+####            self.Iconize()
+##        if key==wx.WXK_RETURN:
+##            self.autoscroll=not self.autoscroll
+##        if key==72: #ALT+H, filter out HTML tag
+##            self.Tool41(None)
+##
+##        if key==74: #ALT+J, Fan to Jian
+##            self.Tool42(None)
+##
+##        if key==70: #ALT+F, Jian to Fan
+##            self.Tool43(None)
+##
+##        if key not in usedKeys:
+##            #print key
+##            event.Skip()
 
     def OnFind(self, event):
         fstr=event.GetFindString()
@@ -3928,7 +4438,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                 break
 
     def OnClose(self, event):
-        global OnDirectSeenPage,GlobalConfig
+        global OnDirectSeenPage,GlobalConfig,writeKeyConfig
         self.Hide()
         print "closing..."
         SqlCon.close()
@@ -3944,6 +4454,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             writeConfigFile(GlobalConfig['LastPos'])
         else:
             writeConfigFile(self.GetCurrentPos())
+        writeKeyConfig()
         event.Skip()
 
 
@@ -4085,6 +4596,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                 if i>=3:i-=3
                 txt="..."+txt[-1*i:]
             self.frame_1_statusbar.SetStatusText(txt,0)
+            pos=int(self.text_ctrl_1.GetPosPercent())
+            self.sliderControl.SetValue(pos)
     def ReadTimeAlert(self,event):
         ttxt=u'现在是'+time.strftime("%H:%M:%S",time.localtime())+"\n"
         ttxt+=u'你已经连续阅读了'+event.ReadTime
@@ -4504,6 +5017,18 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         for m in rlist:
             self.list_ctrl_1.InsertItem(m)
 
+    def ShowSlider(self,evt=None):
+        (x,y)=self.GetClientSize()
+
+        if self.slider==None:
+            try:
+                pos=int(self.text_ctrl_1.GetPosPercent())
+            except:
+                pos=0
+            self.slider=SliderDialog(self,pos,(x/2,y/2))
+            self.slider.Show()
+        else:
+            self.slider.Closeme()
 
 class MyOpenFileDialog(wx.Dialog,wx.lib.mixins.listctrl.ColumnSorterMixin):
     global GlobalConfig
@@ -6300,6 +6825,7 @@ class NewOptionDialog(wx.Dialog):
         #kwds["style"] = wx.DEFAULT_DIALOG_STYLE
         wx.Dialog.__init__(self, parent=parent,title=u'选项对话框',pos=(0,0))
         self.notebook_1 = wx.Notebook(self, -1, style=0)
+        self.notebook_1_pane_4 = wx.Panel(self.notebook_1, -1)
         self.notebook_1_pane_3 = wx.Panel(self.notebook_1, -1)
         self.notebook_1_pane_2 = wx.Panel(self.notebook_1, -1)
         self.notebook_1_pane_1 = wx.ScrolledWindow(self.notebook_1, -1, style=wx.TAB_TRAVERSAL)
@@ -6315,6 +6841,8 @@ class NewOptionDialog(wx.Dialog):
         self.sizer_32_staticbox = wx.StaticBox(self.notebook_1_pane_3, -1, u"下载")
         self.sizer_36_staticbox = wx.StaticBox(self.notebook_1_pane_3, -1, u"代理服务器")
         self.sizer_15_staticbox = wx.StaticBox(self.notebook_1_pane_1, -1, u"显示效果预览")
+        self.sizer_26_staticbox = wx.StaticBox(self.notebook_1_pane_4, -1, u"按键方案")
+        self.sizer_27_staticbox = wx.StaticBox(self.notebook_1_pane_4, -1, u"双击修改，右键增加删除")
         self.text_ctrl_3 = liteview.LiteView(self.notebook_1_pane_1, -1, "")
         self.combo_box_1 = wx.ComboBox(self.notebook_1_pane_1, -1, choices=[], style=wx.CB_DROPDOWN|wx.CB_READONLY)
         self.button_1 = wx.Button(self.notebook_1_pane_1, -1, u"另存为")
@@ -6373,12 +6901,20 @@ class NewOptionDialog(wx.Dialog):
         self.text_ctrl_5 = wx.TextCtrl(self.notebook_1_pane_3, -1, "")
         self.label_22 = wx.StaticText(self.notebook_1_pane_3, -1, u"密码：")
         self.text_ctrl_6 = wx.TextCtrl(self.notebook_1_pane_3, -1, "", style=wx.TE_PASSWORD)
+
+        self.combo_box_7 = wx.ComboBox(self.notebook_1_pane_4, -1, choices=[], style=wx.CB_DROPDOWN)
+        self.button_Key_Save = wx.Button(self.notebook_1_pane_4, -1, u"另存为")
+        self.button_Key_Del = wx.Button(self.notebook_1_pane_4, -1, u"删除")
+        self.grid_1 = keygrid.KeyConfigGrid(self.notebook_1_pane_4)
+
+
         self.button_10 = wx.Button(self, -1, u"确定")
         self.button_11 = wx.Button(self, -1, u"取消")
 
 
         #绑定事件处理
         self.Bind(wx.EVT_COMBOBOX,self.OnThemeSelect,self.combo_box_1)
+        self.Bind(wx.EVT_COMBOBOX,self.OnKeySelect,self.combo_box_7)
         self.Bind(wx.EVT_COMBOBOX,self.OnShowmodeSelect,self.combo_box_2)
         self.Bind(wx.EVT_COMBOBOX,self.OnBGlayoutSelect,self.combo_box_3)
         self.Bind(wx.EVT_COMBOBOX,self.OnBGSet,self.combo_box_4)
@@ -6393,6 +6929,9 @@ class NewOptionDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON,self.OnSelectULColor,self.button_7)
         self.Bind(wx.EVT_BUTTON,self.SelectDir,self.button_12)
         self.Bind(wx.EVT_BUTTON,self.OnOK,self.button_10)
+        self.Bind(wx.EVT_BUTTON,self.OnDelKey,self.button_Key_Del)
+        self.Bind(wx.EVT_BUTTON,self.OnSaveKey,self.button_Key_Save)
+
 
         self.Bind(wx.EVT_SPINCTRL,self.OnUpdateSpace,self.spin_ctrl_1)
         self.Bind(wx.EVT_SPINCTRL,self.OnUpdateSpace,self.spin_ctrl_2)
@@ -6494,6 +7033,14 @@ class NewOptionDialog(wx.Dialog):
         self.spin_ctrl_11.SetValue(GlobalConfig['numberofthreads'])
         self.text_ctrl_1.SetValue(unicode(GlobalConfig['defaultsavedir']))
 
+        #load the initial value for keyconfig tab
+        for kconfig in KeyConfigList:
+            if kconfig[0]<>'last':
+                self.combo_box_7.Append(kconfig[0])
+            else:
+                self.combo_box_7.Append(u'当前设置')
+        self.combo_box_7.Select(0)
+        self.grid_1.Load(KeyConfigList[0])
 
         # end wxGlade
 
@@ -6501,6 +7048,9 @@ class NewOptionDialog(wx.Dialog):
         # begin wxGlade: NewOptionDialog.__do_layout
         sizer_3 = wx.BoxSizer(wx.VERTICAL)
         sizer_30 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_7 = wx.BoxSizer(wx.VERTICAL)
+        sizer_26 = wx.StaticBoxSizer(self.sizer_26_staticbox, wx.HORIZONTAL)
+        sizer_27 = wx.StaticBoxSizer(self.sizer_27_staticbox, wx.HORIZONTAL)
         sizer_31 = wx.BoxSizer(wx.VERTICAL)
         sizer_36 = wx.StaticBoxSizer(self.sizer_36_staticbox, wx.VERTICAL)
         sizer_40 = wx.BoxSizer(wx.HORIZONTAL)
@@ -6627,6 +7177,16 @@ class NewOptionDialog(wx.Dialog):
         sizer_36.Add(sizer_40, 1, wx.EXPAND, 0)
         sizer_31.Add(sizer_36, 0, wx.EXPAND, 0)
         self.notebook_1_pane_3.SetSizer(sizer_31)
+
+        sizer_26.Add(self.combo_box_7, 0, 0, 0)
+        sizer_26.Add(self.button_Key_Save, 0, 0, 0)
+        sizer_26.Add(self.button_Key_Del, 0, 0, 0)
+        sizer_7.Add(sizer_26, 0, wx.EXPAND, 0)
+        sizer_27.Add(self.grid_1,1,wx.EXPAND,0)
+        #sizer_7.Add(self.grid_1, 1, wx.EXPAND, 0)
+        sizer_7.Add(sizer_27, 1, wx.EXPAND, 0)
+        self.notebook_1_pane_4.SetSizer(sizer_7)
+
         self.notebook_1.AddPage(self.notebook_1_pane_1, u"显示设置")
         self.notebook_1.AddPage(self.notebook_1_pane_2, u"控制设置")
         self.notebook_1.AddPage(self.notebook_1_pane_3, u"下载设置")
@@ -6646,7 +7206,7 @@ class NewOptionDialog(wx.Dialog):
 
 
     def OnOK(self,event):
-        global ThemeList,GlobalConfig
+        global ThemeList,GlobalConfig,KeyConfigList
         GlobalConfig['CurFont']=self.text_ctrl_3.GetFont()
         GlobalConfig['CurFColor']=self.text_ctrl_3.GetFColor()
         GlobalConfig['CurBColor']=self.text_ctrl_3.GetBackgroundColour()
@@ -6718,7 +7278,44 @@ class NewOptionDialog(wx.Dialog):
             dlg.Destroy()
             return
 
+        #save key config
+        for x in KeyConfigList:
+            if x[0]=='last':
+                KeyConfigList.remove(x)
+                break
+        kconfig=[]
+        kconfig.append(('last'))
+        rs=self.grid_1.GetNumberRows()
+        if rs>0:
+            i=0
+            while i<rs:
+                kconfig.append((self.grid_1.GetCellValue(i,0),self.grid_1.GetCellValue(i,1)))
+                i+=1
+            KeyConfigList.insert(0,kconfig)
+
+
         self.Destroy()
+
+
+    def OnDelKey(self,evt):
+        global KeyConfigList
+        name=self.combo_box_7.GetValue()
+        if name==u'当前设置':
+            dlg = wx.MessageDialog(self, u'你不能删除这个方案！',u"错误",wx.OK|wx.ICON_ERROR)
+            dlg.ShowModal()
+            dlg.Destroy()
+            return
+        for x in KeyConfigList:
+            if x[0]==name:
+                KeyConfigList.remove(x)
+                break
+        self.combo_box_7.Clear()
+        for t in KeyConfigList:
+            if t[0]=='last':self.combo_box_7.Append(u'当前设置')
+            else:
+                self.combo_box_7.Append(t[0])
+        self.combo_box_7.SetSelection(0)
+
 
 
     def OnDelTheme(self,event):
@@ -6742,6 +7339,46 @@ class NewOptionDialog(wx.Dialog):
             self.combo_box_1.Append(t['name'])
         self.combo_box_1.SetSelection(0)
         self.OnThemeSelect(None)
+
+
+    def OnSaveKey(self,evt):
+        global KeyConfigList
+        kconfig=[]
+        kconfig.append((''))
+        while kconfig[0]=='':
+            dlg = wx.TextEntryDialog(
+                    self, u'请输入新显示方案的名称(不能为空)：',
+                    u'另存为新方案')
+            if dlg.ShowModal() == wx.ID_OK:
+                kconfig[0]=dlg.GetValue().strip()
+                dlg.Destroy()
+            else:
+                dlg.Destroy()
+                return
+        for t in KeyConfigList:
+            if t[0]==kconfig[0]:
+                dlg = wx.MessageDialog(self, u'已经有叫这个名字的显示方案了，你确定要覆盖原有方案吗？',u"提示！",wx.YES_NO|wx.ICON_QUESTION)
+                if dlg.ShowModal()==wx.ID_NO:
+                    dlg.Destroy()
+                    return
+                else:
+                    KeyConfigList.remove(t)
+        rs=self.grid_1.GetNumberRows()
+        if rs>0:
+            i=0
+            while i<rs:
+                kconfig.append((self.grid_1.GetCellValue(i,0),self.grid_1.GetCellValue(i,1)))
+                i+=1
+            if kconfig[0]=='last':
+                KeyConfigList.insert(0,kconfig)
+            else:
+                KeyConfigList.append(kconfig)
+            self.combo_box_7.Clear()
+            for t in KeyConfigList:
+                if t[0]=='last':self.combo_box_7.Append(u'当前设置')
+                else:
+                    self.combo_box_7.Append(t[0])
+            self.combo_box_7.SetSelection(self.combo_box_7.GetCount()-1)
 
 
     def OnSaveTheme(self,event):
@@ -6940,6 +7577,13 @@ class NewOptionDialog(wx.Dialog):
 
 
 
+    def OnKeySelect(self,evt=None):
+        global KeyConfigList
+        if evt<>None:
+            id=evt.GetInt()
+        else:
+            id=self.combo_box_7.GetSelection()
+        self.grid_1.Load(KeyConfigList[id])
 
     def OnThemeSelect(self,evt=None):
         global ThemeList
@@ -7001,6 +7645,86 @@ class NewOptionDialog(wx.Dialog):
 
 
 # end of class NewOptionDialog
+
+class SliderDialog(wx.Dialog):
+    def __init__(self, parent,val,inpos=(-1,-1)):
+        # begin wxGlade: MyDialog.__init__
+        #kwds["style"] = wx.RESIZE_BORDER|wx.THICK_FRAME
+        wx.Dialog.__init__(self,parent, pos=inpos,style=wx.CLOSE_BOX|wx.THICK_FRAME)
+        self.sizer_1_staticbox = wx.StaticBox(self, -1, u"当前进度")
+        self.slider_1 = wx.Slider(self, -1, val, 0, 100, style=wx.SL_VERTICAL|wx.SL_LABELS)
+
+        self.slider_1.Bind(wx.EVT_KEY_UP,self.OnChar)
+        self.slider_1.Bind(wx.EVT_SCROLL,self.OnScroll)
+        self.Bind(wx.EVT_KILL_FOCUS,self.Closeme)
+        self.slider_1.Bind(wx.EVT_KILL_FOCUS,self.Closeme)
+        self.__set_properties()
+        self.__do_layout()
+        self.win=self.GetParent()
+        # end wxGlade
+
+
+    def __set_properties(self):
+        # begin wxGlade: MyDialog.__set_properties
+        # end wxGlade
+        self.SetTransparent(220)
+
+
+    def __do_layout(self):
+        # begin wxGlade: MyDialog.__do_layout
+        sizer_1 = wx.StaticBoxSizer(self.sizer_1_staticbox, wx.VERTICAL)
+        sizer_1.Add(self.slider_1, 0, wx.EXPAND, 0)
+        self.SetSizer(sizer_1)
+        sizer_1.Fit(self)
+        self.Layout()
+        # end wxGlade
+
+# end of class MyDialog
+    def Closeme(self,evt=None):
+        self.Destroy()
+        self.win.slider=None
+        return
+##
+##    def ToTop(self,evt):
+##        self.win.text_ctrl_1.ScrollTop()
+##
+##    def ToBottom(self,evt):
+##        self.win.text_ctrl_1.ScrollBottom()
+
+    def OnScroll(self,evt):
+        tval=self.slider_1.GetValue()
+        if tval<>100:
+            tpos=int(float(self.win.text_ctrl_1.ValueCharCount)*(float(tval)/100.0))
+            self.win.text_ctrl_1.JumpTo(tpos)
+        else:
+            self.win.text_ctrl_1.ScrollBottom()
+
+
+
+    def OnChar(self,evt):
+        global KeyConfigList
+        for k in KeyConfigList:
+            if k[0]=='last':
+                break
+        keystr=keygrid.key2str(evt)
+        for f in k:
+            if f[0]==u'显示进度条':
+                break
+
+        key=evt.GetKeyCode()
+        if key==wx.WXK_ESCAPE or keystr==f[1]:
+            self.Closeme()
+        else:
+            evt.Skip()
+
+
+    def fadein(self):
+        t=100
+        while t<250:
+            self.SetTransparent(t)
+            self.Show()
+            time.sleep(0.01)
+            t+=15
 
 
 
@@ -7165,6 +7889,7 @@ if __name__ == "__main__":
         SqlCur=SqlCon.cursor()
     app = wx.PySimpleApp(0)
     readConfigFile()
+    readKeyConfig()
     readPlugin()
     wx.InitAllImageHandlers()
     frame_1 = MyFrame(None, -1, "")
