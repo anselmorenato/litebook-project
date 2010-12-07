@@ -3099,8 +3099,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
     u'显示工具栏':'self.Menu501(None)',
     u'全屏显示':'self.Menu503(None)',
     u'显示文件侧边栏':'self.Menu502(None)',
-    u'自动翻页':'self.Tool44(None)',
-    u'智能分段':'self.Menu504(None)',
+    u'自动翻页':'self.Menu505(None)',
+    u'智能分段':'self.Tool44(None)',
     u'添加到收藏夹':'self.Menu301(None)',
     u'整理收藏夹':'self.Menu302(None)',
     u'简明帮助':'self.Menu401(None)',
@@ -3328,6 +3328,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.text_ctrl_1.Bind(wx.EVT_KEY_UP,self.OnChar)
         self.text_ctrl_2.Bind(wx.EVT_CHAR,self.OnChar3)
         self.list_ctrl_1.Bind(wx.EVT_CHAR,self.OnChar2)
+        self.list_ctrl_1.Bind(wx.EVT_KEY_UP,self.OnCloseSiderbar)
+        self.text_ctrl_2.Bind(wx.EVT_KEY_UP,self.OnCloseSiderbar)        
         self.Bind(wx.EVT_FIND, self.OnFind)
         self.Bind(wx.EVT_FIND_NEXT, self.OnFind)
         self.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
@@ -3783,6 +3785,17 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             self.frame_1_toolbar.SetToolSeparation(5)
             self.frame_1_toolbar.Realize()
         self.toolbar_visable = not self.toolbar_visable
+
+    def CloseSidebar(self,evt=None):
+        """Hide the directory sidebar"""
+        if self.window_1.IsSplit():
+            self.SidebarPos=self.window_1.GetSashPosition()
+            self.PvFrame.Hide()
+            self.window_1.Unsplit(self.window_1_pane_1)
+            self.frame_1_toolbar.ToggleTool(52,False)
+            self.SidebarMenu.Check(502,False)
+            self.text_ctrl_1.SetFocus()
+
 
 
     def Menu502(self, event):
@@ -4288,12 +4301,32 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 
 
     def OnChar3(self, event):
+        global KeyConfigList
         key=event.GetKeyCode()
         if key==wx.WXK_RETURN or key==wx.WXK_TAB:
             self.list_ctrl_1.SetFocus()
 ##            self.list_ctrl_1.Select(self.list_ctrl_1.GetNextItem(-1))
         else:
-            event.Skip()
+            if key==wx.WXK_ESCAPE:
+                self.Menu502(None)
+            else:
+                event.Skip()
+
+    def OnCloseSiderbar(self,evt):
+        global KeyConfigList
+        kstr=keygrid.key2str(evt)
+        for kconfig in KeyConfigList:
+            if kconfig[0]=='last':
+                break
+        i=1
+        tl=len(kconfig)
+        while i<tl:
+            if kconfig[i][0]==u'显示文件侧边栏':
+                break
+            i+=1
+        if kstr==kconfig[i][1]:
+            self.CloseSidebar()
+    
 
 
     def OnChar2(self, event):
@@ -4301,8 +4334,10 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         if key==wx.WXK_TAB:
             self.text_ctrl_2.SetFocus()
         else:
-            event.Skip()
-
+            if key==wx.WXK_ESCAPE:
+                self.Menu502(None)
+            else:
+                event.Skip()
 
 
 
@@ -5003,12 +5038,14 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 
 
     def UpdateSearchSidebar(self,key):
+        
         py_key=key.strip()
         rlist=[]
         self.list_ctrl_1.DeleteAllItems()
         if py_key<>'':
             #print self.sideitemlist
             for m in self.sideitemlist:
+                
                 if m['py'].find(py_key)<>-1:
                     rlist.append(m['item'])
         else:
