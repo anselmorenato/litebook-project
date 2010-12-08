@@ -7938,7 +7938,8 @@ class NewOptionDialog(wx.Dialog):
         dlg.GetColourData().SetChooseFull(True)
         if dlg.ShowModal() == wx.ID_OK:
             data = dlg.GetColourData()
-            #self.text_ctrl_3.SetImgBackground('')
+            if self.combo_box_4.GetSelection()==1:
+                self.text_ctrl_3.SetImgBackground('')
             self.text_ctrl_3.SetBackgroundColour(data.GetColour())
 
             self.text_ctrl_3.ReDraw()

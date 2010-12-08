@@ -2142,7 +2142,10 @@ def readConfigFile():
                 GlobalConfig['CurFColor']=eval(f[7])
                 GlobalConfig['CurBColor']=eval(f[8])
                 if len(f)>9:
-                    GlobalConfig['backgroundimg']=f[9]
+                    if f[9]<>'None':
+                        GlobalConfig['backgroundimg']=f[9]
+                    else:
+                        GlobalConfig['backgroundimg']=None                    
                     GlobalConfig['showmode']=f[10]
                     GlobalConfig['backgroundimglayout']=f[11]
                     GlobalConfig['underline']=eval(f[12])
@@ -2161,21 +2164,24 @@ def readConfigFile():
                 l['font']=wx.Font(int(f[0]),int(f[1]),int(f[2]),int(f[3]),eval(f[4]),f[5],int(f[6]))
                 l['fcolor']=eval(f[7])
                 l['bcolor']=eval(f[8])
-                l['backgroundimg']=f[9]
-                l['showmode']=f[10]
-                l['backgroundimglayout']=f[11]
-                l['underline']=eval(f[12])
-                l['underlinestyle']=int(f[13])
-                l['underlinecolor']=f[14]
-                l['pagemargin']=int(f[15])
-                l['bookmargin']=int(f[16])
-                l['vbookmargin']=int(f[17])
-                l['centralmargin']=int(f[18])
-                l['linespace']=int(f[19])
-                l['vlinespace']=int(f[20])
-
-                l['name']=name
-                l['config']=ft[1]
+                if len(f)>9:
+                    if f[9]<>'None':
+                        l['backgroundimg']=f[9]
+                    else:
+                        l['backgroundimg']=None
+                    l['showmode']=f[10]
+                    l['backgroundimglayout']=f[11]
+                    l['underline']=eval(f[12])
+                    l['underlinestyle']=int(f[13])
+                    l['underlinecolor']=f[14]
+                    l['pagemargin']=int(f[15])
+                    l['bookmargin']=int(f[16])
+                    l['vbookmargin']=int(f[17])
+                    l['centralmargin']=int(f[18])
+                    l['linespace']=int(f[19])
+                    l['vlinespace']=int(f[20])
+                    l['name']=name
+                    l['config']=ft[1]
                 ThemeList.append(l)
 
     except:
@@ -3137,6 +3143,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         #load apperance
         self.text_ctrl_1.SetShowMode(GlobalConfig['showmode'])
         if GlobalConfig['backgroundimg']<>'' and GlobalConfig['backgroundimg']<>None:
+            self.text_ctrl_1.SetBackgroundColour(GlobalConfig['CurBColor'])
             self.text_ctrl_1.SetImgBackground(GlobalConfig['backgroundimg'],GlobalConfig['backgroundimglayout'])
         else:
             self.text_ctrl_1.SetBackgroundColour(GlobalConfig['CurBColor'])
@@ -3576,9 +3583,11 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         option_dlg.Destroy()
         self.text_ctrl_1.SetShowMode(GlobalConfig['showmode'])
         if GlobalConfig['backgroundimg']<>'' and GlobalConfig['backgroundimg']<>None:
+            self.text_ctrl_1.SetBackgroundColour(GlobalConfig['CurBColor'])
             self.text_ctrl_1.SetImgBackground(GlobalConfig['backgroundimg'],GlobalConfig['backgroundimglayout'])
         else:
             self.text_ctrl_1.SetBackgroundColour(GlobalConfig['CurBColor'])
+            self.text_ctrl_1.bg_img=None
         self.text_ctrl_1.SetFColor(GlobalConfig['CurFColor'])
         self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
         self.text_ctrl_1.SetUnderline(GlobalConfig['underline'],GlobalConfig['underlinestyle'],GlobalConfig['underlinecolor'])
@@ -7248,7 +7257,10 @@ class NewOptionDialog(wx.Dialog):
         GlobalConfig['CurFont']=self.text_ctrl_3.GetFont()
         GlobalConfig['CurFColor']=self.text_ctrl_3.GetFColor()
         GlobalConfig['CurBColor']=self.text_ctrl_3.GetBackgroundColour()
-        GlobalConfig['backgroundimg']=self.text_ctrl_3.bg_img_path
+        if self.combo_box_4.GetSelection()==0:
+            GlobalConfig['backgroundimg']=self.text_ctrl_3.bg_img_path
+        else:
+            GlobalConfig['backgroundimg']=None        
         GlobalConfig['showmode']=self.text_ctrl_3.show_mode
         GlobalConfig['backgroundimglayout']=self.text_ctrl_3.bg_style
         GlobalConfig['underline']=self.text_ctrl_3.under_line
@@ -7512,7 +7524,8 @@ class NewOptionDialog(wx.Dialog):
         dlg.GetColourData().SetChooseFull(True)
         if dlg.ShowModal() == wx.ID_OK:
             data = dlg.GetColourData()
-            self.text_ctrl_3.SetImgBackground('')
+            if self.combo_box_4.GetSelection()==1:
+                self.text_ctrl_3.SetImgBackground('')            
             self.text_ctrl_3.SetBackgroundColour(data.GetColour())
 
             self.text_ctrl_3.ReDraw()
