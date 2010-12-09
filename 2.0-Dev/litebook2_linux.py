@@ -1498,6 +1498,9 @@ def readKeyConfig():
         kconfig.append((u'向上翻页',"----+WXK_PAGEUP"))
         kconfig.append((u'向上翻页',"----+WXK_LEFT"))
         kconfig.append((u'向下翻页',"----+WXK_PAGEDOWN"))
+        kconfig.append((u'向上翻页',"----+WXK_UP"))
+        kconfig.append((u'向下翻页',"----+WXK_DOWN"))
+        
         kconfig.append((u'向下翻页',"----+WXK_RIGHT"))
         kconfig.append((u'向下翻页',"----+WXK_SPACE"))
         kconfig.append((u'跳到首页',"----+WXK_HOME"))
@@ -1543,6 +1546,9 @@ def readKeyConfig():
         kconfig.append((u'向上翻页',"----+WXK_LEFT"))
         kconfig.append((u'向下翻页',"----+WXK_PAGEDOWN"))
         kconfig.append((u'向下翻页',"----+WXK_RIGHT"))
+        kconfig.append((u'向上翻页',"----+WXK_UP"))
+        kconfig.append((u'向下翻页',"----+WXK_DOWN"))
+        
         kconfig.append((u'向下翻页',"----+WXK_SPACE"))
         kconfig.append((u'跳到首页',"----+WXK_HOME"))
         kconfig.append((u'跳到结尾',"----+WXK_END"))
@@ -3076,6 +3082,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
     current_pos=0
     last_pos=0
     slider=None
+    mousedelta=0
     last_mouse_event=None
     UpdateSidebar=False
     SidebarPos=300 # inital postion value for dir sidebar
@@ -3330,7 +3337,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.Bind(wx.EVT_TOOL, self.Menu602, id=62)
         self.Bind(wx.EVT_TOOL, self.Menu603, id=63)
 
-        # end wxGlade
+        #self.text_ctrl_1.Bind(wx.EVT_MOUSEWHEEL,self.MyMouseMW) end wxGlade
         self.Bind(wx.EVT_TOOL, self.Menu502, id=52)
         self.text_ctrl_1.Bind(wx.EVT_KEY_UP,self.OnChar)
         self.text_ctrl_2.Bind(wx.EVT_CHAR,self.OnChar3)
@@ -3383,6 +3390,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                 self.text_ctrl_1.SetSelection(GlobalConfig['LastPos'],GlobalConfig['LastPos'])
                 self.text_ctrl_1.ShowPosition(GlobalConfig['LastPos'])
 
+        self.text_ctrl_1.Bind(wx.EVT_MOUSEWHEEL,self.MyMouseMW)
 
         #Start Clocking
         self.clk_thread=ClockThread(self)
@@ -3859,7 +3867,18 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.frame_1_toolbar.ToggleTool(63,True)
         GlobalConfig['showmode']='vbook'
 
-
+    def MyMouseMW(self,event):
+        delta=event.GetWheelRotation()
+        self.mousedelta+=delta
+    
+        if self.mousedelta>360:
+            self.text_ctrl_1.ScrollP(-1)
+            self.mousedelta=0
+        else:
+            if self.mousedelta<-360:
+                self.text_ctrl_1.ScrollP(1)
+                self.mousedelta=0
+    
 
     def ShowPopMenu(self,event):
         if not self.showfullscr:

@@ -1479,6 +1479,8 @@ def readKeyConfig():
         kconfig.append(('last'))
         kconfig.append((u'向上翻页',"----+WXK_PAGEUP"))
         kconfig.append((u'向上翻页',"----+WXK_LEFT"))
+        kconfig.append((u'向上翻页',"----+WXK_UP"))
+        kconfig.append((u'向下翻页',"----+WXK_DOWN"))
         kconfig.append((u'向下翻页',"----+WXK_PAGEDOWN"))
         kconfig.append((u'向下翻页',"----+WXK_RIGHT"))
         kconfig.append((u'向下翻页',"----+WXK_SPACE"))
@@ -1526,6 +1528,8 @@ def readKeyConfig():
         kconfig.append((u'向下翻页',"----+WXK_PAGEDOWN"))
         kconfig.append((u'向下翻页',"----+WXK_RIGHT"))
         kconfig.append((u'向下翻页',"----+WXK_SPACE"))
+        kconfig.append((u'向上翻页',"----+WXK_UP"))
+        kconfig.append((u'向下翻页',"----+WXK_DOWN"))
         kconfig.append((u'跳到首页',"----+WXK_HOME"))
         kconfig.append((u'跳到结尾',"----+WXK_END"))
         kconfig.append((u'文件列表','C---+"O"'))
@@ -1855,9 +1859,8 @@ def readKeyConfig():
                 kconfig.append((u'显示进度条',cs))
         except:
             kconfig.append((u'显示进度条','----+"Z"'))
-
-
         KeyConfigList.append(kconfig)
+
     secs=config.sections()
     secs.remove('last')
     for sec in secs:
@@ -3162,6 +3165,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
     slider=None
     SidebarPos=300 # inital postion value for dir sidebar
     Formated=False
+    mousedelta=0
     func_list={
     u'向上翻页':'self.text_ctrl_1.ScrollP(-1)',
     u'向下翻页':'self.text_ctrl_1.ScrollP(1)',
@@ -4768,14 +4772,15 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 
     def MyMouseMW(self,event):
         delta=event.GetWheelRotation()
-        if event.RightIsDown():
-            self.last_mouse_event=1
-            if delta>0:
-                self.text_ctrl_1.ScrollPages(-1)
-            else:
-                self.text_ctrl_1.ScrollPages(1)
+        self.mousedelta+=delta
+
+        if self.mousedelta>360:
+            self.text_ctrl_1.ScrollP(-1)
+            self.mousedelta=0
         else:
-            event.Skip()
+            if self.mousedelta<-360:
+                self.text_ctrl_1.ScrollP(1)
+                self.mousedelta=0
 
     def MyMouseMDW(self,event):
         if self.last_mouse_event==1:
