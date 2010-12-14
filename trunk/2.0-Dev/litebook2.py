@@ -2316,7 +2316,6 @@ def readConfigFile():
 
 
 
-
 def writeConfigFile(lastpos):
     """write config to config.ini in the app data dir"""
 
@@ -3227,7 +3226,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.text_ctrl_1 = liteview.LiteView(self.window_1_pane_2)
 
         #load apperance
-        self.text_ctrl_1.SetShowMode(GlobalConfig['showmode'])
+
+
         if GlobalConfig['backgroundimg']<>'' and GlobalConfig['backgroundimg']<>'None' and GlobalConfig['backgroundimg']<>None:
             self.text_ctrl_1.SetBackgroundColour(GlobalConfig['CurBColor'])
             self.text_ctrl_1.SetImgBackground(GlobalConfig['backgroundimg'],GlobalConfig['backgroundimglayout'])
@@ -3237,6 +3237,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
         self.text_ctrl_1.SetUnderline(GlobalConfig['underline'],GlobalConfig['underlinestyle'],GlobalConfig['underlinecolor'])
         self.text_ctrl_1.SetSpace(GlobalConfig['pagemargin'],GlobalConfig['bookmargin'],GlobalConfig['vbookmargin'],GlobalConfig['centralmargin'],GlobalConfig['linespace'],GlobalConfig['vlinespace'])
+
 
 
 
@@ -3508,6 +3509,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         #start auto counting thread
         self.auto_count_thread=AutoCountThread(self)
 
+
+
         #start assign images of sidebar
         self.PvFrame=PreviewFrame(self,-1)
         self.image_list=wx.ImageList(16,16,mask=False,initialCount=5)
@@ -3564,6 +3567,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         if GlobalConfig['VerCheckOnStartup']:
             self.version_check_thread=VersionCheckThread(self,False)
 
+
         self.list_ctrl_1.Bind(wx.EVT_SET_FOCUS, self.ListOnFocus)
 
 
@@ -3571,7 +3575,16 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 
         self.__set_properties()
         self.__do_layout()
+        #close splash window
         splash_frame.Close()
+
+        #set show mode, this has to be here, otherwise system won't load if showmode is book or vbook
+        self.text_ctrl_1.SetShowMode(GlobalConfig['showmode'])
+        mlist={'paper':601,'book':602,'vbook':603}
+        tlist={'paper':61,'book':62,'vbook':63}
+        self.ViewMenu.Check(mlist[GlobalConfig['showmode']],True)
+        self.frame_1_toolbar.ToggleTool(tlist[GlobalConfig['showmode']],True)
+
 
 ##    def TextOnFocus(self,event):
 ##        self.text_ctrl_1.HideNativeCaret()
@@ -3624,8 +3637,10 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.window_1.Unsplit(self.window_1_pane_1)
         sizer_1.Add(self.window_1, 1, wx.EXPAND, 0)
         self.SetSizer(sizer_1)
+
         sizer_1.Fit(self)
         self.Layout()
+
         #Hide the toolbar if it is hidden when litebook exit last time
         if GlobalConfig['HideToolbar']:
             self.frame_1_toolbar.Hide()
@@ -4713,16 +4728,18 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             field=self.frame_1_statusbar.GetFieldRect(0)
             field_len=field[2]-field[0]
             txt=event.Value
+            print txt
             txt_len=dc.GetTextExtent(txt)[0]
             if txt_len>field_len:
                 llist=dc.GetPartialTextExtents(txt)
                 m=len(llist)
                 i=m-1
                 while i>=0:
-                    if llist[i]<=field_len:break
+                    if llist[i]<=field_len:
+                        break
                     i-=1
                 if i>=3:i-=3
-                txt="..."+txt[:i]
+                txt="..."+txt[-i:]
             self.frame_1_statusbar.SetStatusText(txt,0)
             pos=int(self.text_ctrl_1.GetPosPercent())
             self.sliderControl.SetValue(pos)

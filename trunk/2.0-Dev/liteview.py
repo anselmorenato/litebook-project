@@ -1637,7 +1637,7 @@ if __name__ == "__main__":
         frame_1.panel_1.SetShowMode('vbook')
     else:
         frame_1.panel_1.SetShowMode(sys.argv[3])
-#    frame_1.panel_1.SetValue(alltxt,2083)
+    frame_1.panel_1.SetValue(alltxt,3083)
 ##    frame_1.panel_1.Refresh()
 ##    frame_1.panel_1.Update()
 

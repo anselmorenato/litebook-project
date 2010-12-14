@@ -6,8 +6,8 @@
 ; Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{C271CABE-D1DE-46B3-A92B-2CFD5DE732D5}
-AppName=LiteBook
-AppVerName=LiteBook ver2 Beta
+AppName=LiteBook v2
+AppVerName=LiteBook v2 Beta
 OutputBaseFilename=LiteBook2_Beta_Win_setup
 AppPublisher=Hu Jun
 AppPublisherURL=http://sites.google.com/site/litebooksite/
