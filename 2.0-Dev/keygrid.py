@@ -274,7 +274,7 @@ RKeyMap= {
 }
 
 def str2menu(keystr):
-    mstr=''
+    mstr=' \t'
     mod,keysub=keystr.split('+',1)
     if mod[0]<>'-':mstr+='CTRL+'
     if mod[1]<>'-':mstr+='ALT+'
@@ -284,6 +284,7 @@ def str2menu(keystr):
         mstr+=keysub[1]
     else:
         mstr+=keysub[4:]
+    return mstr
 
 
 
@@ -350,6 +351,7 @@ class KeyConfigGrid(gridlib.Grid):
         self.SetColLabelValue(0, u"功能(双击修改)")
         self.SetColLabelValue(1, u"按键(双击修改)")
 #        self.Bind(wx.EVT_CHAR,self.OnChar)
+        self.GetGridWindow().Bind(wx.EVT_CHAR,self.OnChar)
         self.Bind(wx.EVT_KEY_UP,self.OnChar)
         self.Bind(gridlib.EVT_GRID_CELL_LEFT_DCLICK,self.OnDClick)
         self.Bind(gridlib.EVT_GRID_CELL_LEFT_CLICK,self.OnLClick)
@@ -413,9 +415,12 @@ class KeyConfigGrid(gridlib.Grid):
         if not self.startKey:
             evt.Skip()
             return
+        print "iam onchar"
         r=key2str(evt)
         key=str2key(r)['KEY']
         self.SetCellValue(self.curRow,self.curCol,r)
+        evt.Skip(False)
+        evt.StopPropagation()
         self.startKey=False
 
         #self.AppendLine(u'上一个文件',r)
