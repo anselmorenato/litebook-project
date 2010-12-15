@@ -7241,7 +7241,7 @@ class SliderDialog(wx.Dialog):
         wx.Dialog.__init__(self,parent, pos=inpos,style=wx.CLOSE_BOX|wx.THICK_FRAME)
         self.sizer_1_staticbox = wx.StaticBox(self, -1, u"当前进度")
         self.slider_1 = wx.Slider(self, -1, val, 0, 100, style=wx.SL_VERTICAL|wx.SL_LABELS)
-
+        self.fristtime=True
         self.slider_1.Bind(wx.EVT_KEY_UP,self.OnChar)
         self.slider_1.Bind(wx.EVT_SCROLL,self.OnScroll)
         self.Bind(wx.EVT_KILL_FOCUS,self.Closeme)
@@ -7298,6 +7298,9 @@ class SliderDialog(wx.Dialog):
         for f in k:
             if f[0]==u'显示进度条':
                 break
+        if self.fristtime and keystr==f[1]:
+            self.fristtime=False
+            return
 
         key=evt.GetKeyCode()
         if key==wx.WXK_ESCAPE or keystr==f[1]:
