@@ -3610,6 +3610,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         _icon.CopyFromBitmap(wx.Bitmap(GlobalConfig['IconDir']+u"\\litebook-icon.png", wx.BITMAP_TYPE_ANY))
         self.SetIcon(_icon)
         self.SetTitle(u"轻巧看书 LiteBook")
+        self.SetMinSize((320, 240))
         self.SetSize((640, 480))
         # statusbar fields
         self.frame_1_statusbar.SetStatusWidths([-2, -1,-1,-3])
