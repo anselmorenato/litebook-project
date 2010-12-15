@@ -1366,6 +1366,7 @@ PluginList={}
 OnDirectSeenPage=False
 GlobalConfig={}
 KeyConfigList=[]
+KeyMenuList={}
 OpenedFileList=[]
 current_file=''
 load_zip=False
@@ -1468,7 +1469,7 @@ def AnyToUnicode(input_str,coding=None):
 
 
 def readKeyConfig():
-    global KeyConfigList
+    global KeyConfigList,KeyMenuList
     config=MyConfig()
     try:
         ffp=codecs.open(os.environ['APPDATA'].decode('gbk')+u"\\litebook_key.ini",encoding='utf-8',mode='r')
@@ -1873,6 +1874,17 @@ def readKeyConfig():
             for cs in cstr_list:
                 kconfig.append((opt,cs))
         KeyConfigList.append(kconfig)
+
+
+    for kconfig in KeyConfigList:
+        if kconfig[0]=='last':
+            break
+    i=1
+    tl=len(kconfig)
+    while i<tl:
+        KeyMenuList[kconfig[i][0]]=keygrid.str2menu(kconfig[i][1])
+        i+=1
+    #print KeyMenuList
 
 
 
@@ -3250,14 +3262,14 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         # Menu Bar
         self.frame_1_menubar = wx.MenuBar()
         wxglade_tmp_menu = wx.Menu()
-        wxglade_tmp_menu.Append(101, u"文件列表(&L)", u"打开文件列表", wx.ITEM_NORMAL)
-        wxglade_tmp_menu.Append(102, u"打开文件(&O)", u"打开文件", wx.ITEM_NORMAL)
-        wxglade_tmp_menu.Append(108, u"另存为...(&S)", u"打开文件", wx.ITEM_NORMAL)
-        wxglade_tmp_menu.Append(103, u"关闭(&C)", u"关闭当前文件", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(101, u"文件列表(&L)"+KeyMenuList[u'文件列表'], u"打开文件列表", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(102, u"打开文件(&O)"+KeyMenuList[u'打开文件'], u"打开文件", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(108, u"另存为...(&S)"+KeyMenuList[u'另存为'], u"打开文件", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(103, u"关闭(&C)"+KeyMenuList[u'关闭'], u"关闭当前文件", wx.ITEM_NORMAL)
         wxglade_tmp_menu.AppendSeparator()
         wxglade_tmp_menu_sub = wx.Menu()
-        wxglade_tmp_menu_sub.Append(104, u"上一个文件(&P)", u"打开上一个文件", wx.ITEM_NORMAL)
-        wxglade_tmp_menu_sub.Append(105, u"下一个文件(&N)", u"打开下一个文件", wx.ITEM_NORMAL)
+        wxglade_tmp_menu_sub.Append(104, u"上一个文件(&P)"+KeyMenuList[u'上一个文件'], u"打开上一个文件", wx.ITEM_NORMAL)
+        wxglade_tmp_menu_sub.Append(105, u"下一个文件(&N)"+KeyMenuList[u'下一个文件'], u"打开下一个文件", wx.ITEM_NORMAL)
         wxglade_tmp_menu.AppendMenu(wx.NewId(), u"按文件序号顺序打开", wxglade_tmp_menu_sub, "")
         wxglade_tmp_menu_sub = wx.Menu()
         i=1000
@@ -3274,62 +3286,62 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         wxglade_tmp_menu.Append(109, u"以往打开文件历史", u"显示曾经打开的所有文件列表", wx.ITEM_NORMAL)
 
         wxglade_tmp_menu.AppendSeparator()
-        wxglade_tmp_menu.Append(110, u"搜索小说网站(&S)", u"搜索小说网站", wx.ITEM_NORMAL)
-        wxglade_tmp_menu.Append(111, u"重新载入插件", u"重新载入插件", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(110, u"搜索小说网站(&S)"+KeyMenuList[u'搜索小说网站'], u"搜索小说网站", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(111, u"重新载入插件"+KeyMenuList[u'重新载入插件'], u"重新载入插件", wx.ITEM_NORMAL)
         wxglade_tmp_menu.AppendSeparator()
 
-        wxglade_tmp_menu.Append(106, u"选项(&O)", u"程序的设置选项", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(106, u"选项(&O)"+KeyMenuList[u'选项'], u"程序的设置选项", wx.ITEM_NORMAL)
         wxglade_tmp_menu.AppendSeparator()
-        wxglade_tmp_menu.Append(107, u"退出(&X)", u"退出本程序", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(107, u"退出(&X)"+KeyMenuList[u'退出'], u"退出本程序", wx.ITEM_NORMAL)
         self.frame_1_menubar.Append(wxglade_tmp_menu, u"文件(&F)")
         wxglade_tmp_menu = wx.Menu()
 
         #wxglade_tmp_menu.Append(201, u"全选(&A)\tCtrl+A", u"选择全部内容", wx.ITEM_NORMAL)
-        wxglade_tmp_menu.Append(202, u"拷贝(&C)", u"将选中的内容拷贝到剪贴板", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(202, u"拷贝(&C)"+KeyMenuList[u'拷贝'], u"将选中的内容拷贝到剪贴板", wx.ITEM_NORMAL)
         wxglade_tmp_menu.AppendSeparator()
-        wxglade_tmp_menu.Append(203, u"查找(&S)", u"在打开的文件中查找", wx.ITEM_NORMAL)
-        wxglade_tmp_menu.Append(204, u"查找下一个(&N)", u"查找下一个", wx.ITEM_NORMAL)
-        wxglade_tmp_menu.Append(205, u"查找上一个(&N)", u"查找上一个", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(203, u"查找(&S)"+KeyMenuList[u'查找'], u"在打开的文件中查找", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(204, u"查找下一个(&N)"+KeyMenuList[u'查找下一个'], u"查找下一个", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(205, u"查找上一个(&N)"+KeyMenuList[u'查找上一个'], u"查找上一个", wx.ITEM_NORMAL)
         self.frame_1_menubar.Append(wxglade_tmp_menu, u"查找(&S)")
         wxglade_tmp_menu = wx.Menu()
         self.ViewMenu=wxglade_tmp_menu
-        wxglade_tmp_menu.AppendRadioItem(601,u'纸张显示模式',u'设置当前显示模式为纸张')
-        wxglade_tmp_menu.AppendRadioItem(602,u'书本显示模式',u'设置当前显示模式为书本')
-        wxglade_tmp_menu.AppendRadioItem(603,u'竖排书本显示模式',u'设置当前显示模式为竖排书本')
+        wxglade_tmp_menu.AppendRadioItem(601,u'纸张显示模式'+KeyMenuList[u'纸张显示模式'],u'设置当前显示模式为纸张')
+        wxglade_tmp_menu.AppendRadioItem(602,u'书本显示模式'+KeyMenuList[u'书本显示模式'],u'设置当前显示模式为书本')
+        wxglade_tmp_menu.AppendRadioItem(603,u'竖排书本显示模式'+KeyMenuList[u'竖排书本显示模式'],u'设置当前显示模式为竖排书本')
         wxglade_tmp_menu.AppendSeparator()
 
-        wxglade_tmp_menu.Append(501, u"显示工具栏", u"是否显示工具栏", wx.ITEM_CHECK)
-        wxglade_tmp_menu.Append(503, u"全屏显示", u"全屏显示", wx.ITEM_CHECK)
-        wxglade_tmp_menu.Append(502, u"显示文件侧边栏", u"是否显示文件侧边栏", wx.ITEM_CHECK)
-        wxglade_tmp_menu.Append(505, u"自动翻页", u"是否自动翻页", wx.ITEM_CHECK)
-        wxglade_tmp_menu.Append(506, u"显示进度条", u"显示进度条", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(501, u"显示工具栏"+KeyMenuList[u'显示工具栏'], u"是否显示工具栏", wx.ITEM_CHECK)
+        wxglade_tmp_menu.Append(503, u"全屏显示"+KeyMenuList[u'全屏显示'], u"全屏显示", wx.ITEM_CHECK)
+        wxglade_tmp_menu.Append(502, u"显示文件侧边栏"+KeyMenuList[u'显示文件侧边栏'], u"是否显示文件侧边栏", wx.ITEM_CHECK)
+        wxglade_tmp_menu.Append(505, u"自动翻页"+KeyMenuList[u'自动翻页'], u"是否自动翻页", wx.ITEM_CHECK)
+        wxglade_tmp_menu.Append(506, u"显示进度条"+KeyMenuList[u'显示进度条'], u"显示进度条", wx.ITEM_NORMAL)
         if not GlobalConfig['HideToolbar']:
             self.toolbar_visable=True
             wxglade_tmp_menu.Check(501,True)
         else:
             self.toolbar_visable=False
         self.SidebarMenu=wxglade_tmp_menu
-        wxglade_tmp_menu.Append(504, u"智能分段", u"智能分段", wx.ITEM_CHECK)
+        wxglade_tmp_menu.Append(504, u"智能分段"+KeyMenuList[u'智能分段'], u"智能分段", wx.ITEM_CHECK)
         self.FormatMenu=wxglade_tmp_menu
         self.frame_1_menubar.Append(wxglade_tmp_menu, u"视图")
         wxglade_tmp_menu = wx.Menu()
-        wxglade_tmp_menu.Append(301, u"添加到收藏夹(&A)", u"将当前阅读位置添加到收藏夹", wx.ITEM_NORMAL)
-        wxglade_tmp_menu.Append(302, u"整理收藏夹(&M)", u"整理收藏夹", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(301, u"添加到收藏夹(&A)"+KeyMenuList[u'添加到收藏夹'], u"将当前阅读位置添加到收藏夹", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(302, u"整理收藏夹(&M)"+KeyMenuList[u'整理收藏夹'], u"整理收藏夹", wx.ITEM_NORMAL)
         self.frame_1_menubar.Append(wxglade_tmp_menu, u"收藏(&V)")
 
         wxglade_tmp_menu = wx.Menu()
-        wxglade_tmp_menu.Append(701, u"过滤HTML标签", u"过滤HTML标签", wx.ITEM_NORMAL)
-        wxglade_tmp_menu.Append(702, u"简体转繁体", u"简体转繁体", wx.ITEM_NORMAL)
-        wxglade_tmp_menu.Append(703, u"繁体转简体", u"繁体转简体", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(701, u"过滤HTML标签"+KeyMenuList[u'过滤HTML标记'], u"过滤HTML标签", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(702, u"简体转繁体"+KeyMenuList[u'切换为繁体字'], u"简体转繁体", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(703, u"繁体转简体"+KeyMenuList[u'切换为简体字'], u"繁体转简体", wx.ITEM_NORMAL)
         self.frame_1_menubar.Append(wxglade_tmp_menu, u"工具(&T)")
 
 
 
         wxglade_tmp_menu = wx.Menu()
-        wxglade_tmp_menu.Append(401, u"简明帮助(&B)", u"简明帮助", wx.ITEM_NORMAL)
-        wxglade_tmp_menu.Append(404, u"版本更新内容", u"版本更新内容", wx.ITEM_NORMAL)
-        wxglade_tmp_menu.Append(403, u"检查更新(&C)", u"在线检查是否有更新的版本", wx.ITEM_NORMAL)
-        wxglade_tmp_menu.Append(402, u"关于(&A)", u"关于本程序", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(401, u"简明帮助(&B)"+KeyMenuList[u'简明帮助'], u"简明帮助", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(404, u"版本更新内容"+KeyMenuList[u'版本更新内容'], u"版本更新内容", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(403, u"检查更新(&C)"+KeyMenuList[u'检查更新'], u"在线检查是否有更新的版本", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(402, u"关于(&A)"+KeyMenuList[u'关于'], u"关于本程序", wx.ITEM_NORMAL)
         self.frame_1_menubar.Append(wxglade_tmp_menu, u"帮助(&H)")
         self.SetMenuBar(self.frame_1_menubar)
         # Menu Bar end
@@ -3432,11 +3444,11 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.Bind(wx.EVT_TOOL, self.Menu603, id=63)
         # end wxGlade
         self.Bind(wx.EVT_TOOL, self.Menu502, id=52)
-        self.text_ctrl_1.Bind(wx.EVT_KEY_UP,self.OnChar)
+        self.text_ctrl_1.Bind(wx.EVT_CHAR,self.OnChar)
         self.text_ctrl_2.Bind(wx.EVT_CHAR,self.OnChar3)
         self.list_ctrl_1.Bind(wx.EVT_CHAR,self.OnChar2)
-        self.list_ctrl_1.Bind(wx.EVT_KEY_UP,self.OnCloseSiderbar)
-        self.text_ctrl_2.Bind(wx.EVT_KEY_UP,self.OnCloseSiderbar)
+        #self.list_ctrl_1.Bind(wx.EVT_KEY_UP,self.OnCloseSiderbar)
+        #self.text_ctrl_2.Bind(wx.EVT_KEY_UP,self.OnCloseSiderbar)
         #self.text_ctrl_2.Bind(wx.EVT_KILL_FOCUS,self.CloseSidebar)
         #self.list_ctrl_1.Bind(wx.EVT_KILL_FOCUS,self.CloseSidebar)
 
@@ -4432,20 +4444,20 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                 event.Skip()
 
 
-    def OnCloseSiderbar(self,evt):
-        global KeyConfigList
-        kstr=keygrid.key2str(evt)
-        for kconfig in KeyConfigList:
-            if kconfig[0]=='last':
-                break
-        i=1
-        tl=len(kconfig)
-        while i<tl:
-            if kconfig[i][0]==u'显示文件侧边栏':
-                break
-            i+=1
-        if kstr==kconfig[i][1]:
-            self.CloseSidebar()
+##    def OnCloseSiderbar(self,evt):
+##        global KeyConfigList
+##        kstr=keygrid.key2str(evt)
+##        for kconfig in KeyConfigList:
+##            if kconfig[0]=='last':
+##                break
+##        i=1
+##        tl=len(kconfig)
+##        while i<tl:
+##            if kconfig[i][0]==u'显示文件侧边栏':
+##                break
+##            i+=1
+##        if kstr==kconfig[i][1]:
+##            self.CloseSidebar()
 
 
     def OnChar2(self, event):
@@ -4728,7 +4740,6 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             field=self.frame_1_statusbar.GetFieldRect(0)
             field_len=field[2]-field[0]
             txt=event.Value
-            print txt
             txt_len=dc.GetTextExtent(txt)[0]
             if txt_len>field_len:
                 llist=dc.GetPartialTextExtents(txt)
