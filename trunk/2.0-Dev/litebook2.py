@@ -1520,6 +1520,14 @@ def readKeyConfig():
         kconfig.append((u'切换为繁体字','----+WXK_F8'))
         kconfig.append((u'显示进度条','----+"Z"'))
         KeyConfigList.append(kconfig)
+        for kconfig in KeyConfigList:
+            if kconfig[0]=='last':
+                break
+        i=1
+        tl=len(kconfig)
+        while i<tl:
+            KeyMenuList[kconfig[i][0]]=keygrid.str2menu(kconfig[i][1])
+            i+=1
         return
     if not config.has_section('last'):
         kconfig=[]
@@ -8155,6 +8163,8 @@ class NewOptionDialog(wx.Dialog):
 
 if __name__ == "__main__":
 
+
+
 ##    try:
     fpath=os.environ['APPDATA'].decode('gbk')+u"\\litebook.bookdb"
 ##    fpath=fpath.decode('gbk')
@@ -8191,6 +8201,15 @@ if __name__ == "__main__":
 
 
     app = wx.PySimpleApp(0)
+    if len(sys.argv)>1:
+        if sys.argv[1]=='reset':
+            dlg=wx.MessageDialog(None,u"此操作将把当前配置恢复为缺省配置，可以解决某些启动问题，但是会覆盖当前设置，是否继续？",u"恢复到LiteBook的缺省设置",wx.YES_NO|wx.NO_DEFAULT)
+            if dlg.ShowModal()==wx.ID_YES:
+                try:
+                    os.remove(os.environ['APPDATA'].decode('gbk')+u"\\litebook.ini")
+                    os.remove(os.environ['APPDATA'].decode('gbk')+u"\\litebook_key.ini")
+                except:
+                    pass
     readConfigFile()
     readKeyConfig()
     readPlugin()
