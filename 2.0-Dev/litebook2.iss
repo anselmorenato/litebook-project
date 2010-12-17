@@ -46,7 +46,8 @@ Source: "vcredist_x86.exe"; DestDir: "{tmp}"; Check: NeedInstallVC9SP1
 
 [Icons]
 Name: "{group}\LiteBook2"; Filename: "{app}\litebook2.exe"
-Name: "{group}\{cm:UninstallProgram,LiteBook}"; Filename: "{uninstallexe}"
+Name: "{group}\ª÷∏¥µΩ»± °≈‰÷√∆Ù∂Ø"; Filename: "{app}\litebook2.exe"; IconFilename: "{app}\litebook2.exe"; Parameters: " reset"
+Name: "{group}\{cm:UninstallProgram,LiteBook}"; Filename: "{uninstallexe}";
 Name: "{commondesktop}\LiteBook2"; Filename: "{app}\litebook2.exe"; Tasks: desktopicon
 Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\LiteBook2"; Filename: "{app}\litebook2.exe"; Tasks: quicklaunchicon
 
