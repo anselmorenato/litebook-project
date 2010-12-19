@@ -415,7 +415,6 @@ class KeyConfigGrid(gridlib.Grid):
         if not self.startKey:
             evt.Skip()
             return
-        print "iam onchar"
         r=key2str(evt)
         key=str2key(r)['KEY']
         self.SetCellValue(self.curRow,self.curCol,r)
@@ -445,13 +444,15 @@ class KeyConfigGrid(gridlib.Grid):
     def Load(self,klist):
         r=self.GetNumberRows()
         if r>0:self.DeleteRows(0,r)
+
         i=1
         tl=len(klist)
         while i<tl:
             self.AppendLine(klist[i][0],klist[i][1])
             i+=1
         if tl==0:self.OnAdd(None)
-        self.AutoSize()
+        if r==0:self.AutoSize()
+        self.MakeCellVisible(0,0)
 
 
 

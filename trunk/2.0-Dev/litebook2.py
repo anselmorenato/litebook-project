@@ -7241,6 +7241,54 @@ class cnsort:
                rstr+=self.searchdict(self.dic_py,ichr)[:-1]
         return rstr
 
+class CheckDialog(wx.Dialog):
+    def __init__(self, parent,title='',clist=[]):
+        # begin wxGlade: CheckDialog.__init__
+        wx.Dialog.__init__(self,parent,-1,style=wx.DEFAULT_DIALOG_STYLE)
+        self.list_box_1 = wx.CheckListBox(self, -1, choices=[])
+        self.button_1 = wx.Button(self, -1, u"确定")
+        self.button_2 = wx.Button(self, -1, u"取消")
+        self.selections=[]
+        self.Bind(wx.EVT_BUTTON, self.OnOK, self.button_1)
+        self.Bind(wx.EVT_BUTTON, self.OnCancell, self.button_2)
+        self.list_box_1.Set(clist)
+        self.SetTitle(title)
+        self.__do_layout()
+
+
+        # end wxGlade
+
+
+
+    def __do_layout(self):
+        # begin wxGlade: CheckDialog.__do_layout
+        sizer_1 = wx.BoxSizer(wx.VERTICAL)
+        sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_1.Add(self.list_box_1, 0, wx.EXPAND, 0)
+        sizer_2.Add(self.button_1, 0, 0, 0)
+        sizer_2.Add(self.button_2, 0, 0, 0)
+        sizer_1.Add(sizer_2, 0, wx.EXPAND, 0)
+        self.SetSizer(sizer_1)
+        sizer_1.Fit(self)
+        self.Layout()
+        # end wxGlade
+
+    def OnCancell(self,evt):
+        self.Destroy()
+    def OnOK(self,evt):
+        n=self.list_box_1.GetCount()
+        i=0
+        while i<n:
+            if self.list_box_1.IsChecked(i):
+                self.selections.append(i)
+            i+=1
+        self.Destroy()
+
+    def GetChecks(self):
+        return self.selections
+
+# end of class CheckDialog
+
 
 class SliderDialog(wx.Dialog):
     def __init__(self, parent,val,inpos=(-1,-1)):
@@ -7355,6 +7403,8 @@ class NewOptionDialog(wx.Dialog):
         self.combo_box_1 = wx.ComboBox(self.notebook_1_pane_1, -1, choices=[], style=wx.CB_DROPDOWN|wx.CB_READONLY)
         self.button_1 = wx.Button(self.notebook_1_pane_1, -1, u"另存为")
         self.button_2 = wx.Button(self.notebook_1_pane_1, -1, u"删除")
+        self.button_theme_import = wx.Button(self.notebook_1_pane_1, -1, u"导入")
+        self.button_theme_export = wx.Button(self.notebook_1_pane_1, -1, u"导出")
         self.label_1 = wx.StaticText(self.notebook_1_pane_1, -1, u"选择显示模式：")
         self.combo_box_2 = wx.ComboBox(self.notebook_1_pane_1, -1, choices=[u"纸张模式", u"书本模式", u"竖排书本模式"], style=wx.CB_DROPDOWN|wx.CB_READONLY)
         self.label_3 = wx.StaticText(self.notebook_1_pane_1, -1, u"选择背景图片：")
@@ -7413,6 +7463,9 @@ class NewOptionDialog(wx.Dialog):
         self.combo_box_7 = wx.ComboBox(self.notebook_1_pane_4, -1, choices=[], style=wx.CB_DROPDOWN)
         self.button_Key_Save = wx.Button(self.notebook_1_pane_4, -1, u"另存为")
         self.button_Key_Del = wx.Button(self.notebook_1_pane_4, -1, u"删除")
+        self.button_key_import = wx.Button(self.notebook_1_pane_4, -1, u"导入")
+        self.button_key_export = wx.Button(self.notebook_1_pane_4, -1, u"导出")
+
         self.grid_1 = keygrid.KeyConfigGrid(self.notebook_1_pane_4)
 
         self.button_10 = wx.Button(self, -1, u"确定")
@@ -7438,6 +7491,11 @@ class NewOptionDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON,self.OnOK,self.button_10)
         self.Bind(wx.EVT_BUTTON,self.OnDelKey,self.button_Key_Del)
         self.Bind(wx.EVT_BUTTON,self.OnSaveKey,self.button_Key_Save)
+
+        self.Bind(wx.EVT_BUTTON,self.OnImportKey,self.button_key_import)
+        self.Bind(wx.EVT_BUTTON,self.OnExportKey,self.button_key_export)
+        self.Bind(wx.EVT_BUTTON,self.OnExportTheme,self.button_theme_export)
+        self.Bind(wx.EVT_BUTTON,self.OnImportTheme,self.button_theme_import)
 
         self.Bind(wx.EVT_SPINCTRL,self.OnUpdateSpace,self.spin_ctrl_1)
         self.Bind(wx.EVT_SPINCTRL,self.OnUpdateSpace,self.spin_ctrl_2)
@@ -7596,6 +7654,8 @@ class NewOptionDialog(wx.Dialog):
         sizer_5.Add(self.combo_box_1, 0, 0, 0)
         sizer_5.Add(self.button_1, 0, 0, 0)
         sizer_5.Add(self.button_2, 0, 0, 0)
+        sizer_5.Add(self.button_theme_export, 0, 0, 0)
+        sizer_5.Add(self.button_theme_import, 0, 0, 0)
         sizer_4.Add(sizer_5, 0, wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL, 0)
         sizer_6.Add(self.label_1, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         sizer_6.Add(self.combo_box_2, 0, 0, 0)
@@ -7686,6 +7746,9 @@ class NewOptionDialog(wx.Dialog):
         sizer_26.Add(self.combo_box_7, 0, 0, 0)
         sizer_26.Add(self.button_Key_Save, 0, 0, 0)
         sizer_26.Add(self.button_Key_Del, 0, 0, 0)
+        sizer_26.Add(self.button_key_export, 0, 0, 0)
+        sizer_26.Add(self.button_key_import, 0, 0, 0)
+
         sizer_7.Add(sizer_26, 0, wx.EXPAND, 0)
         sizer_27.Add(self.grid_1,1,wx.EXPAND,0)
         #sizer_7.Add(self.grid_1, 1, wx.EXPAND, 0)
@@ -8063,7 +8126,10 @@ class NewOptionDialog(wx.Dialog):
     def AlignSetting(self):
         sms={'paper':0,'book':1,'vbook':2}
         self.combo_box_2.SetSelection(sms[self.text_ctrl_3.show_mode])
-        self.text_ctrl_2.SetValue(self.text_ctrl_3.bg_img_path)
+        if self.text_ctrl_3.bg_img==None:
+            self.text_ctrl_2.SetValue('')
+        else:
+            self.text_ctrl_2.SetValue(self.text_ctrl_3.bg_img_path)
         layouts={'tile':0,'center':1}
         self.combo_box_3.SetSelection(layouts[self.text_ctrl_3.bg_style])
         if self.text_ctrl_3.bg_img_path<>None and self.text_ctrl_3.bg_img_path<>'':
@@ -8107,6 +8173,7 @@ class NewOptionDialog(wx.Dialog):
             if GlobalConfig['backgroundimg']<>'' and GlobalConfig['backgroundimg']<>None:
                 self.text_ctrl_3.SetImgBackground(GlobalConfig['backgroundimg'],GlobalConfig['backgroundimglayout'])
             else:
+                self.text_ctrl_3.SetImgBackground(None)
                 self.text_ctrl_3.SetBackgroundColour(GlobalConfig['CurBColor'])
             self.text_ctrl_3.SetFColor(GlobalConfig['CurFColor'])
             self.text_ctrl_3.SetFont(GlobalConfig['CurFont'])
@@ -8119,6 +8186,7 @@ class NewOptionDialog(wx.Dialog):
             if ThemeList[id]['backgroundimg']<>'' and ThemeList[id]['backgroundimg']<>None:
                 self.text_ctrl_3.SetImgBackground(ThemeList[id]['backgroundimg'],ThemeList[id]['backgroundimglayout'])
             else:
+                self.text_ctrl_3.SetImgBackground(None)
                 self.text_ctrl_3.SetBackgroundColour(ThemeList[id]['bcolor'])
             self.text_ctrl_3.SetFColor(ThemeList[id]['fcolor'])
             self.text_ctrl_3.SetFont(ThemeList[id]['font'])
@@ -8152,6 +8220,550 @@ class NewOptionDialog(wx.Dialog):
         if lid==self.spin_ctrl_6:self.text_ctrl_3.SetSpace(vlinespace=lvalue)
 
         self.text_ctrl_3.ReDraw()
+
+
+    def OnExportKey(self,evt):
+        global KeyConfigList
+        clist=[]
+        for k in KeyConfigList:
+            if k[0]=='last':
+                clist.append(u'当前设置')
+            else:
+                clist.append(k[0])
+        edlg=CheckDialog(self,u'导出按键配置方案',clist)
+        edlg.ShowModal()
+        rlist=edlg.GetChecks()
+        if len(rlist)>0:
+            wildcard = u"所有文件 (*.*)|*.*|"
+            dlg = wx.FileDialog(
+                self, message=u"导出为...", defaultDir=GlobalConfig['LastDir'],
+                defaultFile="", wildcard=wildcard, style=wx.SAVE | wx.FD_OVERWRITE_PROMPT
+                )
+
+            if dlg.ShowModal() == wx.ID_OK:
+                config=MyConfig()
+                for r in rlist:
+                    config.add_section(KeyConfigList[r][0])
+                    i=1
+                    kl=len(KeyConfigList[r])
+                    cstr={}
+                    while i<kl:
+                        if KeyConfigList[r][i][0] not in cstr:
+                            cstr[KeyConfigList[r][i][0]]=KeyConfigList[r][i][1]
+                        else:
+                            cstr[KeyConfigList[r][i][0]]+="&&"+KeyConfigList[r][i][1]
+                        i+=1
+                    for key,val in cstr.items():
+                        config.set(KeyConfigList[r][0],unicode(key),val)
+                try:
+                    ConfigFile=codecs.open(dlg.GetPath(),encoding='utf-8',mode='w')
+                    config.write(ConfigFile)
+                    ConfigFile.close()
+                except:
+                    dlg = wx.MessageDialog(None, u'导出文件错误！',u"错误！",wx.OK|wx.ICON_ERROR)
+                    dlg.ShowModal()
+                    dlg.Destroy()
+                    return False
+
+
+
+            dlg.Destroy()
+
+
+
+    def OnImportKey(self,evt):
+        global GlobalConfig,KeyConfigList
+        wildcard = u"所有文件 (*.*)|*.*"
+        dlg = wx.FileDialog(
+            self, message=u"选择要导入的文件:",
+            defaultDir=GlobalConfig['LastDir'],
+            defaultFile="",
+            wildcard=wildcard,
+            style=wx.OPEN | wx.CHANGE_DIR
+            )
+        if dlg.ShowModal() == wx.ID_OK:
+            flist=dlg.GetPath()
+            config=MyConfig()
+            try:
+                ffp=codecs.open(flist,encoding='utf-8',mode='r')
+                config.readfp(ffp)
+            except:
+                dlg = wx.MessageDialog(self, u'这不是一个合法的配置文件！',
+                               u'出错了！',
+                               wx.OK | wx.ICON_ERROR
+                               )
+                dlg.ShowModal()
+                dlg.Destroy()
+                return
+            secs=config.sections()
+##            if 'last' in secs:
+##                secs[secs.index('last')]=u'导入的当前配置'
+            kname_list=[]
+            for k in KeyConfigList:
+                kname_list.append(k[0])
+            cdlg=CheckDialog(self,u'选择要导入的配置...',secs)
+            cdlg.ShowModal()
+            rlist=cdlg.GetChecks()
+            if len(rlist)<=0:return
+            tname=''
+            for r in rlist:
+                if secs[r]=='last':
+                    tname=u'导入的当前配置'
+                else:
+                    tname=secs[r]
+                if tname in kname_list:
+                    dlg=wx.MessageDialog(self,secs[r]+u" 已有同名配置方案，是否继续？",u"导入",wx.YES_NO|wx.NO_DEFAULT)
+                    if dlg.ShowModal()==wx.ID_NO:
+                        dlg.Destroy()
+                        continue
+                    else:
+                        KeyConfigList.__delitem__(kname_list.index(secs[r]))
+                kconfig=[]
+                kconfig.append(tname)
+                try:
+                    cstr=config.get(secs[r],u'向上翻页')
+                    cstr_list=cstr.split('&&')
+                    for cs in cstr_list:
+                        kconfig.append((u'向上翻页',cs))
+                except:
+                    kconfig.append((u'向上翻页',"----+WXK_PAGEUP"))
+
+                try:
+                    cstr=config.get(secs[r],u'跳到结尾')
+                    cstr_list=cstr.split('&&')
+                    for cs in cstr_list:
+                        kconfig.append((u'跳到结尾',cs))
+                except:
+                    kconfig.append((u'跳到结尾',"----+WXK_END"))
+
+                try:
+                    cstr=config.get(secs[r],u'切换为繁体字')
+                    cstr_list=cstr.split('&&')
+                    for cs in cstr_list:
+                        kconfig.append((u'切换为繁体字',cs))
+                except:
+                    kconfig.append((u'切换为繁体字',"----+WXK_F8"))
+
+                try:
+                    cstr=config.get(secs[r],u'另存为')
+                    cstr_list=cstr.split('&&')
+                    for cs in cstr_list:
+                        kconfig.append((u'另存为',cs))
+                except:
+                    kconfig.append((u'另存为','C---+"S"'))
+
+                try:
+                    cstr=config.get(secs[r],u'向下翻页')
+                    cstr_list=cstr.split('&&')
+                    for cs in cstr_list:
+                        kconfig.append((u'向下翻页',cs))
+                except:
+                    kconfig.append((u'向下翻页','----+WXK_PAGEDOWN'))
+
+                try:
+                    cstr=config.get(secs[r],u'智能分段')
+                    cstr_list=cstr.split('&&')
+                    for cs in cstr_list:
+                        kconfig.append((u'智能分段',cs))
+                except:
+                    kconfig.append((u'智能分段','-A--+"P"'))
+
+                try:
+                    cstr=config.get(secs[r],u'查找')
+                    cstr_list=cstr.split('&&')
+                    for cs in cstr_list:
+                        kconfig.append((u'查找',cs))
+                except:
+                    kconfig.append((u'查找','C---+"F"'))
+
+                try:
+                    cstr=config.get(secs[r],u'关于')
+                    cstr_list=cstr.split('&&')
+                    for cs in cstr_list:
+                        kconfig.append((u'关于',cs))
+                except:
+                    kconfig.append((u'关于','----+WXK_F6'))
+
+                try:
+                    cstr=config.get(secs[r],u'查找下一个')
+                    cstr_list=cstr.split('&&')
+                    for cs in cstr_list:
+                        kconfig.append((u'查找下一个',cs))
+                except:
+                    kconfig.append((u'查找下一个','----+WXK_F3'))
+
+                try:
+                    cstr=config.get(secs[r],u'自动翻页')
+                    cstr_list=cstr.split('&&')
+                    for cs in cstr_list:
+                        kconfig.append((u'自动翻页',cs))
+                except:
+                    kconfig.append((u'自动翻页','----+WXK_RETURN'))
+
+
+                try:
+                    cstr=config.get(secs[r],u'重新载入插件')
+                    cstr_list=cstr.split('&&')
+                    for cs in cstr_list:
+                        kconfig.append((u'重新载入插件',cs))
+                except:
+                    kconfig.append((u'重新载入插件','C---+"R"'))
+
+                try:
+                    cstr=config.get(secs[r],u'选项')
+                    cstr_list=cstr.split('&&')
+                    for cs in cstr_list:
+                        kconfig.append((u'选项',cs))
+                except:
+                    kconfig.append((u'选项','-A--+"O"'))
+
+                try:
+                    cstr=config.get(secs[r],u'简明帮助')
+                    cstr_list=cstr.split('&&')
+                    for cs in cstr_list:
+                        kconfig.append((u'简明帮助',cs))
+                except:
+                    kconfig.append((u'简明帮助','----+WXK_F1'))
+
+                try:
+                    cstr=config.get(secs[r],u'纸张显示模式')
+                    cstr_list=cstr.split('&&')
+                    for cs in cstr_list:
+                        kconfig.append((u'纸张显示模式',cs))
+                except:
+                    kconfig.append((u'纸张显示模式','-A--+"M"'))
+
+                try:
+                    cstr=config.get(secs[r],u'下一个文件')
+                    cstr_list=cstr.split('&&')
+                    for cs in cstr_list:
+                        kconfig.append((u'下一个文件',cs))
+                except:
+                    kconfig.append((u'下一个文件','C---+"]"'))
+
+                try:
+                    cstr=config.get(secs[r],u'添加到收藏夹')
+                    cstr_list=cstr.split('&&')
+                    for cs in cstr_list:
+                        kconfig.append((u'添加到收藏夹',cs))
+                except:
+                    kconfig.append((u'添加到收藏夹','C---+"D"'))
+
+                try:
+                    cstr=config.get(secs[r],u'搜索小说网站')
+                    cstr_list=cstr.split('&&')
+                    for cs in cstr_list:
+                        kconfig.append((u'搜索小说网站',cs))
+                except:
+                    kconfig.append((u'搜索小说网站','-A--+"C"'))
+
+                try:
+                    cstr=config.get(secs[r],u'全屏显示')
+                    cstr_list=cstr.split('&&')
+                    for cs in cstr_list:
+                        kconfig.append((u'全屏显示',cs))
+                except:
+                    kconfig.append((u'全屏显示','C---+"I"'))
+
+                try:
+                    cstr=config.get(secs[r],u'跳到首页')
+                    cstr_list=cstr.split('&&')
+                    for cs in cstr_list:
+                        kconfig.append((u'跳到首页',cs))
+                except:
+                    kconfig.append((u'跳到首页','----+WXK_HOME'))
+
+                try:
+                    cstr=config.get(secs[r],u'拷贝')
+                    cstr_list=cstr.split('&&')
+                    for cs in cstr_list:
+                        kconfig.append((u'拷贝',cs))
+                except:
+                    kconfig.append((u'拷贝','C---+"C"'))
+
+                try:
+                    cstr=config.get(secs[r],u'竖排书本显示模式')
+                    cstr_list=cstr.split('&&')
+                    for cs in cstr_list:
+                        kconfig.append((u'竖排书本显示模式',cs))
+                except:
+                    kconfig.append((u'竖排书本显示模式','-A--+"N"'))
+
+                try:
+                    cstr=config.get(secs[r],u'显示工具栏')
+                    cstr_list=cstr.split('&&')
+                    for cs in cstr_list:
+                        kconfig.append((u'显示工具栏',cs))
+                except:
+                    kconfig.append((u'显示工具栏','C---+"T"'))
+
+                try:
+                    cstr=config.get(secs[r],u'打开文件')
+                    cstr_list=cstr.split('&&')
+                    for cs in cstr_list:
+                        kconfig.append((u'打开文件',cs))
+                except:
+                    kconfig.append((u'打开文件','C---+"P"'))
+
+                try:
+                    cstr=config.get(secs[r],u'整理收藏夹')
+                    cstr_list=cstr.split('&&')
+                    for cs in cstr_list:
+                        kconfig.append((u'整理收藏夹',cs))
+                except:
+                    kconfig.append((u'整理收藏夹','C---+"M"'))
+
+                try:
+                    cstr=config.get(secs[r],u'文件列表')
+                    cstr_list=cstr.split('&&')
+                    for cs in cstr_list:
+                        kconfig.append((u'文件列表',cs))
+                except:
+                    kconfig.append((u'文件列表','C---+"O"'))
+
+                try:
+                    cstr=config.get(secs[r],u'切换为简体字')
+                    cstr_list=cstr.split('&&')
+                    for cs in cstr_list:
+                        kconfig.append((u'切换为简体字',cs))
+                except:
+                    kconfig.append((u'切换为简体字','----+WXK_F7'))
+
+
+                try:
+                    cstr=config.get(secs[r],u'过滤HTML标记')
+                    cstr_list=cstr.split('&&')
+                    for cs in cstr_list:
+                        kconfig.append((u'过滤HTML标记',cs))
+                except:
+                    kconfig.append((u'过滤HTML标记','----+WXK_F9'))
+
+
+                try:
+                    cstr=config.get(secs[r],u'书本显示模式')
+                    cstr_list=cstr.split('&&')
+                    for cs in cstr_list:
+                        kconfig.append((u'书本显示模式',cs))
+                except:
+                    kconfig.append((u'书本显示模式','-A--+"B"'))
+
+                try:
+                    cstr=config.get(secs[r],u'检查更新')
+                    cstr_list=cstr.split('&&')
+                    for cs in cstr_list:
+                        kconfig.append((u'检查更新',cs))
+                except:
+                    kconfig.append((u'检查更新','----+WXK_F5'))
+
+                try:
+                    cstr=config.get(secs[r],u'版本更新内容')
+                    cstr_list=cstr.split('&&')
+                    for cs in cstr_list:
+                        kconfig.append((u'版本更新内容',cs))
+                except:
+                    kconfig.append((u'版本更新内容','----+WXK_F2'))
+
+
+                try:
+                    cstr=config.get(secs[r],u'查找上一个')
+                    cstr_list=cstr.split('&&')
+                    for cs in cstr_list:
+                        kconfig.append((u'查找上一个',cs))
+                except:
+                    kconfig.append((u'查找上一个','----+WXK_F4'))
+
+                try:
+                    cstr=config.get(secs[r],u'显示文件侧边栏')
+                    cstr_list=cstr.split('&&')
+                    for cs in cstr_list:
+                        kconfig.append((u'显示文件侧边栏',cs))
+                except:
+                    kconfig.append((u'显示文件侧边栏','-A--+"D"'))
+
+                try:
+                    cstr=config.get(secs[r],u'关闭')
+                    cstr_list=cstr.split('&&')
+                    for cs in cstr_list:
+                        kconfig.append((u'关闭',cs))
+                except:
+                    kconfig.append((u'关闭','C---+"Z"'))
+
+                try:
+                    cstr=config.get(secs[r],u'退出')
+                    cstr_list=cstr.split('&&')
+                    for cs in cstr_list:
+                        kconfig.append((u'退出',cs))
+                except:
+                    kconfig.append((u'退出','-A--+"X"'))
+
+                try:
+                    cstr=config.get(secs[r],u'上一个文件')
+                    cstr_list=cstr.split('&&')
+                    for cs in cstr_list:
+                        kconfig.append((u'上一个文件',cs))
+                except:
+                    kconfig.append((u'上一个文件','C---+"["'))
+
+                try:
+                    cstr=config.get(secs[r],u'显示进度条')
+                    cstr_list=cstr.split('&&')
+                    for cs in cstr_list:
+                        kconfig.append((u'显示进度条',cs))
+                except:
+                    kconfig.append((u'显示进度条','----+"Z"'))
+                KeyConfigList.append(kconfig)
+            cur_str=self.combo_box_7.GetStringSelection()
+            self.combo_box_7.Clear()
+            for t in KeyConfigList:
+                if t[0]=='last':self.combo_box_7.Append(u'当前设置')
+                else:
+                    self.combo_box_7.Append(t[0])
+            self.combo_box_7.SetStringSelection(cur_str)
+
+
+
+
+
+
+    def OnExportTheme(self,evt):
+        global ThemeList,GlobalConfig
+        clist=[]
+        clist.append(u'当前设置')
+        for t in ThemeList:
+            clist.append(t['name'])
+        edlg=CheckDialog(self,u'导出显示方案',clist)
+        edlg.ShowModal()
+        rlist=edlg.GetChecks()
+        if len(rlist)>0:
+            wildcard = u"所有文件 (*.*)|*.*|"
+            dlg = wx.FileDialog(
+                self, message=u"导出为...", defaultDir=GlobalConfig['LastDir'],
+                defaultFile="", wildcard=wildcard, style=wx.SAVE | wx.FD_OVERWRITE_PROMPT
+                )
+
+            if dlg.ShowModal() == wx.ID_OK:
+                config=MyConfig()
+                config.add_section('Appearance')
+                if 0 in rlist:
+                    ft=GlobalConfig['CurFont']
+                    save_str=unicode(ft.GetPointSize())+u'|'+unicode(ft.GetFamily())+u'|'+unicode(ft.GetStyle())+u'|'+unicode(ft.GetWeight())+u'|'+unicode(ft.GetUnderlined())+u'|'+ft.GetFaceName()+u'|'+unicode(ft.GetDefaultEncoding())+u'|'+unicode(GlobalConfig['CurFColor'])+u'|'+unicode(GlobalConfig['CurBColor'])
+                    save_str+=u'|'+unicode(GlobalConfig['backgroundimg'])
+                    save_str+=u'|'+unicode(GlobalConfig['showmode'])
+                    save_str+=u'|'+unicode(GlobalConfig['backgroundimglayout'])
+                    save_str+=u'|'+unicode(GlobalConfig['underline'])
+                    save_str+=u'|'+unicode(GlobalConfig['underlinestyle'])
+                    save_str+=u'|'+unicode(GlobalConfig['underlinecolor'])
+                    save_str+=u'|'+unicode(GlobalConfig['pagemargin'])
+                    save_str+=u'|'+unicode(GlobalConfig['bookmargin'])
+                    save_str+=u'|'+unicode(GlobalConfig['vbookmargin'])
+                    save_str+=u'|'+unicode(GlobalConfig['centralmargin'])
+                    save_str+=u'|'+unicode(GlobalConfig['linespace'])
+                    save_str+=u'|'+unicode(GlobalConfig['vlinespace'])
+
+                    config.set('Appearance','last',save_str)
+                    rlist.remove(0)
+                for r in rlist:
+                    config.set('Appearance',ThemeList[r]['name'],ThemeList[r]['config'])
+                try:
+                    ConfigFile=codecs.open(dlg.GetPath(),encoding='utf-8',mode='w')
+                    config.write(ConfigFile)
+                    ConfigFile.close()
+                except:
+                    dlg = wx.MessageDialog(None, u'导出失败！',u"错误！",wx.OK|wx.ICON_ERROR)
+                    dlg.ShowModal()
+                    dlg.Destroy()
+
+
+
+    def OnImportTheme(self,evt):
+        global GlobalConfig,ThemeList
+        wildcard = u"所有文件 (*.*)|*.*"
+        dlg = wx.FileDialog(
+            self, message=u"选择要导入的文件:",
+            defaultDir=GlobalConfig['LastDir'],
+            defaultFile="",
+            wildcard=wildcard,
+            style=wx.OPEN | wx.CHANGE_DIR
+            )
+        if dlg.ShowModal() == wx.ID_OK:
+            flist=dlg.GetPath()
+            config=MyConfig()
+            try:
+                ffp=codecs.open(flist,encoding='utf-8',mode='r')
+                config.readfp(ffp)
+                if not config.has_section('Appearance'):raise
+            except:
+                dlg = wx.MessageDialog(self, u'这不是一个合法的配置文件！',
+                               u'出错了！',
+                               wx.OK | wx.ICON_ERROR
+                               )
+                dlg.ShowModal()
+                dlg.Destroy()
+                return
+            ft_list=config.items('Appearance')
+            clist=[]
+            for f in ft_list:
+                clist.append(f[0])
+            cdlg=CheckDialog(self,u'选择要导入的显示配置',clist)
+            cdlg.ShowModal()
+            cdlg.Destroy()
+            rlist=cdlg.GetChecks()
+            cur_nlist=[]
+            for t in ThemeList:
+                cur_nlist.append(t['name'])
+            for r in rlist:
+                if clist[r]=='last':
+                    tname=u'导入的当前配置'
+                else:
+                    tname=clist[r]
+                f=ft_list[r][1].split('|')
+                if len(f)<>21: raise
+                try:
+                    l={}
+                    l['font']=wx.Font(int(f[0]),int(f[1]),int(f[2]),int(f[3]),eval(f[4]),f[5],int(f[6]))
+                    l['fcolor']=eval(f[7])
+                    l['bcolor']=eval(f[8])
+                    if f[9]<>'None':
+                        l['backgroundimg']=f[9]
+                    else:
+                        l['backgroundimg']=None
+                    l['showmode']=f[10]
+                    l['backgroundimglayout']=f[11]
+                    l['underline']=eval(f[12])
+                    l['underlinestyle']=int(f[13])
+                    l['underlinecolor']=f[14]
+                    l['pagemargin']=int(f[15])
+                    l['bookmargin']=int(f[16])
+                    l['vbookmargin']=int(f[17])
+                    l['centralmargin']=int(f[18])
+                    l['linespace']=int(f[19])
+                    l['vlinespace']=int(f[20])
+                    l['name']=tname
+                    l['config']=ft_list[r][1]
+                except:
+                    dlg = wx.MessageDialog(self, tname+u'不是一个合法的配置方案！',
+                    u'出错了！',
+                    wx.OK | wx.ICON_ERROR
+                    )
+                    dlg.ShowModal()
+                    dlg.Destroy()
+                    continue
+                if tname in cur_nlist:
+                    dlg=wx.MessageDialog(self,tname+u" 已有同名配置方案，是否继续？",u"导入",wx.YES_NO|wx.NO_DEFAULT)
+                    if dlg.ShowModal()==wx.ID_NO:
+                        dlg.Destroy()
+                        continue
+                    else:
+                        ThemeList.__delitem__(cur_nlist.index(tname))
+                ThemeList.append(l)
+            cur_str=self.combo_box_1.GetStringSelection()
+            self.combo_box_1.Clear()
+            self.combo_box_1.Append(u'当前设置')
+            for t in ThemeList:
+                self.combo_box_1.Append(t['name'])
+            self.combo_box_1.SetStringSelection(cur_str)
+
+
 
 
 
