@@ -930,6 +930,10 @@ class LiteView(wx.ScrolledWindow):
     def SetImgBackground(self,img,style='tile'):
         """设置图片背景"""
         self.bg_style=style
+        if img==None:
+            self.bg_img=None
+            self.bg_img_path=None
+            return
         if isinstance(img,wx.Bitmap):
             self.bg_img=img
         else:
