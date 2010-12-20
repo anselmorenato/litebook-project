@@ -3223,7 +3223,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
     u'切换为繁体字':'self.Tool43(None)',
     u'显示进度条':'self.ShowSlider()'
     }
-    def __init__(self,*args, **kwds):
+    def __init__(self,parent,openfile=None):
         global GlobalConfig
         self.buff=u''
         self.currentLine=0
@@ -3232,8 +3232,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.cnsort=cnsort()
 
         # begin wxGlade: MyFrame.__init__
-        kwds["style"] = wx.DEFAULT_FRAME_STYLE
-        wx.Frame.__init__(self, *args, **kwds)
+        #kwds["style"] = wx.DEFAULT_FRAME_STYLE
+        wx.Frame.__init__(self,parent,-1)
         #display the splash
         bitmap = wx.Bitmap(GlobalConfig['IconDir']+"\\l2_splash.gif", wx.BITMAP_TYPE_ANY)
         splash_frame = wx.SplashScreen(bitmap,wx.SPLASH_NO_TIMEOUT |wx.SPLASH_CENTRE_ON_SCREEN,3000,parent=self )
@@ -3489,25 +3489,29 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             self.Bind(wx.EVT_HOTKEY,self.OnESC)
 
         # load last opened file
-        if GlobalConfig['LoadLastFile']==True:
-            flist=[]
-            if GlobalConfig['LastFile'].find('*')==-1: # if there is only one last opened file
-                flist.append(GlobalConfig['LastFile'])
-                if GlobalConfig['LastZipFile']=='':
-                    if flist[0].strip()<>'':self.LoadFile(flist,pos=GlobalConfig['LastPos'])
-                else:
-                    if flist[0].strip()<>'':self.LoadFile(flist,'zip',GlobalConfig['LastZipFile'],pos=GlobalConfig['LastPos'])
-            else: # if there are multiple last opened files
-                for f in GlobalConfig['LastFile'].split('*'):
-                    flist=[]
-                    if f.find('|')==-1:
-                        flist.append(f)
-                        self.LoadFile(flist,openmethod='append')
+        if openfile<>None:
+            openfile=openfile.decode('GBK')
+            self.LoadFile([openfile])
+        else:
+            if GlobalConfig['LoadLastFile']==True:
+                flist=[]
+                if GlobalConfig['LastFile'].find('*')==-1: # if there is only one last opened file
+                    flist.append(GlobalConfig['LastFile'])
+                    if GlobalConfig['LastZipFile']=='':
+                        if flist[0].strip()<>'':self.LoadFile(flist,pos=GlobalConfig['LastPos'])
                     else:
-                        flist.append(f.split('|')[1])
-                        self.LoadFile(flist,'zip',f.split('|')[0].strip(),openmethod='append')
-                self.text_ctrl_1.SetSelection(GlobalConfig['LastPos'],GlobalConfig['LastPos'])
-                self.text_ctrl_1.ShowPosition(GlobalConfig['LastPos'])
+                        if flist[0].strip()<>'':self.LoadFile(flist,'zip',GlobalConfig['LastZipFile'],pos=GlobalConfig['LastPos'])
+                else: # if there are multiple last opened files
+                    for f in GlobalConfig['LastFile'].split('*'):
+                        flist=[]
+                        if f.find('|')==-1:
+                            flist.append(f)
+                            self.LoadFile(flist,openmethod='append')
+                        else:
+                            flist.append(f.split('|')[1])
+                            self.LoadFile(flist,'zip',f.split('|')[0].strip(),openmethod='append')
+                    self.text_ctrl_1.SetSelection(GlobalConfig['LastPos'],GlobalConfig['LastPos'])
+                    self.text_ctrl_1.ShowPosition(GlobalConfig['LastPos'])
 
         #Start Clocking
         self.clk_thread=ClockThread(self)
@@ -4407,6 +4411,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         if zip=='file':
             flist=os.listdir(GlobalConfig['LastDir'])
             for eachfile in flist:
+
                 cur_path=GlobalConfig['LastDir']+u"\\"+eachfile
                 if not os.path.isdir(cur_path):
                     file_ext=os.path.splitext(cur_path)[1].lower()
@@ -8813,8 +8818,9 @@ if __name__ == "__main__":
 
 
     app = wx.PySimpleApp(0)
+    fname=None
     if len(sys.argv)>1:
-        if sys.argv[1]=='reset':
+        if sys.argv[1].lower()=='-reset':
             dlg=wx.MessageDialog(None,u"此操作将把当前配置恢复为缺省配置，可以解决某些启动问题，但是会覆盖当前设置，是否继续？",u"恢复到LiteBook的缺省设置",wx.YES_NO|wx.NO_DEFAULT)
             if dlg.ShowModal()==wx.ID_YES:
                 try:
@@ -8822,11 +8828,13 @@ if __name__ == "__main__":
                     os.remove(os.environ['APPDATA'].decode('gbk')+u"\\litebook_key.ini")
                 except:
                     pass
+        else:
+            fname=sys.argv[1]
     readConfigFile()
     readKeyConfig()
     readPlugin()
     wx.InitAllImageHandlers()
-    frame_1 = MyFrame(None, -1, "")
+    frame_1 = MyFrame(None, fname)
     app.SetTopWindow(frame_1)
     frame_1.Show()
     app.MainLoop()
