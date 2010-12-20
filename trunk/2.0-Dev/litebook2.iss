@@ -55,6 +55,12 @@ Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\LiteBook2"; Filena
 Filename: "{app}\litebook2.exe"; Description: "{cm:LaunchProgram,LiteBook}"; Flags: nowait postinstall skipifsilent
 Filename: "{tmp}\vcredist_x86.exe"; Parameters: /q; WorkingDir: {tmp}; Flags: skipifdoesntexist; StatusMsg: "Installing Microsoft Visual C++ Runtime ..."; Check: NeedInstallVC9SP1
 
+[Registry]
+;设置右键菜单项
+Root: HKLM; Subkey: "Software\CLASSES\*\shell\用 LiteBook 阅读"; Flags: uninsdeletekey
+Root: HKLM; Subkey: "Software\CLASSES\*\shell\用 LiteBook 阅读\command"; ValueType: String; ValueData: "{app}\litebook2.exe %1"; Flags: uninsdeletekey
+
+
 [Code]
 var vc9SP1Missing: Boolean;
 
