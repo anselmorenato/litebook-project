@@ -9,7 +9,11 @@ following features:
 
 Author: Hu Jun
 
-Updated: 19/11/2010
+update on 12/24/2010
+- add scroll-line support
+- fix a bug that cause 1.5 character over the right edge of line
+
+Updated: 11/19/2010
 - first beta,all major feature implemented
 
 """
@@ -92,7 +96,7 @@ class LiteView(wx.ScrolledWindow):
         #绑定事件处理
 ##        self.Bind(wx.EVT_SCROLLWIN,self.OnScroll)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
-        #self.Bind(wx.EVT_CHAR,self.OnChar)
+        self.Bind(wx.EVT_CHAR,self.OnChar)
         self.Bind(wx.EVT_SIZE,self.OnResize)
         self.Bind(wx.EVT_LEFT_DOWN,self.OnMouseDrag)
         self.Bind(wx.EVT_LEFT_UP,self.OnMouseDrag)
@@ -620,9 +624,17 @@ class LiteView(wx.ScrolledWindow):
         if key == wx.WXK_PAGEDOWN or key==wx.WXK_SPACE or key==wx.WXK_RIGHT:
             self.ScrollP(1)
             return
-        if key == wx.WXK_PAGEUP or key==wx.WXK_LEFT :
+        if key==wx.WXK_LEFT or key == wx.WXK_PAGEUP:
             self.ScrollP(-1)
             return
+        if key == wx.WXK_UP:
+            self.ScrollLine(-1)
+            return
+        if key == wx.WXK_DOWN:
+            self.ScrollLine(1)
+            return
+
+
         if key == wx.WXK_HOME :
             self.ScrollTop()
             return
@@ -739,7 +751,7 @@ class LiteView(wx.ScrolledWindow):
         """ReDraw self"""
         delta=(self.GetSize()[1]-self.GetClientSize()[1])+1
         self.maxHeight=self.GetClientSize()[1]
-        self.maxWidth=self.GetClientSize()[0]
+        self.maxWidth=self.GetClientSize()[0]-delta
         self.SetVirtualSize((self.maxWidth, self.maxHeight))
         self.current_pos=self.start_pos
         self.bg_buff=None
@@ -786,6 +798,19 @@ class LiteView(wx.ScrolledWindow):
         r['backgroundimglayout']=self.bg_style
         r['showmode']=self.show_mode
         return r
+
+
+    def ScrollLine(self,direction=1,line_count=1):
+        if self.show_mode<>'paper':return
+        line_no=len(self.curPageTextList)
+        if direction==1:
+            if self.curPageTextList[line_no-1][4]>=self.ValueCharCount:
+                return
+            self.current_pos=self.curPageTextList[line_count-1][4]
+            self.ScrollP(1)
+        elif direction==-1:
+            self.start_pos=self.curPageTextList[line_no-line_count][3]
+            self.ScrollP(-1)
 
 
 
@@ -960,7 +985,7 @@ class LiteView(wx.ScrolledWindow):
 
         if self.show_mode=='paper':
             newwidth=self.maxWidth-2*self.pagemargin
-            delta=dc.GetCharHeight()
+            delta=int(dc.GetCharWidth()*2.5)
         elif self.show_mode=='book':
             newwidth=self.maxWidth/2-self.bookmargin-self.centralmargin
             delta=dc.GetCharHeight()
@@ -978,11 +1003,12 @@ class LiteView(wx.ScrolledWindow):
                 high=n
                 low=mid
                 base=mid
-                while low<high:
+                while low<=high:
                     mid=(low+high)/2
                     if llist[mid]-llist[base]>newwidth: high=mid-1
                     else:
-                        if llist[mid]-llist[base]<newwidth-delta: low=mid+1
+                        if llist[mid]-llist[base]<newwidth-delta:
+                            low=mid+1
                         else:
                             break
     ##            if dc.GetTextExtent(rr[:mid])[0]>newwidth: mid-=1
@@ -1148,16 +1174,20 @@ class LiteView(wx.ScrolledWindow):
                 if tmptxt[len(tmptxt)-1]<>'\n':ptxtlist[len(ptxtlist)-1][1]=0
                 line=0
                 delta=0
+                line_start=0
+                line_end=0
                 while line<self.blockline:
                     dc.DrawText(ptxtlist[line][0],self.pagemargin,h)
-                    self.curPageTextList.append([ptxtlist[line][0],ptxtlist[line][1],h])
                     if self.under_line:
                         oldpen=dc.GetPen()
                         newpen=wx.Pen(self.under_line_color,style=self.under_line_style)
                         dc.SetPen(newpen)
                         dc.DrawLine(self.pagemargin,h+ch_h+2,self.maxWidth-self.pagemargin,h+ch_h+2)
                         dc.SetPen(oldpen)
+                    line_start=self.current_pos+delta
                     delta+=len(ptxtlist[line][0])+ptxtlist[line][1]
+                    line_end=self.current_pos+delta
+                    self.curPageTextList.append([ptxtlist[line][0],ptxtlist[line][1],h,line_start,line_end])
                     if line==len(ptxtlist)-1:break
                     h+=ch_h+self.linespace
                     line+=1
@@ -1177,6 +1207,8 @@ class LiteView(wx.ScrolledWindow):
                 h=self.maxHeight-ch_h
                 tlen=len(ptxtlist)-1-self.blockline
                 elist=[]
+                line_start=0
+                line_end=0
                 if tlen<0:
                     tmptxt=self.Value[:maxcount]
                     ptxtlist=self.mywrap(tmptxt)
@@ -1184,16 +1216,20 @@ class LiteView(wx.ScrolledWindow):
                     line=0
                     delta=0
                     h=0
+                    cpos=0
                     while line<self.blockline:
                         dc.DrawText(ptxtlist[line][0],self.pagemargin,h)
-                        self.curPageTextList.append([ptxtlist[line][0],ptxtlist[line][1],h])
+
                         if self.under_line:
                             oldpen=dc.GetPen()
                             newpen=wx.Pen(self.under_line_color,style=self.under_line_style)
                             dc.SetPen(newpen)
                             dc.DrawLine(self.pagemargin,h+ch_h+2,self.maxWidth-self.pagemargin,h+ch_h+2)
                             dc.SetPen(oldpen)
+                        line_start=cpos+delta
                         delta+=len(ptxtlist[line][0])+ptxtlist[line][1]
+                        line_end=cpos+delta
+                        self.curPageTextList.append([ptxtlist[line][0],ptxtlist[line][1],h,line_start,line_end])
                         if line==len(ptxtlist)-1:break
                         h+=ch_h+self.linespace
                         line+=1
@@ -1209,8 +1245,11 @@ class LiteView(wx.ScrolledWindow):
                             dc.SetPen(newpen)
                             dc.DrawLine(self.pagemargin,h+ch_h+2,self.maxWidth-self.pagemargin,h+ch_h+2)
                             dc.SetPen(oldpen)
-                        elist.append([ptxtlist[line][0],ptxtlist[line][1],h])
+
+                        line_end=self.start_pos-delta
                         delta+=len(ptxtlist[line][0])+ptxtlist[line][1]
+                        line_start=self.start_pos-delta
+                        elist.append([ptxtlist[line][0],ptxtlist[line][1],h,line_start,line_end])
                         h-=(ch_h+self.linespace)
                         line-=1
 
@@ -1627,7 +1666,7 @@ if __name__ == "__main__":
     app.SetTopWindow(frame_1)
     frame_1.Show()
     if len(sys.argv)<=1:
-        fp=open("lsh.txt",'r')
+        fp=open("3.txt",'r')
     else:
         fp=open(sys.argv[1],'r')
     alltxt=fp.read()
@@ -1638,10 +1677,10 @@ if __name__ == "__main__":
     else:
         frame_1.panel_1.SetImgBackgroup(sys.argv[2])
     if len(sys.argv)<=3:
-        frame_1.panel_1.SetShowMode('vbook')
+        frame_1.panel_1.SetShowMode('paper')
     else:
         frame_1.panel_1.SetShowMode(sys.argv[3])
-    frame_1.panel_1.SetValue(alltxt,3083)
+    frame_1.panel_1.SetValue(alltxt)
 ##    frame_1.panel_1.Refresh()
 ##    frame_1.panel_1.Update()
 

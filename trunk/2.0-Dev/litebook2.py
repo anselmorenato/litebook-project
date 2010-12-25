@@ -1379,7 +1379,7 @@ ThemeList=[]
 BookDB=[]
 Ticking=True
 SupportedFileTypes=['.zip','.txt','.rar','.umd','.jar','.epub']
-Version=u'2.0 beta4'
+Version=u'2.0 beta5'
 I_Version=2.02  # this is used to check updated version
 SqlCon=None
 linestyle={u'虚线':wx.DOT,u'实线':wx.SOLID,u'长虚线':wx.LONG_DASH,u'点虚线':wx.DOT_DASH}
@@ -1478,6 +1478,8 @@ def readKeyConfig():
     except:
         kconfig=[]
         kconfig.append(('last'))
+        kconfig.append((u'向上翻行',"----+WXK_UP"))
+        kconfig.append((u'向下翻行',"----+WXK_DOWN"))
         kconfig.append((u'向上翻页',"----+WXK_PAGEUP"))
         kconfig.append((u'向上翻页',"----+WXK_LEFT"))
         kconfig.append((u'向上翻页',"----+WXK_UP"))
@@ -1532,6 +1534,8 @@ def readKeyConfig():
     if not config.has_section('last'):
         kconfig=[]
         kconfig.append(('last'))
+        kconfig.append((u'向上翻行',"----+WXK_UP"))
+        kconfig.append((u'向下翻行',"----+WXK_DOWN"))
         kconfig.append((u'向上翻页',"----+WXK_PAGEUP"))
         kconfig.append((u'向上翻页',"----+WXK_LEFT"))
         kconfig.append((u'向下翻页',"----+WXK_PAGEDOWN"))
@@ -1577,6 +1581,24 @@ def readKeyConfig():
     else:
         kconfig=[]
         kconfig.append(('last'))
+
+        try:
+            cstr=config.get('last',u'向上翻行')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'向上翻行',cs))
+        except:
+            kconfig.append((u'向上翻行',"----+WXK_UP"))
+
+        try:
+            cstr=config.get('last',u'向下翻行')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'向下翻行',cs))
+        except:
+            kconfig.append((u'向下翻行',"----+WXK_DOWN"))
+
+
         try:
             cstr=config.get('last',u'向上翻页')
             cstr_list=cstr.split('&&')
@@ -3186,6 +3208,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
     Formated=False
     mousedelta=0
     func_list={
+    u'向上翻行':'self.text_ctrl_1.ScrollLine(-1)',
+    u'向下翻行':'self.text_ctrl_1.ScrollLine(1)',
     u'向上翻页':'self.text_ctrl_1.ScrollP(-1)',
     u'向下翻页':'self.text_ctrl_1.ScrollP(1)',
     u'跳到首页':'self.text_ctrl_1.ScrollTop()',
@@ -4814,15 +4838,10 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 
     def MyMouseMW(self,event):
         delta=event.GetWheelRotation()
-        self.mousedelta+=delta
-
-        if self.mousedelta>360:
-            self.text_ctrl_1.ScrollP(-1)
-            self.mousedelta=0
-        else:
-            if self.mousedelta<-360:
-                self.text_ctrl_1.ScrollP(1)
-                self.mousedelta=0
+        if delta>0:
+            self.text_ctrl_1.ScrollLine(-1,1)
+        elif delta<0:
+            self.text_ctrl_1.ScrollLine(1,1)
 
     def MyMouseMDW(self,event):
         if self.last_mouse_event==1:
