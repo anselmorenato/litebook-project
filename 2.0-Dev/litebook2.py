@@ -3502,6 +3502,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.list_ctrl_1.Bind(wx.EVT_CHAR,self.OnDirChar)
         self.text_ctrl_1.Bind(wx.EVT_MIDDLE_DCLICK,self.MyMouseMDC)
         self.text_ctrl_1.Bind(wx.EVT_RIGHT_UP,self.MyMouseRU)
+        self.text_ctrl_1.Bind(wx.EVT_LEFT_DCLICK,self.MyMouseLDC)
+        self.text_ctrl_1.Bind(wx.EVT_RIGHT_DCLICK,self.MyMouseRDC)
         self.text_ctrl_1.Bind(wx.EVT_MOUSEWHEEL,self.MyMouseMW)
         self.text_ctrl_1.Bind(wx.EVT_MIDDLE_DOWN,self.MyMouseMDW)
         self.Bind(wx.EVT_SIZE,self.onSize)
@@ -4815,6 +4817,11 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             self.current_pos=0
             self.last_pos=0
 
+    def MyMouseLDC(self,evt=None):
+        self.text_ctrl_1.ScrollP(1)
+
+    def MyMouseRDC(self,evt=None):
+        self.text_ctrl_1.ScrollP(-1)
 
 
     def MyMouseMDC(self,event):

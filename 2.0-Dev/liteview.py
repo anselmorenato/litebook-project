@@ -17,6 +17,11 @@ Updated: 11/19/2010
 - first beta,all major feature implemented
 
 """
+#
+#update on 2010.12.26
+# fix a bug of breakline
+#
+
 
 #
 #update on 2010.12.2
@@ -102,6 +107,7 @@ class LiteView(wx.ScrolledWindow):
         self.Bind(wx.EVT_LEFT_UP,self.OnMouseDrag)
         self.Bind(wx.EVT_MOTION,self.OnMouseDrag)
         #self.Bind(wx.EVT_RIGHT_UP,self.OnMouseDrag)
+
 
 
     def GetHitPos(self,pos):
@@ -985,7 +991,9 @@ class LiteView(wx.ScrolledWindow):
 
         if self.show_mode=='paper':
             newwidth=self.maxWidth-2*self.pagemargin
-            delta=int(dc.GetCharWidth()*2.5)
+            #delta=int(dc.GetCharWidth()*2.5)
+            delta=dc.GetCharWidth()
+            delta=0
         elif self.show_mode=='book':
             newwidth=self.maxWidth/2-self.bookmargin-self.centralmargin
             delta=dc.GetCharHeight()
@@ -996,6 +1004,15 @@ class LiteView(wx.ScrolledWindow):
             newheight=self.maxHeight-2*self.vbookmargin
         if self.show_mode=='book' or self.show_mode=='paper':
             llist=dc.GetPartialTextExtents(line)
+##            ii=0
+##            test=[]
+##            while ii<len(line):
+##                #test[line[ii]]=llist[ii]
+##                test.append((line[ii],llist[ii]))
+##                ii+=1
+##            print 'newwidth is',newwidth
+##            for x in test:
+##                print x[0],x[1]
             n=len(llist)-1
             mid=0
             mylen=llist[n]
@@ -1003,16 +1020,31 @@ class LiteView(wx.ScrolledWindow):
                 high=n
                 low=mid
                 base=mid
+                if base==0:
+                    lfix=llist[0]
+                else:
+                    lfix=llist[base]-llist[base-1]
+                mid=(low+high)/2
                 while low<=high:
-                    mid=(low+high)/2
-                    if llist[mid]-llist[base]>newwidth: high=mid-1
+                    if (llist[mid]-llist[base]+lfix)>newwidth:
+                        high=mid-1
                     else:
-                        if llist[mid]-llist[base]<newwidth-delta:
+                        if (llist[mid]-llist[base]+lfix)<newwidth:
                             low=mid+1
                         else:
+##                            print "give me a break"
+##                            print "low,high",low,high
+##                            print llist
                             break
+                    mid=(low+high)/2
     ##            if dc.GetTextExtent(rr[:mid])[0]>newwidth: mid-=1
+                mid+=1
                 rlist.append([rr[base:mid],0])
+                nstr=rr[base:mid]
+#                if nstr[-2:]==u'酒醉':
+##                print nstr
+##                print 'high is ',high
+##                print 'low is ',low
                 mylen=llist[n]-llist[mid-1]
             rlist.append([rr[mid:],1])
             return rlist
@@ -1118,7 +1150,7 @@ class LiteView(wx.ScrolledWindow):
 
         ch_h=dc.GetCharHeight()
         ch_w=dc.GetCharWidth()
-        maxcount=(self.maxHeight/(ch_h+self.linespace))*((self.maxWidth-2*self.pagemargin)/ch_w)
+        maxcount=(self.maxHeight/(ch_h+self.linespace))*((self.maxWidth-2*self.pagemargin)/(ch_w))
         self.blockline=self.maxHeight/(ch_h+self.linespace)
         self.SetVirtualSize((self.maxWidth, self.maxHeight))
         self.buffer = wx.EmptyBitmap(self.maxWidth, self.maxHeight)
