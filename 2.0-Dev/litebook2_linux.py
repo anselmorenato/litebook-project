@@ -4000,34 +4000,40 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.BackupValue=self.text_ctrl_1.GetValue()
         istr=self.text_ctrl_1.GetValue()
         #convert more than 3 newlines in a row into one newline
-        p=re.compile('(\n){3,}',re.S)
+        p=re.compile('([ \t\f\v]*\n){2,}',re.S)
         istr=p.sub("\n",istr)
         #find out how much words can current line hold
         mmm=self.text_ctrl_1.GetClientSizeTuple()
         f=self.text_ctrl_1.GetFont()
         dc=wx.WindowDC(self.text_ctrl_1)
         dc.SetFont(f)
-        nnn,hhh=dc.GetTextExtent(u"我")
+        nnn,hhh=dc.GetTextExtent(u"国")
         line_capacity=mmm[0]/nnn
         #combile short-lines together
         p=re.compile(".*\n")
         line_list=p.findall(istr)
         i2=[]
         last_len=0
-        cc=0
+        #cc=0
+        line_start=True
         for line in line_list:
-            line=line.lstrip(' \t')
             cur_len=len(line)
             if cur_len<line_capacity-2:
                 if cur_len>last_len-3:
-                    line=line[:-1]
-                    cc+=1
+                    print line
+                    if not line_start:
+                        line=line.strip()
+                    else:
+                        line=line.rstrip()
+                        line_start=False
+                    #line=line[:-1]
+                    #cc+=1
+                else:
+                    line_start=True
             i2.append(line)
             last_len=cur_len
         self.text_ctrl_1.SetValue("".join(i2))
-
-
-
+    
     def Tool44(self,event):
         if self.Formated:
             self.text_ctrl_1.SetValue(self.BackupValue)
@@ -4775,6 +4781,11 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 
         current_ext=os.path.splitext(GlobalConfig['LastDir'])[1].lower()
         self.sideitemlist=[]
+        sideitem={}
+        newitem=wx.ListItem()
+        newitem.SetText(GlobalConfig['LastDir'])
+        self.list_ctrl_1.SetColumn(0,newitem)
+        
         self.list_ctrl_1.DeleteAllItems()
         if str(type(GlobalConfig['LastDir']))=='<type \'str\'>':
             GlobalConfig['LastDir']=unicode(GlobalConfig['LastDir'],'GBK','ignore')
@@ -7057,7 +7068,7 @@ class NewOptionDialog(wx.Dialog):
     def __set_properties(self):
         # begin wxGlade: NewOptionDialog.__set_properties
         self.SetTitle(u"选项对话框")
-        self.SetSize((500, 500))
+        self.SetSize((600, 500))
         self.text_ctrl_3.SetSize((450,300))
         self.combo_box_2.SetSelection(-1)
         self.text_ctrl_2.SetMinSize((300, -1))
@@ -7611,8 +7622,8 @@ class NewOptionDialog(wx.Dialog):
     def OnSelFont(self,event):
         global GlobalConfig
         data=wx.FontData()
-        data.SetInitialFont(GlobalConfig['CurFont'])
-        data.SetColour(GlobalConfig['CurFColor'])
+        data.SetInitialFont(self.text_ctrl_3.GetFont())
+        data.SetColour(self.text_ctrl_3.GetForegroundColour())
         data.EnableEffects(False)
         dlg = wx.FontDialog(self, data)
         if dlg.ShowModal() == wx.ID_OK:
