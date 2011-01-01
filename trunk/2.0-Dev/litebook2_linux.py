@@ -4020,7 +4020,6 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             cur_len=len(line)
             if cur_len<line_capacity-2:
                 if cur_len>last_len-3:
-                    print line
                     if not line_start:
                         line=line.strip()
                     else:
@@ -4033,7 +4032,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             i2.append(line)
             last_len=cur_len
         self.text_ctrl_1.SetValue("".join(i2))
-    
+
     def Tool44(self,event):
         if self.Formated:
             self.text_ctrl_1.SetValue(self.BackupValue)
@@ -4785,7 +4784,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         newitem=wx.ListItem()
         newitem.SetText(GlobalConfig['LastDir'])
         self.list_ctrl_1.SetColumn(0,newitem)
-        
+
         self.list_ctrl_1.DeleteAllItems()
         if str(type(GlobalConfig['LastDir']))=='<type \'str\'>':
             GlobalConfig['LastDir']=unicode(GlobalConfig['LastDir'],'GBK','ignore')
