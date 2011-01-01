@@ -417,6 +417,19 @@ class KeyConfigGrid(gridlib.Grid):
             return
         r=key2str(evt)
         key=str2key(r)['KEY']
+        n=self.GetNumberRows()
+        i=0
+        while i<n:
+            if i<>self.curRow:
+                if self.GetCellValue(i,1)==r:
+                    func_name=self.GetCellValue(i,0)
+                    dlg = wx.MessageDialog(None, u'"'+func_name+u'" 已经使用了这个按键，请换一个',u"错误！",wx.OK|wx.ICON_ERROR)
+                    dlg.ShowModal()
+                    dlg.Destroy()
+                    self.SetCellValue(self.curRow,self.curCol,self.startKeyCell)
+                    self.startKey=False
+                    return
+            i+=1
         self.SetCellValue(self.curRow,self.curCol,r)
         evt.Skip(False)
         evt.StopPropagation()
