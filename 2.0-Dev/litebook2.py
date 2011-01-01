@@ -1379,8 +1379,8 @@ ThemeList=[]
 BookDB=[]
 Ticking=True
 SupportedFileTypes=['.zip','.txt','.rar','.umd','.jar','.epub']
-Version=u'2.0 beta5'
-I_Version=2.05  # this is used to check updated version
+Version=u'2.0 beta6'
+I_Version=2.06  # this is used to check updated version
 SqlCon=None
 linestyle={u'虚线':wx.DOT,u'实线':wx.SOLID,u'长虚线':wx.LONG_DASH,u'点虚线':wx.DOT_DASH}
 rlinestyle={wx.DOT:u'虚线',wx.SOLID:u'实线',wx.LONG_DASH:u'长虚线',wx.DOT_DASH:u'点虚线'}
@@ -1522,9 +1522,6 @@ def readKeyConfig():
         kconfig.append((u'切换为繁体字','----+WXK_F8'))
         kconfig.append((u'显示进度条','----+"Z"'))
         KeyConfigList.append(kconfig)
-        for kconfig in KeyConfigList:
-            if kconfig[0]=='last':
-                break
         i=1
         tl=len(kconfig)
         while i<tl:
@@ -1914,7 +1911,7 @@ def readKeyConfig():
     while i<tl:
         KeyMenuList[kconfig[i][0]]=keygrid.str2menu(kconfig[i][1])
         i+=1
-    #print KeyMenuList
+
 
 
 
@@ -4089,27 +4086,36 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.BackupValue=self.text_ctrl_1.GetValue()
         istr=self.text_ctrl_1.GetValue()
         #convert more than 3 newlines in a row into one newline
-        p=re.compile('(\n){3,}',re.S)
+        p=re.compile('([ \t\f\v]*\n){2,}',re.S)
         istr=p.sub("\n",istr)
         #find out how much words can current line hold
         mmm=self.text_ctrl_1.GetClientSizeTuple()
         f=self.text_ctrl_1.GetFont()
         dc=wx.WindowDC(self.text_ctrl_1)
         dc.SetFont(f)
-        nnn,hhh=dc.GetTextExtent(u"我")
+        nnn,hhh=dc.GetTextExtent(u"国")
         line_capacity=mmm[0]/nnn
         #combile short-lines together
         p=re.compile(".*\n")
         line_list=p.findall(istr)
         i2=[]
         last_len=0
-        cc=0
+        #cc=0
+        line_start=True
         for line in line_list:
             cur_len=len(line)
             if cur_len<line_capacity-2:
                 if cur_len>last_len-3:
-                    line=line[:-1]
-                    cc+=1
+                    print line
+                    if not line_start:
+                        line=line.strip()
+                    else:
+                        line=line.rstrip()
+                        line_start=False
+                    #line=line[:-1]
+                    #cc+=1
+                else:
+                    line_start=True
             i2.append(line)
             last_len=cur_len
         self.text_ctrl_1.SetValue("".join(i2))
@@ -4880,6 +4886,9 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             self.LastDir=GlobalConfig['LastDir']
         self.sideitemlist=[]
         sideitem={}
+        newitem=wx.ListItem()
+        newitem.SetText(GlobalConfig['LastDir'])
+        self.list_ctrl_1.SetColumn(0,newitem)
         if GlobalConfig['LastDir']<>u'ROOT' and os.path.exists(GlobalConfig['LastDir']):
             current_ext=os.path.splitext(GlobalConfig['LastDir'])[1].lower()
             self.list_ctrl_1.DeleteAllItems()
@@ -7536,6 +7545,7 @@ class NewOptionDialog(wx.Dialog):
         self.Bind(wx.EVT_SPINCTRL,self.OnUpdateSpace,self.spin_ctrl_6)
 
 
+
         self.__set_properties()
         self.__do_layout()
         # end wxGlade
@@ -7543,7 +7553,7 @@ class NewOptionDialog(wx.Dialog):
     def __set_properties(self):
         # begin wxGlade: NewOptionDialog.__set_properties
         self.SetTitle(u"选项对话框")
-        self.SetSize((500, 500))
+        self.SetSize((500, 600))
         self.text_ctrl_3.SetSize((450,300))
         self.combo_box_2.SetSelection(-1)
         self.text_ctrl_2.SetMinSize((300, -1))
@@ -7799,6 +7809,7 @@ class NewOptionDialog(wx.Dialog):
         self.SetSizer(sizer_3)
         self.Layout()
         # end wxGlade
+
 
     def OnCancell(self,event):
         self.Destroy()
@@ -8097,8 +8108,10 @@ class NewOptionDialog(wx.Dialog):
     def OnSelFont(self,event):
         global GlobalConfig
         data=wx.FontData()
-        data.SetInitialFont(GlobalConfig['CurFont'])
-        data.SetColour(GlobalConfig['CurFColor'])
+#        data.SetInitialFont(GlobalConfig['CurFont'])
+#        data.SetColour(GlobalConfig['CurFColor'])
+        data.SetInitialFont(self.text_ctrl_3.GetFont())
+        data.SetColour(self.text_ctrl_3.GetForegroundColour())
         data.EnableEffects(False)
         dlg = wx.FontDialog(self, data)
         if dlg.ShowModal() == wx.ID_OK:

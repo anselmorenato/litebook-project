@@ -1352,8 +1352,8 @@ BookMarkList=[]
 ThemeList=[]
 BookDB=[]
 Ticking=True
-Version='2.0 Linux Beta5'
-I_Version=2.05 # this is used to check updated version
+Version='2.0 Linux Beta6'
+I_Version=2.06 # this is used to check updated version
 
 def cur_file_dir():
     #获取脚本路径
@@ -1541,6 +1541,11 @@ def readKeyConfig():
         kconfig.append((u'切换为繁体字','----+WXK_F8'))
         kconfig.append((u'显示进度条','----+"Z"'))
         KeyConfigList.append(kconfig)
+        i=1
+        tl=len(kconfig)
+        while i<tl:
+            KeyMenuList[kconfig[i][0]]=keygrid.str2menu(kconfig[i][1])
+            i+=1
         return
     if not config.has_section('last'):
         kconfig=[]
@@ -4011,6 +4016,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         last_len=0
         cc=0
         for line in line_list:
+            line=line.lstrip(' \t')
             cur_len=len(line)
             if cur_len<line_capacity-2:
                 if cur_len>last_len-3:

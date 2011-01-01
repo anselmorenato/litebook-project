@@ -119,7 +119,9 @@ class LiteView(wx.ScrolledWindow):
         ch_w=dc.GetTextExtent(u'我')[0]
         if self.show_mode=='paper':
             line=pos[1]/(self.linespace+ch_h)
-            if line>=len(self.curPageTextList):line=len(self.curPageTextList)-1
+            tlen=len(self.curPageTextList)
+            if tlen<=0: return None
+            if line>=tlen:line=tlen-1
             pos_list=dc.GetPartialTextExtents(self.curPageTextList[line][0])
             i=0
             tlen=pos[0]-self.pagemargin
@@ -580,6 +582,7 @@ class LiteView(wx.ScrolledWindow):
             current_mouse_pos=evt.GetPositionTuple()
             r1=self.GetHitPos(self.FirstMousePos)
             r2=self.GetHitPos(current_mouse_pos)
+            if r1==None or r2==None:return
             if r1['index']>r2['index']:
                 self.SelectedRange[0]=r2['index']
                 self.SelectedRange[1]=r1['index']
