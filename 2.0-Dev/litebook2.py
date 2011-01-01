@@ -4106,7 +4106,6 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             cur_len=len(line)
             if cur_len<line_capacity-2:
                 if cur_len>last_len-3:
-                    print line
                     if not line_start:
                         line=line.strip()
                     else:
