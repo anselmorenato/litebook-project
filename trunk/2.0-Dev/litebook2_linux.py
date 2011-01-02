@@ -3395,7 +3395,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.Bind(wx.EVT_SIZE,self.onSize)
         self.list_ctrl_1.Bind(wx.EVT_CHAR,self.OnDirChar)
         self.Bind(wx.EVT_TEXT,self.SearchSidebar,self.text_ctrl_2)
-#        self.text_ctrl_1.Bind(wx.EVT_MIDDLE_DCLICK,self.MyMouseMDC)
+        self.text_ctrl_1.Bind(wx.EVT_MIDDLE_DCLICK,self.MyMouseMDC)
 #        self.text_ctrl_1.Bind(wx.EVT_RIGHT_DOWN,self.MyMouseRU)
 #        self.text_ctrl_1.Bind(wx.EVT_MOUSEWHEEL,self.MyMouseMW)
 #        self.text_ctrl_1.Bind(wx.EVT_MIDDLE_DOWN,self.MyMouseMDW)
@@ -3913,6 +3913,17 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             self.text_ctrl_1.ScrollLine(-1,1)
         elif delta<0:
             self.text_ctrl_1.ScrollLine(1,1)
+
+    def MyMouseMDC(self,event):
+        #self.last_mouse_event=1
+        if event.RightIsDown():
+            self.LoadNextFile(-1)
+        else:
+            self.LoadNextFile(1)
+        event.Skip(False)
+        event.StopPropagation()
+        clickEvent = wx.CommandEvent(wx.wxEVT_COMMAND_LEFT_CLICK, self.text_ctrl_1.GetId())
+        self.text_ctrl_1.ProcessEvent(clickEvent)
 
 
     def ShowPopMenu(self,event):
