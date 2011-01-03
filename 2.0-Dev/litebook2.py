@@ -3919,7 +3919,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         info = wx.AboutDialogInfo()
         info.Name = u"轻巧看书(LiteBook)"
         info.Version = Version
-        info.Copyright = "(C) 2010 Hu Jun"
+        info.Copyright = "(C) 2011 Hu Jun"
         info.Description = u"轻巧看书，简单好用的看书软件！"
 
         info.WebSite = (u"http://code.google.com/p/litebook-project/", u"官方网站")
