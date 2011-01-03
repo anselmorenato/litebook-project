@@ -3775,10 +3775,10 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         if filename<>'':self.LoadBookmark(filename,pos)
 
     def Menu401(self, event): # wxGlade: MyFrame.<event_handler>
-        url=cur_file_dir()+'/helpdoc/index.htm'
+        url="file://"+cur_file_dir()+'/helpdoc/index.htm'
         webbrowser.open_new_tab(url)
     def Menu404(self, event): # wxGlade: MyFrame.<event_handler>
-        url=cur_file_dir()+'/helpdoc/index.htm#page=version_history.htm'
+        url="file://"+cur_file_dir()+'/helpdoc/index.htm#page=version_history.htm'
         webbrowser.open_new_tab(url)
     def Menu402(self, event): # wxGlade: MyFrame.<event_handler>
         global Version
