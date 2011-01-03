@@ -1,0 +1,100 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+<title>在线搜索及下载插件开发指南</title>
+<meta name="GENERATOR" content="WinCHM">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+
+
+
+<link href="template1/winchm_template_style.css" rel="stylesheet" type="text/css">
+<script type="text/javascript">
+function d_onresize(){
+if (window.navigator.userAgent.indexOf("MSIE")>=1){
+document.getElementById('winchm_template_content').style.pixelWidth = document.body.offsetWidth - 3;
+document.getElementById('winchm_template_content').style.pixelHeight = document.body.offsetHeight - document.getElementById('winchm_template_top').offsetHeight - 4;
+}
+document.getElementById('winchm_template_content').style.top = document.getElementById('winchm_template_top').offsetHeight + 'px';
+}
+
+function d_onbeforeprint(){
+document.getElementById('winchm_template_content').style.width = 'auto';
+document.getElementById('winchm_template_content').style.height = 'auto';
+}
+
+function d_onafterprint(){
+d_onresize();
+}
+
+window.onload = d_onresize;
+window.onresize = d_onresize;
+window.onbeforeprint = d_onbeforeprint;
+window.onafterprint = d_onafterprint;
+</script>
+</head>
+
+<body><script language="JavaScript" type="text/JavaScript">
+function syn(){
+if(parent.nav.tree){
+ if(parent.nav.tree.loaded){
+  parent.nav.tree.selectNode(6);
+ }else{
+  setTimeout("syn()",500);
+}
+  }else{
+  setTimeout("syn()",500);
+  }}
+if(parent!=self){
+  setTimeout("syn()",100);
+}else{
+  parent.location.href = "../index.htm#page=plugin.html";
+}
+originalOnload = window.onload;
+if(originalOnload==null){
+window.onload = function(){parent.contentLoaded = true;};
+}else{
+window.onload = function(){originalOnload();parent.contentLoaded = true;};
+}
+</script> 
+
+
+<div id="winchm_template_top">
+<table width="100%" height="50" bgcolor="#c4d0f4" style="WIDTH: 100%" cellSpacing=0 cellPadding=3 border=0>
+<tr>
+<td>
+<div id="winchm_template_navigation">
+<em>litebook2&nbsp;Help &gt; <A href="features.html">功能介绍</A> &gt; </em> </div>
+<div id="winchm_template_title">
+在线搜索及下载插件开发指南</div>
+</td>
+<td align="right" style="WIDTH: 90px">
+<A href="search_download.htm" title="Previous"><img id="winchm_template_prev" src="template1/btn_prev_n.gif" border="0"></a><A href="fenduan.html" title="Next"><img id="winchm_template_next" src="template1/btn_next_n.gif" border="0"></a>
+</td>
+</tr>
+</table>
+</div>
+<div id="winchm_template_content">
+<p><SPAN 
+style="WIDOWS: 2; TEXT-TRANSFORM: none; TEXT-INDENT: 0px; BORDER-COLLAPSE: separate; FONT: medium 'Times New Roman'; WHITE-SPACE: normal; ORPHANS: 2; LETTER-SPACING: normal; COLOR: rgb(0,0,0); WORD-SPACING: 0px; -webkit-border-horizontal-spacing: 0px; -webkit-border-vertical-spacing: 0px; -webkit-text-decorations-in-effect: none; -webkit-text-size-adjust: auto; -webkit-text-stroke-width: 0px" 
+class=Apple-style-span><SPAN 
+style="FONT-FAMILY: arial, sans-serif; FONT-SIZE: 13px" class=Apple-style-span>
+<P style="MAX-WIDTH: 65em">本文介绍了开发litebook在线搜索及下载插件（以下简称插件）所需要了解的信息</P>
+<H2 style="FONT-SIZE: large"><A name=编程语言></A>编程语言</H2>
+<UL style="PADDING-LEFT: 40px; MAX-WIDTH: 65em">
+  <LI>python 2.6/2.7
+  <LI>脚本编码格式：utf-8</LI></UL>
+<H2 style="FONT-SIZE: large"><A name=调用接口函数></A>调用接口函数</H2>
+<UL style="PADDING-LEFT: 40px; MAX-WIDTH: 65em">
+  <LI>plugin必需提供如下两个函数供litebook主程序调用：<PRE style="BORDER-LEFT: rgb(204,204,204) 3px solid; PADDING-BOTTOM: 0.5em; PADDING-LEFT: 0.5em; PADDING-RIGHT: 0.5em; MARGIN-LEFT: 2em; FONT-SIZE: 12px; PADDING-TOP: 0.5em" class=prettyprint><SPAN style="COLOR: rgb(0,0,0)" class=pln>&nbsp; &nbsp; </SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>*</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln> </SPAN><SPAN style="COLOR: rgb(102,0,102)" class=typ>GetSearchResults</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>(</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>key</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>,</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>useproxy</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>=</SPAN><SPAN style="COLOR: rgb(0,0,136)" class=kwd>False</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>,</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>proxyserver</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>=</SPAN><SPAN style="COLOR: rgb(0,136,0)" class=str>''</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>,</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>proxyport</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>=</SPAN><SPAN style="COLOR: rgb(0,102,102)" class=lit>0</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>,</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>proxyuser</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>=</SPAN><SPAN style="COLOR: rgb(0,136,0)" class=str>''</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>,</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>proxypass</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>=</SPAN><SPAN style="COLOR: rgb(0,136,0)" class=str>''</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>)</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln><BR>&nbsp; &nbsp; &nbsp; </SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>*传入参数说明：</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln><BR>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>*</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>key</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>:</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln> </SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>搜索关键字，类型</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>unicode<BR>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>*</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>useproxy</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>:</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln> </SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>是否使用带来代理，类型</SPAN><SPAN style="COLOR: rgb(0,0,136)" class=kwd>boolean</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln><BR>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>*</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>proxyserver</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>:</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>HTTP</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>代理服务器地址（</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>IP</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>或域名），类型</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>unicode<BR>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>*</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>proxyport</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>:</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln> HTTP</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>代理服务器端口，类型</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>unicode<BR>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>*</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>proxyuser</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>:</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln> HTTP</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>代理服务器认证用户名，类型</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>unicode<BR>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>*</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>proxypass</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>:</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln> HTTP</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>代理服务器认证口令，类型</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>unicode<BR>&nbsp; &nbsp; &nbsp; </SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>*此函数返回搜索结果列表，且结果为一个</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>dict list</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>，</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>r</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>[</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>x</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>]={</SPAN><SPAN style="COLOR: rgb(0,136,0)" class=str>'bookname'</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>:,</SPAN><SPAN style="COLOR: rgb(0,136,0)" class=str>'booksize'</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>:,</SPAN><SPAN style="COLOR: rgb(0,136,0)" class=str>'authorname'</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>:,</SPAN><SPAN style="COLOR: rgb(0,136,0)" class=str>'bookstatus'</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>:,</SPAN><SPAN style="COLOR: rgb(0,136,0)" class=str>'lastupdatetime'</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>}</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln><BR>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>*类型均为</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>unicode<BR>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>*如果搜索失败的话，则返回</SPAN><SPAN style="COLOR: rgb(0,0,136)" class=kwd>None</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln><BR>&nbsp; <BR>&nbsp; &nbsp; </SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>*</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln> </SPAN><SPAN style="COLOR: rgb(102,0,102)" class=typ>GetBook</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>(</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>url</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>,</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>bkname</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>=</SPAN><SPAN style="COLOR: rgb(0,136,0)" class=str>''</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>,</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>win</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>=</SPAN><SPAN style="COLOR: rgb(0,0,136)" class=kwd>None</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>,</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>evt</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>=</SPAN><SPAN style="COLOR: rgb(0,0,136)" class=kwd>None</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>,</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>useproxy</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>=</SPAN><SPAN style="COLOR: rgb(0,0,136)" class=kwd>False</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>,</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>proxyserver</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>=</SPAN><SPAN style="COLOR: rgb(0,136,0)" class=str>''</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>,</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>proxyport</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>=</SPAN><SPAN style="COLOR: rgb(0,102,102)" class=lit>0</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>,</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>proxyuser</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>=</SPAN><SPAN style="COLOR: rgb(0,136,0)" class=str>''</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>,</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>proxypass</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>=</SPAN><SPAN style="COLOR: rgb(0,136,0)" class=str>''</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>,</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>concurrent</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>=</SPAN><SPAN style="COLOR: rgb(0,102,102)" class=lit>10</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>)</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln><BR>&nbsp; &nbsp; &nbsp; </SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>*传入参数说明：</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln><BR>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>*</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>book_index_page_url</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>:</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln> </SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>小说目录页的</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>URL<BR>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>*</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>win</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>:</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln> litebook</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>主窗口</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln><BR>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>*</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>evt</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>:</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln> </SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>用于回传的事件，</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>litebook</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>主窗口收到这个事件之后会在状态栏显示</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>evt</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>.</SPAN><SPAN style="COLOR: rgb(102,0,102)" class=typ>Value</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>的内容。另外如果在下载结束时收到</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>evt</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>.</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>status</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>=</SPAN><SPAN style="COLOR: rgb(0,136,0)" class=str>'nok'</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>的事件，则代表下载失败。</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln><BR>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>*</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>proxyserver</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>:</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>HTTP</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>代理服务器地址（</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>IP</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>或域名），类型</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>unicode<BR>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>*</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>proxyport</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>:</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln> HTTP</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>代理服务器端口，类型</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>unicode<BR>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>*</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>proxyuser</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>:</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln> HTTP</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>代理服务器认证用户名，类型</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>unicode<BR>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>*</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>proxypass</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>:</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln> HTTP</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>代理服务器认证口令，类型</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>unicode<BR>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>*</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>concurrent</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>：同时下载的线程数</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln><BR>&nbsp; &nbsp; &nbsp; </SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>*此函数返回整合后的小说内容，类型为</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>unicode<BR>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>*如果下载失败的话，则返回</SPAN><SPAN style="COLOR: rgb(0,0,136)" class=kwd>None</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln><BR><BR></SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>插件中还可以包括一个可选的全局变量</SPAN><SPAN style="COLOR: rgb(102,0,102)" class=typ>Description</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>，类型为</SPAN><SPAN style="COLOR: rgb(0,0,0)" class=pln>unicode</SPAN><SPAN style="COLOR: rgb(102,102,0)" class=pun>，其内容主要是插件的简介，特性介绍，使用注意等内容。这些内容会显示在输入搜索关键字对话框的下方。</SPAN></PRE></LI></UL>
+<H2 style="FONT-SIZE: large"><A name=插件的安装></A>插件的安装</H2>
+<UL style="PADDING-LEFT: 40px; MAX-WIDTH: 65em">
+  <LI>将写好的python脚本文件(.py)拷贝到plugin的子目录下。 
+  <LI>然后点击菜单"文件-&gt;重新读入插件"使其生效；或者重启litebook亦可。 
+  <LI>建议脚本的文件名格式为：网站名.py</LI></UL></SPAN></SPAN></p>
+<hr><font face="Arial" color="#808080" size="1"> Copyright 2009-2010 Hu 
+Jun</font>      </div>
+
+</body>
+</html>
