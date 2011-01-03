@@ -8651,7 +8651,7 @@ if __name__ == "__main__":
     fname=os.path.abspath(fname)
     if not os.path.exists(fname):
         print fname,u'不存在!'
-        return
+        sys.exit()
     readConfigFile()
     readKeyConfig()
     readPlugin()
