@@ -6382,80 +6382,80 @@ class BookMarkDialog(wx.Dialog):
 ##        dlg.Destroy()
 
 
-class HelpDialog(wx.Dialog):
-    def __init__(self, parent,mode="help"):
-        # begin wxGlade: HelpDialog.__init__
-##        kwds["style"] = wx.DEFAULT_DIALOG_STYLE
-        wx.Dialog.__init__(self,parent,id=-1,title="")
-        self.text_ctrl_1 = wx.TextCtrl(self, -1, "", style=wx.TE_MULTILINE|wx.TE_READONLY)
-        self.button_1 = wx.Button(self, -1, u"确定")
-
-        self.__set_properties(mode)
-        self.__do_layout()
-        # end wxGlade
-        self.Bind(wx.EVT_BUTTON,self.OnOK,self.button_1)
-        self.text_ctrl_1.Bind(wx.EVT_CHAR,self.OnKey)
-        self.Bind(wx.EVT_ACTIVATE,self.OnWinActive)
-
-    def __set_properties(self,mode):
-        # begin wxGlade: HelpDialog.__set_properties
-        self.SetTitle(u"帮助")
-        if mode=="help":self.text_ctrl_1.SetMinSize((500,400))
-        else:
-            self.text_ctrl_1.SetMinSize((700,400))
-        self.text_ctrl_1.SetFont(wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.NORMAL, 0, ""))
-        # end wxGlade
-        if mode=="help":fname=os.path.dirname(AnyToUnicode(sys.argv[0]))+u"\\LiteBook_Readme.txt"
-        else:
-            fname=os.path.dirname(AnyToUnicode(sys.argv[0]))+u"\\LiteBook_WhatsNew.txt"
-        try:
-            f=open(fname,'r')
-            t_buff=f.read()
-        except:
-            dlg = wx.MessageDialog(self, u'帮助文件LiteBook_Readme.txt打开错误！',u"错误！",wx.OK|wx.ICON_ERROR)
-            dlg.ShowModal()
-            dlg.Destroy()
-            return False
-        coding=DetectFileCoding(os.path.dirname(AnyToUnicode(sys.argv[0]))+u"\\LiteBook_Readme.txt")
-        if coding=='error': return False
-        utext=AnyToUnicode(t_buff,coding)
-        self.text_ctrl_1.SetValue(utext)
-        f.close()
-
-    def __do_layout(self):
-        # begin wxGlade: HelpDialog.__do_layout
-        sizer_1 = wx.BoxSizer(wx.VERTICAL)
-        sizer_1.Add(self.text_ctrl_1, 1, wx.EXPAND, 0)
-        sizer_1.Add(self.button_1, 0, wx.ALIGN_CENTER_HORIZONTAL, 0)
-        self.SetSizer(sizer_1)
-        sizer_1.Fit(self)
-        self.Layout()
-        # end wxGlade
-
-    def OnOK(self,event):
-        self.Destroy()
-
-    def OnKey(self,event):
-        key=event.GetKeyCode()
-        if key==wx.WXK_ESCAPE:
-            self.Destroy()
-        else:
-            event.Skip()
-
-
-    def OnWinActive(self,event):
-        if event.GetActive():self.text_ctrl_1.SetFocus()
-# end of class HelpDialog
-
-##class LiteBookApp(wx.PySimpleApp):
-##    def __init__(self, *args, **kwds):
-##        appname="litebook-"+wx.GetUserId()
-##        m_checker=wx.SingleInstanceChecker(appname)
-##        if m_checker.IsAnotherRunning()==True:
-##            wx.LogError("已经有一个LiteBook的进程正在运行中")
-##            print "error"
+##class HelpDialog(wx.Dialog):
+##    def __init__(self, parent,mode="help"):
+##        # begin wxGlade: HelpDialog.__init__
+####        kwds["style"] = wx.DEFAULT_DIALOG_STYLE
+##        wx.Dialog.__init__(self,parent,id=-1,title="")
+##        self.text_ctrl_1 = wx.TextCtrl(self, -1, "", style=wx.TE_MULTILINE|wx.TE_READONLY)
+##        self.button_1 = wx.Button(self, -1, u"确定")
+##
+##        self.__set_properties(mode)
+##        self.__do_layout()
+##        # end wxGlade
+##        self.Bind(wx.EVT_BUTTON,self.OnOK,self.button_1)
+##        self.text_ctrl_1.Bind(wx.EVT_CHAR,self.OnKey)
+##        self.Bind(wx.EVT_ACTIVATE,self.OnWinActive)
+##
+##    def __set_properties(self,mode):
+##        # begin wxGlade: HelpDialog.__set_properties
+##        self.SetTitle(u"帮助")
+##        if mode=="help":self.text_ctrl_1.SetMinSize((500,400))
+##        else:
+##            self.text_ctrl_1.SetMinSize((700,400))
+##        self.text_ctrl_1.SetFont(wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.NORMAL, 0, ""))
+##        # end wxGlade
+##        if mode=="help":fname=os.path.dirname(AnyToUnicode(sys.argv[0]))+u"\\LiteBook_Readme.txt"
+##        else:
+##            fname=os.path.dirname(AnyToUnicode(sys.argv[0]))+u"\\LiteBook_WhatsNew.txt"
+##        try:
+##            f=open(fname,'r')
+##            t_buff=f.read()
+##        except:
+##            dlg = wx.MessageDialog(self, u'帮助文件LiteBook_Readme.txt打开错误！',u"错误！",wx.OK|wx.ICON_ERROR)
+##            dlg.ShowModal()
+##            dlg.Destroy()
 ##            return False
-##        wx.PySimpleApp.__init__(self, *args, **kwds)
+##        coding=DetectFileCoding(os.path.dirname(AnyToUnicode(sys.argv[0]))+u"\\LiteBook_Readme.txt")
+##        if coding=='error': return False
+##        utext=AnyToUnicode(t_buff,coding)
+##        self.text_ctrl_1.SetValue(utext)
+##        f.close()
+##
+##    def __do_layout(self):
+##        # begin wxGlade: HelpDialog.__do_layout
+##        sizer_1 = wx.BoxSizer(wx.VERTICAL)
+##        sizer_1.Add(self.text_ctrl_1, 1, wx.EXPAND, 0)
+##        sizer_1.Add(self.button_1, 0, wx.ALIGN_CENTER_HORIZONTAL, 0)
+##        self.SetSizer(sizer_1)
+##        sizer_1.Fit(self)
+##        self.Layout()
+##        # end wxGlade
+##
+##    def OnOK(self,event):
+##        self.Destroy()
+##
+##    def OnKey(self,event):
+##        key=event.GetKeyCode()
+##        if key==wx.WXK_ESCAPE:
+##            self.Destroy()
+##        else:
+##            event.Skip()
+##
+##
+##    def OnWinActive(self,event):
+##        if event.GetActive():self.text_ctrl_1.SetFocus()
+### end of class HelpDialog
+##
+####class LiteBookApp(wx.PySimpleApp):
+####    def __init__(self, *args, **kwds):
+####        appname="litebook-"+wx.GetUserId()
+####        m_checker=wx.SingleInstanceChecker(appname)
+####        if m_checker.IsAnotherRunning()==True:
+####            wx.LogError("已经有一个LiteBook的进程正在运行中")
+####            print "error"
+####            return False
+####        wx.PySimpleApp.__init__(self, *args, **kwds)
 
 
 class ClockThread:
