@@ -8648,10 +8648,10 @@ if __name__ == "__main__":
                     pass
         else:
             fname=sys.argv[1]
-    fname=os.path.abspath(fname)
-    if not os.path.exists(fname):
-        print fname,u'不存在!'
-        sys.exit()
+            fname=os.path.abspath(fname)
+            if not os.path.exists(fname):
+                print fname,u'不存在!'
+                sys.exit()
     readConfigFile()
     readKeyConfig()
     readPlugin()
