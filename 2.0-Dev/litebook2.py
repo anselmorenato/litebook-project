@@ -8876,6 +8876,12 @@ if __name__ == "__main__":
                     pass
         else:
             fname=sys.argv[1]
+            fname=os.path.abspath(fname)
+            if not os.path.exists(fname):
+                dlg = wx.MessageDialog(None,fname+u' 不存在',u"错误！",wx.OK|wx.ICON_ERROR)
+                dlg.ShowModal()
+                dlg.Destroy()
+                sys.exit()
     readConfigFile()
     readKeyConfig()
     readPlugin()
