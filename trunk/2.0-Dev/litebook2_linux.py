@@ -8636,6 +8636,7 @@ if __name__ == "__main__":
         SqlCon.execute(sqlstr)
         SqlCur=SqlCon.cursor()
     app = wx.PySimpleApp(0)
+    fname=None
     if len(sys.argv)>1:
         if sys.argv[1]=='-reset':
             dlg=wx.MessageDialog(None,u"此操作将把当前配置恢复为缺省配置，可以解决某些启动问题，但是会覆盖当前设置，是否继续？",u"恢复到LiteBook的缺省设置",wx.YES_NO|wx.NO_DEFAULT)
