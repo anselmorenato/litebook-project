@@ -313,6 +313,7 @@ class LiteView(wx.ScrolledWindow):
     def DrawSelection(self,dc,r1,r2):
         """内部函数，画出选择文字时的选择条"""
         dc.SetFont(self.GetFont())
+        if r1==None or r2==None:return
 
         ch_h=dc.GetCharHeight()
         ch_w=dc.GetTextExtent(u'我')[0]
