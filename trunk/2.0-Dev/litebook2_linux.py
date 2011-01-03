@@ -23,6 +23,7 @@
 #
 
 import liteview
+import webbrowser
 import keygrid
 import platform
 import imp
@@ -3774,11 +3775,11 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         if filename<>'':self.LoadBookmark(filename,pos)
 
     def Menu401(self, event): # wxGlade: MyFrame.<event_handler>
-        dlg=HelpDialog(self)
-        dlg.ShowModal()
+        url=cur_file_dir()+'/helpdoc/index.htm'
+        webbrowser.open_new_tab(url)
     def Menu404(self, event): # wxGlade: MyFrame.<event_handler>
-        dlg=HelpDialog(self,mode="versionhistory")
-        dlg.ShowModal()
+        url=cur_file_dir()+'/helpdoc/index.htm#page=version_history.htm'
+        webbrowser.open_new_tab(url)
     def Menu402(self, event): # wxGlade: MyFrame.<event_handler>
         global Version
         # First we create and fill the info object
