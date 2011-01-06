@@ -1541,6 +1541,9 @@ def readKeyConfig():
         kconfig.append((u'切换为简体字','----+WXK_F7'))
         kconfig.append((u'切换为繁体字','----+WXK_F8'))
         kconfig.append((u'显示进度条','----+"Z"'))
+        kconfig.append((u'增大字体','----+"="'))
+        kconfig.append((u'减小字体','----+"-"'))
+
         KeyConfigList.append(kconfig)
         i=1
         tl=len(kconfig)
@@ -1595,6 +1598,9 @@ def readKeyConfig():
         kconfig.append((u'切换为简体字','----+WXK_F7'))
         kconfig.append((u'切换为繁体字','----+WXK_F8'))
         kconfig.append((u'显示进度条','----+"Z"'))
+        kconfig.append((u'增大字体','----+"="'))
+        kconfig.append((u'减小字体','----+"-"'))
+
         KeyConfigList.append(kconfig)
     else:
         kconfig=[]
@@ -1906,7 +1912,22 @@ def readKeyConfig():
         except:
             kconfig.append((u'显示进度条','----+"Z"'))
 
+        try:
+            cstr=config.get('last',u'增大字体')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'增大字体',cs))
+        except:
+            kconfig.append((u'增大字体','----+"="'))
 
+
+        try:
+            cstr=config.get('last',u'减小字体')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'减小字体',cs))
+        except:
+            kconfig.append((u'减小字体','----+"-"'))
         KeyConfigList.append(kconfig)
     secs=config.sections()
     secs.remove('last')
@@ -3159,6 +3180,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
     u'切换为简体字':'self.Tool42(None)',
     u'切换为繁体字':'self.Tool43(None)',
     u'显示进度条':'self.ShowSlider()'
+    u'增大字体':'self.ChangeFontSize(1)',
+    u'减小字体':'self.ChangeFontSize(-1)',
     }
 
     def __init__(self,parent,openfile=None):
@@ -3911,6 +3934,16 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.ViewMenu.Check(603,True)
         self.frame_1_toolbar.ToggleTool(63,True)
         GlobalConfig['showmode']='vbook'
+
+    def ChangeFontSize(self,delta):
+        global GlobalConfig
+        cur_size=GlobalConfig['CurFont'].GetPointSize()
+        cur_size+=delta
+        if cur_size<4:cur_size=4
+        if cur_size>64:cur_size=64
+        GlobalConfig['CurFont'].SetPointSize(cur_size)
+        self.text_ctrl_1.SetFont(GlobalConfig['CurFont'])
+        self.text_ctrl_1.ReDraw()
 
     def MyMouseMW(self,event):
         delta=event.GetWheelRotation()
