@@ -1394,7 +1394,6 @@ def DetectFileCoding(filepath,type='txt',zipfilepath=''):
             detector = UniversalDetector()
             line_count=0
             for line in lines:
-                line=line[:100] # decrease this number to improve speed
                 detector.feed(line)
                 if detector.done or line_count==50: break# decrease this number to improve speed
                 line_count+=1
@@ -3568,7 +3567,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         _icon = wx.EmptyIcon()
         _icon.CopyFromBitmap(wx.Bitmap(GlobalConfig['IconDir']+u"/litebook-icon.png", wx.BITMAP_TYPE_ANY))
         self.SetIcon(_icon)
-        self.SetTitle(u"轻巧看书 LiteBook")
+        #self.SetTitle(u"轻巧看书 LiteBook")
         self.SetSize((640, 480))
         # statusbar fields
         self.frame_1_statusbar.SetStatusWidths([-2, -1,-1,-3])
@@ -4354,7 +4353,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             self.fenduan()
             self.Formated=not self.Formated
 
-
+        #change the title
+        self.SetTitle(u'轻巧看书LiteBook --- '+filepath[0])
 
 
 
