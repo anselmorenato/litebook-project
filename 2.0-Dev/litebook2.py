@@ -3364,7 +3364,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         wxglade_tmp_menu.AppendRadioItem(602,u'书本显示模式'+KeyMenuList[u'书本显示模式'],u'设置当前显示模式为书本')
         wxglade_tmp_menu.AppendRadioItem(603,u'竖排书本显示模式'+KeyMenuList[u'竖排书本显示模式'],u'设置当前显示模式为竖排书本')
         wxglade_tmp_menu.AppendSeparator()
-
+        wxglade_tmp_menu.Append(507, u"增大字体"+KeyMenuList[u'增大字体'], u"增大字体", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(508, u"减小字体"+KeyMenuList[u'减小字体'], u"减小字体", wx.ITEM_NORMAL)
         wxglade_tmp_menu.Append(501, u"显示工具栏"+KeyMenuList[u'显示工具栏'], u"是否显示工具栏", wx.ITEM_CHECK)
         wxglade_tmp_menu.Append(503, u"全屏显示"+KeyMenuList[u'全屏显示'], u"全屏显示", wx.ITEM_CHECK)
         wxglade_tmp_menu.Append(502, u"显示文件侧边栏"+KeyMenuList[u'显示文件侧边栏'], u"是否显示文件侧边栏", wx.ITEM_CHECK)
@@ -3469,6 +3470,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.Bind(wx.EVT_MENU, self.Menu502, id=502) # bind the sidebar menu to menu502()
         self.Bind(wx.EVT_MENU, self.Menu503, id=503)
         self.Bind(wx.EVT_MENU, self.Menu505, id=505)
+        self.Bind(wx.EVT_MENU, self.Menu507, id=507)
+        self.Bind(wx.EVT_MENU, self.Menu508, id=508)
         self.Bind(wx.EVT_MENU, self.ShowSlider, id=506)
         self.Bind(wx.EVT_MENU, self.Menu601, id=601)
         self.Bind(wx.EVT_MENU, self.Menu602, id=602)
@@ -4009,6 +4012,12 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
     def Menu505(self,event):
 
         self.autoscroll=not self.autoscroll
+
+    def Menu507(self,evt):
+        self.ChangeFontSize(1)
+
+    def Menu508(self,evt):
+        self.ChangeFontSize(-1)
 
     def Menu601(self,event):
         global GlobalConfig
