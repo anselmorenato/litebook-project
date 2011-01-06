@@ -1422,10 +1422,11 @@ def DetectFileCoding(filepath,type='txt',zipfilepath=''):
             dlg.Destroy()
             return "error"
         lines=buff[0][1].splitlines()
+
         detector = UniversalDetector()
         line_count=0
         for line in lines:
-            line=line[:100] # decrease this number to improve speed
+            #line=line[:100] # decrease this number to improve speed
             detector.feed(line)
             if detector.done or line_count==50: break# decrease this number to improve speed
             line_count+=1
@@ -1464,6 +1465,16 @@ def AnyToUnicode(input_str,coding=None):
         else:
             output_str=input_str.decode('utf-8',"replace")
     else:
+##        lines=input_str.splitlines()
+##        detector = UniversalDetector()
+##        line_count=0
+##        for line in lines:
+##            line=line[:100] # decrease this number to improve speed
+##            detector.feed(line)
+##            if detector.done or line_count==50: break# decrease this number to improve speed
+##            line_count+=1
+##        detector.close()
+##        print detector.result['encoding']
         output_str=unicode(input_str,'gbk',errors='replace')
     return output_str
 
@@ -3079,13 +3090,13 @@ class ZipFileDialog(wx.Dialog):
             for rr in rarfile_list:
                 self.AddLeaf(rr,self.tree_ctrl_1)
         self.image_list=wx.ImageList(16,16,mask=False,initialCount=5)
-        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\ClosedFolder.png",wx.BITMAP_TYPE_ANY)
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\ClosedFolder.jpg",wx.BITMAP_TYPE_ANY)
         self.image_list.Add(bmp)
         self.file_icon_list["closedfolder"]=0
-        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\OpenFolder.png",wx.BITMAP_TYPE_ANY)
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\OpenFolder.jpg",wx.BITMAP_TYPE_ANY)
         self.image_list.Add(bmp)
         self.file_icon_list["openfolder"]=1
-        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\file.png",wx.BITMAP_TYPE_ANY)
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\file.jpg",wx.BITMAP_TYPE_ANY)
         self.image_list.Add(bmp)
         self.file_icon_list["file"]=2
         self.tree_ctrl_1.SetImageList(self.image_list)
@@ -3685,7 +3696,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         _icon = wx.EmptyIcon()
         _icon.CopyFromBitmap(wx.Bitmap(GlobalConfig['IconDir']+u"\\litebook-icon.png", wx.BITMAP_TYPE_ANY))
         self.SetIcon(_icon)
-        self.SetTitle(u"轻巧看书 LiteBook")
+        #self.SetTitle(u"轻巧看书 LiteBook")
         self.SetMinSize((320, 240))
         self.SetSize((640, 480))
         # statusbar fields
@@ -4456,7 +4467,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             self.fenduan()
             self.Formated=not self.Formated
 
-
+        #change the title
+        self.SetTitle(u'轻巧看书LiteBook --- '+filepath[0])
 
 
 
@@ -4525,10 +4537,13 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                 if os.path.split(eachfile)[1]<>'':
                     file_ext=os.path.splitext(eachfile)[1].lower()
                     if file_ext in ('.txt','.htm','.html'):
-                        try:
-                            utext=eachfile.decode('gbk')
-                        except:
-                            utext=eachfile.decode('big5')
+                        if not isinstance(eachfile, unicode):
+                            try:
+                                utext=eachfile.decode('gbk')
+                            except:
+                                utext=eachfile.decode('big5')
+                    else:
+                        utext=eachfile
                         myprefix=os.path.dirname(utext)
                         if myprefix==prefix or myprefix.replace("\\","/")==prefix:
                             current_file_list.append(utext)
