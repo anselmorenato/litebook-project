@@ -3179,7 +3179,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
     u'过滤HTML标记':'self.Tool41(None)',
     u'切换为简体字':'self.Tool42(None)',
     u'切换为繁体字':'self.Tool43(None)',
-    u'显示进度条':'self.ShowSlider()'
+    u'显示进度条':'self.ShowSlider()',
     u'增大字体':'self.ChangeFontSize(1)',
     u'减小字体':'self.ChangeFontSize(-1)',
     }
