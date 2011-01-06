@@ -3591,40 +3591,40 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.PvFrame=PreviewFrame(self,-1)
         self.image_list=wx.ImageList(16,16,mask=False,initialCount=5)
         self.file_icon_list={}
-        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\folder.png",wx.BITMAP_TYPE_ANY)
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\folder.jpg",wx.BITMAP_TYPE_ANY)
         self.image_list.Add(bmp)
         self.file_icon_list["folder"]=0
-        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\txtfile.png",wx.BITMAP_TYPE_ANY)
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\txtfile.jpg",wx.BITMAP_TYPE_ANY)
         self.image_list.Add(bmp)
         self.file_icon_list["txtfile"]=1
-        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\zipfile.png",wx.BITMAP_TYPE_ANY)
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\zipfile.jpg",wx.BITMAP_TYPE_ANY)
         self.image_list.Add(bmp)
         self.file_icon_list["zipfile"]=2
-        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\htmlfile.png",wx.BITMAP_TYPE_ANY)
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\htmlfile.jpg",wx.BITMAP_TYPE_ANY)
         self.image_list.Add(bmp)
         self.file_icon_list["htmlfile"]=3
-        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\rarfile.png",wx.BITMAP_TYPE_ANY)
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\rarfile.jpg",wx.BITMAP_TYPE_ANY)
         self.image_list.Add(bmp)
         self.file_icon_list["rarfile"]=4
-        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\file.png",wx.BITMAP_TYPE_ANY)
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\file.jpg",wx.BITMAP_TYPE_ANY)
         self.image_list.Add(bmp)
         self.file_icon_list["file"]=5
-        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\jar.png",wx.BITMAP_TYPE_ANY)
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\jar.jpg",wx.BITMAP_TYPE_ANY)
         self.image_list.Add(bmp)
         self.file_icon_list["jarfile"]=6
-        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\umd.png",wx.BITMAP_TYPE_ANY)
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\umd.jpg",wx.BITMAP_TYPE_ANY)
         self.image_list.Add(bmp)
         self.file_icon_list["umdfile"]=7
-        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\up.png",wx.BITMAP_TYPE_ANY)
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\up.jpg",wx.BITMAP_TYPE_ANY)
         self.up=self.image_list.Add(bmp)
         self.file_icon_list["up"]=8
-        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\down.png",wx.BITMAP_TYPE_ANY)
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\down.jpg",wx.BITMAP_TYPE_ANY)
         self.dn=self.image_list.Add(bmp)
         self.file_icon_list["down"]=9
-        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\Driver.png",wx.BITMAP_TYPE_ANY)
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\Driver.jpg",wx.BITMAP_TYPE_ANY)
         self.image_list.Add(bmp)
         self.file_icon_list["driver"]=10
-        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\epub.png",wx.BITMAP_TYPE_ANY)
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\epub.jpg",wx.BITMAP_TYPE_ANY)
         self.image_list.Add(bmp)
         self.file_icon_list["epub"]=11
 
@@ -5373,40 +5373,40 @@ class MyOpenFileDialog(wx.Dialog,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.list_ctrl_1.Bind(wx.EVT_CHAR,self.OnKey)
         self.Bind(wx.EVT_ACTIVATE,self.OnWinActive)
         self.image_list=wx.ImageList(16,16,mask=False,initialCount=5)
-        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\folder.png",wx.BITMAP_TYPE_ANY)
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\folder.jpg",wx.BITMAP_TYPE_ANY)
         self.image_list.Add(bmp)
         self.file_icon_list["folder"]=0
-        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\txtfile.png",wx.BITMAP_TYPE_ANY)
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\txtfile.jpg",wx.BITMAP_TYPE_ANY)
         self.image_list.Add(bmp)
         self.file_icon_list["txtfile"]=1
-        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\zipfile.png",wx.BITMAP_TYPE_ANY)
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\zipfile.jpg",wx.BITMAP_TYPE_ANY)
         self.image_list.Add(bmp)
         self.file_icon_list["zipfile"]=2
-        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\htmlfile.png",wx.BITMAP_TYPE_ANY)
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\htmlfile.jpg",wx.BITMAP_TYPE_ANY)
         self.image_list.Add(bmp)
         self.file_icon_list["htmlfile"]=3
-        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\rarfile.png",wx.BITMAP_TYPE_ANY)
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\rarfile.jpg",wx.BITMAP_TYPE_ANY)
         self.image_list.Add(bmp)
         self.file_icon_list["rarfile"]=4
-        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\file.png",wx.BITMAP_TYPE_ANY)
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\file.jpg",wx.BITMAP_TYPE_ANY)
         self.image_list.Add(bmp)
         self.file_icon_list["file"]=5
-        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\jar.png",wx.BITMAP_TYPE_ANY)
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\jar.jpg",wx.BITMAP_TYPE_ANY)
         self.image_list.Add(bmp)
         self.file_icon_list["jarfile"]=6
-        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\umd.png",wx.BITMAP_TYPE_ANY)
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\umd.jpg",wx.BITMAP_TYPE_ANY)
         self.image_list.Add(bmp)
         self.file_icon_list["umdfile"]=7
-        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\up.png",wx.BITMAP_TYPE_ANY)
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\up.jpg",wx.BITMAP_TYPE_ANY)
         self.up=self.image_list.Add(bmp)
         self.file_icon_list["up"]=8
-        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\down.png",wx.BITMAP_TYPE_ANY)
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\down.jpg",wx.BITMAP_TYPE_ANY)
         self.dn=self.image_list.Add(bmp)
         self.file_icon_list["down"]=9
-        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\Driver.png",wx.BITMAP_TYPE_ANY)
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\Driver.jpg",wx.BITMAP_TYPE_ANY)
         self.image_list.Add(bmp)
         self.file_icon_list["driver"]=10
-        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\epub.png",wx.BITMAP_TYPE_ANY)
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\epub.jpg",wx.BITMAP_TYPE_ANY)
         self.image_list.Add(bmp)
         self.file_icon_list["epub"]=11
 
@@ -5654,10 +5654,21 @@ class MyOpenFileDialog(wx.Dialog,wx.lib.mixins.listctrl.ColumnSorterMixin):
 
     def OnUpDir(self, event): # wxGlade: MyOpenFileDialog.<event_handler>
         global GlobalConfig
-        GlobalConfig['LastDir']=GlobalConfig['LastDir'].rpartition('\\')[0]
-        if GlobalConfig['LastDir'].find('\\')==-1:
-            GlobalConfig['LastDir']+='\\'
-        self.text_ctrl_2.SetValue(GlobalConfig['LastDir'])
+        current_path=GlobalConfig['LastDir']+u"\\.."
+        if GlobalConfig['LastDir']==u'ROOT':
+            return
+        if current_path.find(":\\\\..")<>-1:
+            GlobalConfig['LastDir']=u"ROOT"
+        else:
+            GlobalConfig['LastDir']=os.path.normpath(current_path)
+##        if GlobalConfig['LastDir'].find(":\\\\..")<>-1:
+##            GlobalConfig['LastDir']=u"ROOT"
+##        GlobalConfig['LastDir']=GlobalConfig['LastDir'].rpartition('\\')[0]
+##        if GlobalConfig['LastDir'].find('\\')==-1:
+##            GlobalConfig['LastDir']+='\\'
+##        if GlobalConfig['LastDir'].find(":\\\\..")<>-1:
+##            GlobalConfig['LastDir']=u"ROOT"
+##        self.text_ctrl_2.SetValue(GlobalConfig['LastDir'])
         self.Reload()
 
 
