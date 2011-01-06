@@ -2988,11 +2988,23 @@ class ZipFileDialog(wx.Dialog):
         root=self.tree_ctrl_1.AddRoot(zipfilename)
         self.tree_ctrl_1.SetItemImage(root,0,wx.TreeItemIcon_Normal)
         if os.path.splitext(zipfilename)[1].lower()== ".zip":
-            zfile=zipfile.ZipFile(zipfilename)
+            try:
+                zfile=zipfile.ZipFile(zipfilename)
+            except:
+                dlg = wx.MessageDialog(None, zipfilename+u' 文件打开错误！',u"错误！",wx.OK|wx.ICON_ERROR)
+                dlg.ShowModal()
+                dlg.Destroy()
+                return
             for zz in zfile.namelist():
                 self.AddLeaf(zz,self.tree_ctrl_1)
         else:
-            rfile=rarfile.RarFile(zipfilename)
+            try:
+                rfile=rarfile.RarFile(zipfilename)
+            except:
+                dlg = wx.MessageDialog(None, zipfilename+u' 文件打开错误！',u"错误！",wx.OK|wx.ICON_ERROR)
+                dlg.ShowModal()
+                dlg.Destroy()
+                return
             rarfile_list=[]
             rname_list=[]
             for line in rfile.namelist():
