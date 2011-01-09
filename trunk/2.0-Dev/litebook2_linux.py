@@ -8707,6 +8707,8 @@ class NewOptionDialog(wx.Dialog):
                     dlg.ShowModal()
                     dlg.Destroy()
                 save_name=dlg.GetPath()
+                if save_name[-4:]<>'.lbt':
+                    save_name+=u'.lbt'
                 export_file=zipfile.ZipFile(save_name,'w')
                 export_file.write(cur_file_dir()+u'/litebook_tmp/'+'/_tmp_ltb_thm_export.ini','LB_Display_theme.ini')
                 for img in img_file_list:
