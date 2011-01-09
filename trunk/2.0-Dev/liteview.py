@@ -995,7 +995,7 @@ class LiteView(wx.ScrolledWindow):
                             argv0=sys.argv[0]
                         img=os.path.dirname(argv0)+u"\\background\\"+img
                 else:
-                    if img.find('/'==-1):
+                    if img.find('/')==-1:
                         img=cur_file_dir()+u"/background/"+img
                 if not os.path.exists(img):
                     return False
