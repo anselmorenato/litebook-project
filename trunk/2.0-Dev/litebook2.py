@@ -30,6 +30,7 @@ import struct
 import zlib
 import os
 import sys
+import shutil
 import ConfigParser
 import time
 from datetime import datetime
@@ -48,10 +49,10 @@ import HTMLParser
 import htmlentitydefs
 import glob
 import threading
-try:
-    from agw import hyperlink as hl
-except ImportError: # if it's not there locally, try the wxPython lib.
-    import wx.lib.agw.hyperlink as hl
+##try:
+##    from agw import hyperlink as hl
+##except ImportError: # if it's not there locally, try the wxPython lib.
+import wx.lib.agw.hyperlink as hl
 
 # begin wxGlade: extracode
 # end wxGlade
@@ -2032,7 +2033,7 @@ def readConfigFile():
             GlobalConfig['defaultsavedir']=GlobalConfig['LastDir']
             GlobalConfig['numberofthreads']=10
             GlobalConfig['lastweb']=''
-            GlobalConfig['backgroundimg']=os.path.dirname(AnyToUnicode(sys.argv[0]))+u"\\background"+"\\default.jpg"
+            GlobalConfig['backgroundimg']="default.jpg"
             GlobalConfig['backgroundimglayout']='tile'
             GlobalConfig['showmode']='paper'
             GlobalConfig['underline']=True
@@ -2044,6 +2045,7 @@ def readConfigFile():
             GlobalConfig['centralmargin']=20
             GlobalConfig['linespace']=5
             GlobalConfig['vlinespace']=15
+            GlobalConfig['InstallDefaultConfig']=True
             return
 
 ##    try:
@@ -2112,6 +2114,12 @@ def readConfigFile():
 ##        GlobalConfig['backgroundimglayout']=config.get('Appearance','backgroundimglayout')
 ##    except:
 ##        GlobalConfig['backgroundimglayout']='tile'
+
+
+    try:
+        GlobalConfig['InstallDefaultConfig']=config.getboolean('settings','installdefaultconfig')
+    except:
+        GlobalConfig['InstallDefaultConfig']=True
 
 
     try:
@@ -2339,7 +2347,7 @@ def readConfigFile():
         GlobalConfig['CurFont']=wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL, 0, "")
         GlobalConfig['CurFColor']=(0,0,0,0)
         GlobalConfig['CurBColor']='LIGHT BLUE'
-        GlobalConfig['backgroundimg']=os.path.dirname(AnyToUnicode(sys.argv[0]))+u"\\background"+"\\default.jpg"
+        GlobalConfig['backgroundimg']="default.jpg"
         GlobalConfig['backgroundimglayout']='tile'
         GlobalConfig['showmode']='paper'
         GlobalConfig['underline']=True
@@ -2420,6 +2428,7 @@ def writeConfigFile(lastpos):
     config.set('settings','defaultsavedir',unicode(GlobalConfig['defaultsavedir']))
     config.set('settings','numberofthreads',unicode(GlobalConfig['numberofthreads']))
     config.set('settings','lastweb',unicode(GlobalConfig['lastweb']))
+    config.set('settings','installdefaultconfig',unicode(GlobalConfig['InstallDefaultConfig']))
 
     # save opened files
     config.add_section('LastOpenedFiles')
@@ -2516,6 +2525,371 @@ def writeConfigFile(lastpos):
             dlg.Destroy()
             return False
     return True
+
+
+
+def InstallDefaultConfig():
+    global ThemeList,KeyConfigList
+    fname=os.path.dirname(AnyToUnicode(sys.argv[0]))+u"\\defaultconfig.ini"
+    config=MyConfig()
+    try:
+        ffp=codecs.open(fname,encoding='utf-8',mode='r')
+        config.readfp(ffp)
+    except:
+        return
+
+    #install appearance
+    if config.has_section('Appearance'):
+        ft_list=config.items('Appearance')
+        for ft in ft_list:
+            tname=ft[0]
+            f=ft[1].split('|')
+            if len(f)<>21: continue
+            try:
+                l={}
+                l['font']=wx.Font(int(f[0]),int(f[1]),int(f[2]),int(f[3]),eval(f[4]),f[5],int(f[6]))
+                l['fcolor']=eval(f[7])
+                l['bcolor']=eval(f[8])
+                if f[9]<>'None':
+                    l['backgroundimg']=f[9]
+                else:
+                    l['backgroundimg']=None
+                l['showmode']=f[10]
+                l['backgroundimglayout']=f[11]
+                l['underline']=eval(f[12])
+                l['underlinestyle']=int(f[13])
+                l['underlinecolor']=f[14]
+                l['pagemargin']=int(f[15])
+                l['bookmargin']=int(f[16])
+                l['vbookmargin']=int(f[17])
+                l['centralmargin']=int(f[18])
+                l['linespace']=int(f[19])
+                l['vlinespace']=int(f[20])
+                l['name']=tname
+                l['config']=ft[1]
+            except:
+                continue
+            ThemeList.append(l)
+    #install key config
+    secs=config.sections()
+    secs.remove('Appearance')
+    for sec in secs:
+        tname=sec
+        kconfig=[]
+        kconfig.append(tname)
+        try:
+            cstr=config.get(sec,u'向上翻页')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'向上翻页',cs))
+        except:
+            kconfig.append((u'向上翻页',"----+WXK_PAGEUP"))
+
+        try:
+            cstr=config.get(sec,u'跳到结尾')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'跳到结尾',cs))
+        except:
+            kconfig.append((u'跳到结尾',"----+WXK_END"))
+
+        try:
+            cstr=config.get(sec,u'切换为繁体字')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'切换为繁体字',cs))
+        except:
+            kconfig.append((u'切换为繁体字',"----+WXK_F8"))
+
+        try:
+            cstr=config.get(sec,u'另存为')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'另存为',cs))
+        except:
+            kconfig.append((u'另存为','C---+"S"'))
+
+        try:
+            cstr=config.get(sec,u'向下翻页')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'向下翻页',cs))
+        except:
+            kconfig.append((u'向下翻页','----+WXK_PAGEDOWN'))
+
+        try:
+            cstr=config.get(sec,u'智能分段')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'智能分段',cs))
+        except:
+            kconfig.append((u'智能分段','-A--+"P"'))
+
+        try:
+            cstr=config.get(sec,u'查找')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'查找',cs))
+        except:
+            kconfig.append((u'查找','C---+"F"'))
+
+        try:
+            cstr=config.get(sec,u'关于')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'关于',cs))
+        except:
+            kconfig.append((u'关于','----+WXK_F6'))
+
+        try:
+            cstr=config.get(sec,u'查找下一个')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'查找下一个',cs))
+        except:
+            kconfig.append((u'查找下一个','----+WXK_F3'))
+
+        try:
+            cstr=config.get(sec,u'自动翻页')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'自动翻页',cs))
+        except:
+            kconfig.append((u'自动翻页','----+WXK_RETURN'))
+
+
+        try:
+            cstr=config.get(sec,u'重新载入插件')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'重新载入插件',cs))
+        except:
+            kconfig.append((u'重新载入插件','C---+"R"'))
+
+        try:
+            cstr=config.get(sec,u'选项')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'选项',cs))
+        except:
+            kconfig.append((u'选项','-A--+"O"'))
+
+        try:
+            cstr=config.get(sec,u'简明帮助')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'简明帮助',cs))
+        except:
+            kconfig.append((u'简明帮助','----+WXK_F1'))
+
+        try:
+            cstr=config.get(sec,u'纸张显示模式')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'纸张显示模式',cs))
+        except:
+            kconfig.append((u'纸张显示模式','-A--+"M"'))
+
+        try:
+            cstr=config.get(sec,u'下一个文件')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'下一个文件',cs))
+        except:
+            kconfig.append((u'下一个文件','C---+"]"'))
+
+        try:
+            cstr=config.get(sec,u'添加到收藏夹')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'添加到收藏夹',cs))
+        except:
+            kconfig.append((u'添加到收藏夹','C---+"D"'))
+
+        try:
+            cstr=config.get(sec,u'搜索小说网站')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'搜索小说网站',cs))
+        except:
+            kconfig.append((u'搜索小说网站','-A--+"C"'))
+
+        try:
+            cstr=config.get(sec,u'全屏显示')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'全屏显示',cs))
+        except:
+            kconfig.append((u'全屏显示','C---+"I"'))
+
+        try:
+            cstr=config.get(sec,u'跳到首页')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'跳到首页',cs))
+        except:
+            kconfig.append((u'跳到首页','----+WXK_HOME'))
+
+        try:
+            cstr=config.get(sec,u'拷贝')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'拷贝',cs))
+        except:
+            kconfig.append((u'拷贝','C---+"C"'))
+
+        try:
+            cstr=config.get(sec,u'竖排书本显示模式')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'竖排书本显示模式',cs))
+        except:
+            kconfig.append((u'竖排书本显示模式','-A--+"N"'))
+
+        try:
+            cstr=config.get(sec,u'显示工具栏')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'显示工具栏',cs))
+        except:
+            kconfig.append((u'显示工具栏','C---+"T"'))
+
+        try:
+            cstr=config.get(sec,u'打开文件')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'打开文件',cs))
+        except:
+            kconfig.append((u'打开文件','C---+"P"'))
+
+        try:
+            cstr=config.get(sec,u'整理收藏夹')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'整理收藏夹',cs))
+        except:
+            kconfig.append((u'整理收藏夹','C---+"M"'))
+
+        try:
+            cstr=config.get(sec,u'文件列表')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'文件列表',cs))
+        except:
+            kconfig.append((u'文件列表','C---+"O"'))
+
+        try:
+            cstr=config.get(sec,u'切换为简体字')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'切换为简体字',cs))
+        except:
+            kconfig.append((u'切换为简体字','----+WXK_F7'))
+
+
+        try:
+            cstr=config.get(sec,u'过滤HTML标记')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'过滤HTML标记',cs))
+        except:
+            kconfig.append((u'过滤HTML标记','----+WXK_F9'))
+
+
+        try:
+            cstr=config.get(sec,u'书本显示模式')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'书本显示模式',cs))
+        except:
+            kconfig.append((u'书本显示模式','-A--+"B"'))
+
+        try:
+            cstr=config.get(sec,u'检查更新')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'检查更新',cs))
+        except:
+            kconfig.append((u'检查更新','----+WXK_F5'))
+
+        try:
+            cstr=config.get(sec,u'版本更新内容')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'版本更新内容',cs))
+        except:
+            kconfig.append((u'版本更新内容','----+WXK_F2'))
+
+
+        try:
+            cstr=config.get(sec,u'查找上一个')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'查找上一个',cs))
+        except:
+            kconfig.append((u'查找上一个','----+WXK_F4'))
+
+        try:
+            cstr=config.get(sec,u'显示文件侧边栏')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'显示文件侧边栏',cs))
+        except:
+            kconfig.append((u'显示文件侧边栏','-A--+"D"'))
+
+        try:
+            cstr=config.get(sec,u'关闭')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'关闭',cs))
+        except:
+            kconfig.append((u'关闭','C---+"Z"'))
+
+        try:
+            cstr=config.get(sec,u'退出')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'退出',cs))
+        except:
+            kconfig.append((u'退出','-A--+"X"'))
+
+        try:
+            cstr=config.get(sec,u'上一个文件')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'上一个文件',cs))
+        except:
+            kconfig.append((u'上一个文件','C---+"["'))
+
+        try:
+            cstr=config.get(sec,u'显示进度条')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'显示进度条',cs))
+        except:
+            kconfig.append((u'显示进度条','----+"Z"'))
+
+
+        try:
+            cstr=config.get(sec,u'增大字体')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'增大字体',cs))
+        except:
+            kconfig.append((u'增大字体','----+"="'))
+
+        try:
+            cstr=config.get(sec,u'减小字体')
+            cstr_list=cstr.split('&&')
+            for cs in cstr_list:
+                kconfig.append((u'减小字体',cs))
+        except:
+            kconfig.append((u'减小字体','----+"-"'))
+
+        KeyConfigList.append(kconfig)
+    GlobalConfig['InstallDefaultConfig']=False
+
+
 
 
 
@@ -3563,6 +3937,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             self.RegisterHotKey(1,0,wx.WXK_ESCAPE)
             self.Bind(wx.EVT_HOTKEY,self.OnESC)
 
+        #set title
+        self.SetTitle(u'Litebook2 轻巧读书')
         # load last opened file
         if openfile<>None:
             openfile=openfile.decode('GBK')
@@ -4468,7 +4844,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             self.Formated=not self.Formated
 
         #change the title
-        self.SetTitle(u'轻巧看书LiteBook --- '+filepath[0])
+        self.SetTitle(u'Litebook2 轻巧读书 --- '+filepath[0])
 
 
 
@@ -4542,8 +4918,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                                 utext=eachfile.decode('gbk')
                             except:
                                 utext=eachfile.decode('big5')
-                    else:
-                        utext=eachfile
+                        else:
+                            utext=eachfile
                         myprefix=os.path.dirname(utext)
                         if myprefix==prefix or myprefix.replace("\\","/")==prefix:
                             current_file_list.append(utext)
@@ -8108,7 +8484,7 @@ class NewOptionDialog(wx.Dialog):
         l['font']=self.text_ctrl_3.GetFont()
         l['fcolor']=self.text_ctrl_3.GetFColor()
         l['bcolor']=self.text_ctrl_3.GetBackgroundColour()
-        l['config']=unicode(l['font'].GetPointSize())+u':'+unicode(l['font'].GetFamily())+u':'+unicode(l['font'].GetStyle())+u':'+unicode(l['font'].GetWeight())+u':'+unicode(l['font'].GetUnderlined())+u':'+l['font'].GetFaceName()+u':'+unicode(l['font'].GetDefaultEncoding())+u':'+unicode(l['fcolor'])+u':'+unicode(l['bcolor'])
+        l['config']=unicode(l['font'].GetPointSize())+u'|'+unicode(l['font'].GetFamily())+u'|'+unicode(l['font'].GetStyle())+u'|'+unicode(l['font'].GetWeight())+u'|'+unicode(l['font'].GetUnderlined())+u'|'+l['font'].GetFaceName()+u'|'+unicode(l['font'].GetDefaultEncoding())+u'|'+unicode(l['fcolor'])+u'|'+unicode(l['bcolor'])
         r=self.text_ctrl_3.GetConfig()
         l['backgroundimg']=r['backgroundimg']
         l['showmode']=r['showmode']
@@ -8167,6 +8543,8 @@ class NewOptionDialog(wx.Dialog):
                 self.text_ctrl_3.ReDraw()
 
         else:
+            self.text_ctrl_3.SetImgBackground('')
+            self.text_ctrl_2.Clear()
             self.text_ctrl_2.Disable()
             self.button_3.Disable()
             self.combo_box_3.Disable()
@@ -8230,9 +8608,13 @@ class NewOptionDialog(wx.Dialog):
            "TIF (*.tif,*.tiff)|*.tif;*.tiff|"        \
            "All files (*.*)|*.*"
 
+        defaultpath=os.path.dirname(self.text_ctrl_2.GetValue())
+        if defaultpath=='':
+            defaultpath=os.path.dirname(AnyToUnicode(sys.argv[0]))+u'\\background'
+
         dlg = wx.FileDialog(
             self, message=u"选择背景图片",
-            defaultDir=os.getcwd(),
+            defaultDir=defaultpath,
             defaultFile="",
             wildcard=wildcard,
             style=wx.OPEN | wx.FD_FILE_MUST_EXIST
@@ -8240,6 +8622,8 @@ class NewOptionDialog(wx.Dialog):
         dlg.ShowModal()
         rpath=dlg.GetPath()
         if rpath<>None and rpath<>'':
+            if os.path.dirname(AnyToUnicode(rpath))==os.path.dirname(AnyToUnicode(sys.argv[0]))+u'\\background':
+                rpath=os.path.basename(rpath)
             self.text_ctrl_2.SetValue(rpath)
             self.text_ctrl_3.SetImgBackground(rpath)
             self.text_ctrl_3.ReDraw()
@@ -8743,6 +9127,24 @@ class NewOptionDialog(wx.Dialog):
                         kconfig.append((u'显示进度条',cs))
                 except:
                     kconfig.append((u'显示进度条','----+"Z"'))
+
+
+                try:
+                    cstr=config.get(secs[r],u'增大字体')
+                    cstr_list=cstr.split('&&')
+                    for cs in cstr_list:
+                        kconfig.append((u'增大字体',cs))
+                except:
+                    kconfig.append((u'增大字体','----+"="'))
+
+                try:
+                    cstr=config.get(secs[r],u'减小字体')
+                    cstr_list=cstr.split('&&')
+                    for cs in cstr_list:
+                        kconfig.append((u'减小字体',cs))
+                except:
+                    kconfig.append((u'减小字体','----+"-"'))
+
                 KeyConfigList.append(kconfig)
             cur_str=self.combo_box_7.GetStringSelection()
             self.combo_box_7.Clear()
@@ -8767,7 +9169,7 @@ class NewOptionDialog(wx.Dialog):
         edlg.ShowModal()
         rlist=edlg.GetChecks()
         if len(rlist)>0:
-            wildcard = u"所有文件 (*.*)|*.*|"
+            wildcard = u"litebook2显示配置文件 (*.lbt)|*.lbt|"
             dlg = wx.FileDialog(
                 self, message=u"导出为...", defaultDir=GlobalConfig['LastDir'],
                 defaultFile="", wildcard=wildcard, style=wx.SAVE | wx.FD_OVERWRITE_PROMPT
@@ -8776,10 +9178,12 @@ class NewOptionDialog(wx.Dialog):
             if dlg.ShowModal() == wx.ID_OK:
                 config=MyConfig()
                 config.add_section('Appearance')
+                img_file_list=[]
                 if 0 in rlist:
                     ft=GlobalConfig['CurFont']
                     save_str=unicode(ft.GetPointSize())+u'|'+unicode(ft.GetFamily())+u'|'+unicode(ft.GetStyle())+u'|'+unicode(ft.GetWeight())+u'|'+unicode(ft.GetUnderlined())+u'|'+ft.GetFaceName()+u'|'+unicode(ft.GetDefaultEncoding())+u'|'+unicode(GlobalConfig['CurFColor'])+u'|'+unicode(GlobalConfig['CurBColor'])
-                    save_str+=u'|'+unicode(GlobalConfig['backgroundimg'])
+                    save_str+=u'|'+unicode(os.path.basename(GlobalConfig['backgroundimg']))
+                    img_file_list.append[GlobalConfig['backgroundimg']]
                     save_str+=u'|'+unicode(GlobalConfig['showmode'])
                     save_str+=u'|'+unicode(GlobalConfig['backgroundimglayout'])
                     save_str+=u'|'+unicode(GlobalConfig['underline'])
@@ -8794,22 +9198,54 @@ class NewOptionDialog(wx.Dialog):
 
                     config.set('Appearance','last',save_str)
                     rlist.remove(0)
+
                 for r in rlist:
-                    config.set('Appearance',ThemeList[r]['name'],ThemeList[r]['config'])
+                    f=ThemeList[r-1]['config'].split('|')
+                    f[9]=os.path.basename(f[9])
+                    save_str=''
+                    for x in f:
+                        save_str=save_str+x+'|'
+                    save_str=save_str[:-1]
+                    config.set('Appearance',ThemeList[r-1]['name'],save_str)
+                    img_file_list.append(ThemeList[r-1]['backgroundimg'])
                 try:
-                    ConfigFile=codecs.open(dlg.GetPath(),encoding='utf-8',mode='w')
+                    tmp_ini_name=os.environ['TMP']+'\\_tmp_ltb_thm_export.ini'
+                    ConfigFile=codecs.open(tmp_ini_name,encoding='utf-8',mode='w')
                     config.write(ConfigFile)
                     ConfigFile.close()
                 except:
                     dlg = wx.MessageDialog(None, u'导出失败！',u"错误！",wx.OK|wx.ICON_ERROR)
                     dlg.ShowModal()
                     dlg.Destroy()
+                save_name=dlg.GetPath()
+                export_file=zipfile.ZipFile(save_name,'w')
+                export_file.write(os.environ['TMP']+'\\_tmp_ltb_thm_export.ini','LB_Display_theme.ini')
+                for img in img_file_list:
+                    if isinstance(img,unicode):
+                        img=img.encode('gbk')
+                    fpath=img
+                    if fpath<>'' and fpath<>None:
+                        if img.find('\\')==-1:
+                            fpath=os.path.dirname(AnyToUnicode(sys.argv[0]).encode('GBK'))+'\\background\\'+img
+                        try:
+                            export_file.write(fpath,os.path.basename(fpath))
+                        except:
+                            dlg = wx.MessageDialog(None, u'无法导出 '+fpath,u"错误！",wx.OK|wx.ICON_ERROR)
+                            dlg.ShowModal()
+                            dlg.Destroy()
+                            try:
+                                os.remove(save_name)
+                            except:
+                                return
+                            return
+                export_file.close()
 
 
 
     def OnImportTheme(self,evt):
         global GlobalConfig,ThemeList
-        wildcard = u"所有文件 (*.*)|*.*"
+        wildcard = u"litebook2显示配置文件 (*.lbt)|*.lbt|" \
+        u"所有文件 (*.*)|*.*"
         dlg = wx.FileDialog(
             self, message=u"选择要导入的文件:",
             defaultDir=GlobalConfig['LastDir'],
@@ -8819,9 +9255,15 @@ class NewOptionDialog(wx.Dialog):
             )
         if dlg.ShowModal() == wx.ID_OK:
             flist=dlg.GetPath()
-            config=MyConfig()
             try:
-                ffp=codecs.open(flist,encoding='utf-8',mode='r')
+                importf=zipfile.ZipFile(flist)
+                fnamelist=importf.namelist()
+                for fname in fnamelist:
+                    if fname.find("..")<>-1 or fname.find("\\")<>-1:
+                        raise
+                importf.extractall(os.environ['TMP'])
+                config=MyConfig()
+                ffp=codecs.open(os.environ['TMP']+'\\LB_Display_theme.ini',encoding='utf-8',mode='r')
                 config.readfp(ffp)
                 if not config.has_section('Appearance'):raise
             except:
@@ -8855,8 +9297,18 @@ class NewOptionDialog(wx.Dialog):
                     l['font']=wx.Font(int(f[0]),int(f[1]),int(f[2]),int(f[3]),eval(f[4]),f[5],int(f[6]))
                     l['fcolor']=eval(f[7])
                     l['bcolor']=eval(f[8])
-                    if f[9]<>'None':
+                    if f[9]<>'None' and f[9]<>'':
                         l['backgroundimg']=f[9]
+                        if f[9] in fnamelist:
+                            shutil.copyfile(os.environ['TMP']+"\\"+f[9],os.path.dirname(AnyToUnicode(sys.argv[0]))+'\\background\\'+f[9])
+                        else:
+                            dlg = wx.MessageDialog(self, u'在导入的文件中未找到'+f[9],
+                            u'出错了！',
+                            wx.OK | wx.ICON_ERROR
+                            )
+                            dlg.ShowModal()
+                            dlg.Destroy()
+                            return
                     else:
                         l['backgroundimg']=None
                     l['showmode']=f[10]
@@ -8966,6 +9418,7 @@ if __name__ == "__main__":
     readConfigFile()
     readKeyConfig()
     readPlugin()
+    if GlobalConfig['InstallDefaultConfig']:InstallDefaultConfig()
     wx.InitAllImageHandlers()
     frame_1 = MyFrame(None, fname)
     app.SetTopWindow(frame_1)

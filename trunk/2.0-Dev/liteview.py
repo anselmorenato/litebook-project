@@ -35,7 +35,17 @@ import time
 import os
 import platform
 
+def cur_file_dir():
+    #获取脚本路径
+    path = sys.path[0]
+    if isinstance(path,str):
+        path=path.decode('utf-8')
 
+    #判断为脚本文件还是py2exe编译后的文件，如果是脚本文件，则返回的是脚本的目录，如果是编译后的文件，则返回的是编译后的文件路径
+    if os.path.isdir(path):
+        return path
+    elif os.path.isfile(path):
+        return os.path.dirname(path)
 
 
 
@@ -965,7 +975,7 @@ class LiteView(wx.ScrolledWindow):
     def SetImgBackground(self,img,style='tile'):
         """设置图片背景"""
         self.bg_style=style
-        if img==None:
+        if img==None or img=='':
             self.bg_img=None
             self.bg_img_path=None
             return
@@ -976,6 +986,17 @@ class LiteView(wx.ScrolledWindow):
                 if img=='' or img==None:
                     self.bg_img=None
                     return
+                if isinstance(img,str):img=img.decode('gbk')
+                if os.name=='nt' or sys.platform=='win32':
+                    if img.find('\\')==-1:
+                        if not isinstance(sys.argv[0],unicode):
+                            argv0=sys.argv[0].decode('gbk')
+                        else:
+                            argv0=sys.argv[0]
+                        img=os.path.dirname(argv0)+u"\\background\\"+img
+                else:
+                    if img.find('/'==-1):
+                        img=cur_file_dir()+u"/background/"+img
                 if not os.path.exists(img):
                     return False
                 self.bg_img_path=img
