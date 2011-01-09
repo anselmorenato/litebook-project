@@ -4727,7 +4727,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             self.Formated=not self.Formated
 
         #change the title
-         self.SetTitle(u'Litebook2 轻巧读书 --- '+filepath[0])
+        self.SetTitle(u'Litebook2 轻巧读书 --- '+filepath[0])
 
 
 
