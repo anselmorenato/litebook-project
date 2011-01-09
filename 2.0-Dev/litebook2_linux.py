@@ -4426,10 +4426,13 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                 if os.path.split(eachfile)[1]<>'':
                     file_ext=os.path.splitext(eachfile)[1].lower()
                     if file_ext in ('.txt','.htm','.html'):
-                        try:
-                            utext=eachfile.decode('gbk')
-                        except:
-                            utext=eachfile.decode('big5')
+                        if not isinstance(eachfile, unicode):
+                            try:
+                                utext=eachfile.decode('gbk')
+                            except:
+                                utext=eachfile.decode('big5')
+                        else:
+                            utext=eachfile
                         utext=utext.replace("\\","/")
                         myprefix=os.path.dirname(utext)
                         if myprefix==prefix or myprefix.replace("\\","/")==prefix:
