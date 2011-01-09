@@ -1487,7 +1487,7 @@ def readPlugin():
 
 def InstallDefaultConfig():
     global ThemeList,KeyConfigList
-    fname=cur_file_dir+u"\\defaultconfig.ini"
+    fname=cur_file_dir()+u"/defaultconfig.ini"
     config=MyConfig()
     try:
         ffp=codecs.open(fname,encoding='utf-8',mode='r')
