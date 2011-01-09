@@ -1382,7 +1382,7 @@ BookDB=[]
 Ticking=True
 SupportedFileTypes=['.zip','.txt','.rar','.umd','.jar','.epub']
 Version=u'2.0 final'
-I_Version=2.07  # this is used to check updated version
+I_Version=2.08  # this is used to check updated version
 SqlCon=None
 linestyle={u'虚线':wx.DOT,u'实线':wx.SOLID,u'长虚线':wx.LONG_DASH,u'点虚线':wx.DOT_DASH}
 rlinestyle={wx.DOT:u'虚线',wx.SOLID:u'实线',wx.LONG_DASH:u'长虚线',wx.DOT_DASH:u'点虚线'}
@@ -2367,7 +2367,7 @@ def readConfigFile():
         GlobalConfig['CurFont']=wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL, 0, "")
         GlobalConfig['CurFColor']=(0,0,0,0)
         GlobalConfig['CurBColor']='LIGHT BLUE'
-        GlobalConfig['backgroundimg']=os.path.dirname(AnyToUnicode(sys.argv[0]))+u"\\background"+"\\default.jpg"
+        GlobalConfig['backgroundimg']="default.jpg"
         GlobalConfig['backgroundimglayout']='tile'
         GlobalConfig['showmode']='paper'
         GlobalConfig['underline']=True
