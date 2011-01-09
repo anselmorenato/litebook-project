@@ -8715,7 +8715,7 @@ class NewOptionDialog(wx.Dialog):
                     fpath=img
                     if fpath<>'' and fpath<>None:
                         if img.find('/')==-1:
-                            fpath=os.path.dirname(cur_file_dir()+'/background/'+img
+                            fpath=cur_file_dir()+'/background/'+img
                         try:
                             export_file.write(fpath,os.path.basename(fpath))
                         except:
