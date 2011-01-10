@@ -35,6 +35,7 @@ Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\w9xpopen.exe"; DestDir: "
 Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\litebook2.exe.manifest"; DestDir: "{app}"; Flags: ignoreversion
 Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\litebook.ico"; DestDir: "{app}"; Flags: ignoreversion
 Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\LiteBook_Readme.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\defaultconfig.ini"; DestDir: "{app}"; Flags: ignoreversion
 Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\LiteBook_WhatsNew.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\py.dat"; DestDir: "{app}"; Flags: ignoreversion
 Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\bh.dat"; DestDir: "{app}"; Flags: ignoreversion
