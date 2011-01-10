@@ -7913,7 +7913,7 @@ class NewOptionDialog(wx.Dialog):
             KeyConfigList.insert(0,kconfig)
         i=1
         tl=len(kconfig)
-        KeyMenuList={}
+        #KeyMenuList={}
         while i<tl:
             KeyMenuList[kconfig[i][0]]=keygrid.str2menu(kconfig[i][1])
             i+=1
