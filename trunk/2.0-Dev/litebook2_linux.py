@@ -4077,6 +4077,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         current_file=''
         OnScreenFileList=[]
         self.frame_1_statusbar.SetStatusText('Ready.')
+        self.SetTitle(u'Litebook2 轻巧读书')
 
     def Menu104(self, event): # wxGlade: MyFrame.<event_handler>
         self.LoadNextFile(-1)
