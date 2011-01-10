@@ -3997,6 +3997,9 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         return
 
 
+
+
+
     def Menu101(self, event=None): # wxGlade: MyFrame.<event_handler>
         dlg=MyOpenFileDialog(self)
         dlg.ShowModal()
@@ -4215,6 +4218,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.version_check_thread=VersionCheckThread(self)
 
     def Menu501(self, event):
+
         if self.toolbar_visable:
             self.frame_1_toolbar.Hide()
             self.SetToolBar(None)
