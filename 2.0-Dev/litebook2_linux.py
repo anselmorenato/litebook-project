@@ -3997,7 +3997,47 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         return
 
 
+    def ResetMenu(self):
+        mbar=self.GetMenuBar()
+        mbar.SetLabel(101,u"文件列表(&L)"+KeyMenuList[u'文件列表'])
+        mbar.SetLabel(102,u"打开文件(&O)"+KeyMenuList[u'打开文件'])
+        mbar.SetLabel(108,u"另存为...(&S)"+KeyMenuList[u'另存为'])
+        mbar.SetLabel(103,u"关闭(&C)"+KeyMenuList[u'关闭'])
+        mbar.SetLabel(104,u"上一个文件(&P)"+KeyMenuList[u'上一个文件'])
+        mbar.SetLabel(105,u"下一个文件(&N)"+KeyMenuList[u'下一个文件'])
+        mbar.SetLabel(110,u"搜索小说网站(&S)"+KeyMenuList[u'搜索小说网站'])
+        mbar.SetLabel(111,u"重新载入插件"+KeyMenuList[u'重新载入插件'])
+        mbar.SetLabel(106,u"选项(&O)"+KeyMenuList[u'选项'])
+        mbar.SetLabel(107,u"退出(&X)"+KeyMenuList[u'退出'])
+        mbar.SetLabel(202,u"拷贝(&C)"+KeyMenuList[u'拷贝'])
+        mbar.SetLabel(203,u"查找(&S)"+KeyMenuList[u'查找'])
+        mbar.SetLabel(204,u"查找下一个(&N)"+KeyMenuList[u'查找下一个'])
+        mbar.SetLabel(205,u"查找上一个(&N)"+KeyMenuList[u'查找上一个'])
+        mbar.SetLabel(601,u'纸张显示模式'+KeyMenuList[u'纸张显示模式'])
+        mbar.SetLabel(602,u'书本显示模式'+KeyMenuList[u'书本显示模式'])
+        mbar.SetLabel(603,u'竖排书本显示模式'+KeyMenuList[u'竖排书本显示模式'])
+        mbar.SetLabel(507,u"增大字体"+KeyMenuList[u'增大字体'])
+        mbar.SetLabel(508,u"减小字体"+KeyMenuList[u'减小字体'])
 
+        mbar.SetLabel(501,u"显示工具栏"+KeyMenuList[u'显示工具栏'])
+        mbar.SetLabel(503, u"全屏显示"+KeyMenuList[u'全屏显示'])
+        mbar.SetLabel(502,u"显示文件侧边栏"+KeyMenuList[u'显示文件侧边栏'])
+        mbar.SetLabel(505,u"自动翻页"+KeyMenuList[u'自动翻页'])
+        mbar.SetLabel(506,u"显示进度条"+KeyMenuList[u'显示进度条'])
+        mbar.SetLabel(504,u"智能分段"+KeyMenuList[u'智能分段'])
+
+        mbar.SetLabel(301,u"添加到收藏夹(&A)"+KeyMenuList[u'添加到收藏夹'])
+        mbar.SetLabel(302,u"整理收藏夹(&M)"+KeyMenuList[u'整理收藏夹'])
+        mbar.SetLabel(701,u"过滤HTML标签"+KeyMenuList[u'过滤HTML标记'])
+        mbar.SetLabel(702,u"简体转繁体"+KeyMenuList[u'切换为繁体字'])
+        mbar.SetLabel(703,u"繁体转简体"+KeyMenuList[u'切换为简体字'])
+
+        mbar.SetLabel(401,u"简明帮助(&B)"+KeyMenuList[u'简明帮助'])
+        mbar.SetLabel(404,u"版本更新内容"+KeyMenuList[u'版本更新内容'])
+        mbar.SetLabel(403,u"检查更新(&C)"+KeyMenuList[u'检查更新'])
+        mbar.SetLabel(402,u"关于(&A)"+KeyMenuList[u'关于'])
+
+        mbar.Refresh()
 
 
     def Menu101(self, event=None): # wxGlade: MyFrame.<event_handler>
@@ -4048,6 +4088,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         option_dlg=NewOptionDialog(self)
         option_dlg.ShowModal()
         option_dlg.Destroy()
+        self.ResetMenu()
         self.text_ctrl_1.SetShowMode(GlobalConfig['showmode'])
         if GlobalConfig['backgroundimg']<>'' and GlobalConfig['backgroundimg']<>None:
             self.text_ctrl_1.SetBackgroundColour(GlobalConfig['CurBColor'])
@@ -7781,7 +7822,7 @@ class NewOptionDialog(wx.Dialog):
 
 
     def OnOK(self,event):
-        global ThemeList,GlobalConfig,KeyConfigList
+        global ThemeList,GlobalConfig,KeyConfigList,KeyMenuList
         GlobalConfig['CurFont']=self.text_ctrl_3.GetFont()
         GlobalConfig['CurFColor']=self.text_ctrl_3.GetFColor()
         GlobalConfig['CurBColor']=self.text_ctrl_3.GetBackgroundColour()
@@ -7870,7 +7911,12 @@ class NewOptionDialog(wx.Dialog):
                 kconfig.append((self.grid_1.GetCellValue(i,0),self.grid_1.GetCellValue(i,1)))
                 i+=1
             KeyConfigList.insert(0,kconfig)
-
+        i=1
+        tl=len(kconfig)
+        KeyMenuList={}
+        while i<tl:
+            KeyMenuList[kconfig[i][0]]=keygrid.str2menu(kconfig[i][1])
+            i+=1
 
         self.Destroy()
 
