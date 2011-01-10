@@ -7827,7 +7827,12 @@ class NewOptionDialog(wx.Dialog):
         GlobalConfig['CurFColor']=self.text_ctrl_3.GetFColor()
         GlobalConfig['CurBColor']=self.text_ctrl_3.GetBackgroundColour()
         if self.combo_box_4.GetSelection()==0:
-            GlobalConfig['backgroundimg']=self.text_ctrl_3.bg_img_path
+            if self.text_ctrl_3.bg_img_path<>None and self.text_ctrl_3.bg_img_path<>'':
+                if os.path.dirname(AnyToUnicode(self.text_ctrl_3.bg_img_path))==cur_file_dir()+u'/background':
+                    GlobalConfig['backgroundimg']=os.path.basename(self.text_ctrl_3.bg_img_path)
+                else:
+                    GlobalConfig['backgroundimg']=self.text_ctrl_3.bg_img_path
+
         else:
             GlobalConfig['backgroundimg']=None
         GlobalConfig['showmode']=self.text_ctrl_3.show_mode
