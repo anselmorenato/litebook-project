@@ -8545,6 +8545,11 @@ class NewOptionDialog(wx.Dialog):
         l['config']=unicode(l['font'].GetPointSize())+u'|'+unicode(l['font'].GetFamily())+u'|'+unicode(l['font'].GetStyle())+u'|'+unicode(l['font'].GetWeight())+u'|'+unicode(l['font'].GetUnderlined())+u'|'+l['font'].GetFaceName()+u'|'+unicode(l['font'].GetDefaultEncoding())+u'|'+unicode(l['fcolor'])+u'|'+unicode(l['bcolor'])
         r=self.text_ctrl_3.GetConfig()
         l['backgroundimg']=r['backgroundimg']
+        if r['backgroundimg']<>None and r['backgroundimg']<>'':
+            if os.path.dirname(r['backgroundimg'])==os.path.dirname(AnyToUnicode(sys.argv[0]))+u'\\background':
+                l['backgroundimg']=os.path.basename(r['backgroundimg'])
+            else:
+                l['backgroundimg']=r['backgroundimg']
         l['showmode']=r['showmode']
         l['backgroundimglayout']=r['backgroundimglayout']
         l['underline']=r['underline']
