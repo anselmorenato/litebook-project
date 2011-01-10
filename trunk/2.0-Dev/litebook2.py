@@ -4169,6 +4169,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         mbar.SetLabel(403,u"检查更新(&C)"+KeyMenuList[u'检查更新'])
         mbar.SetLabel(402,u"关于(&A)"+KeyMenuList[u'关于'])
 
+        mbar.Refresh()
+
 
     def Menu101(self, event=None): # wxGlade: MyFrame.<event_handler>
         dlg=MyOpenFileDialog(self)
