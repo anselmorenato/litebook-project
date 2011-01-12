@@ -5200,8 +5200,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                 if i>=3:i-=3
                 txt="..."+txt[-1*i:]
             self.frame_1_statusbar.SetStatusText(txt,0)
-#            pos=int(self.text_ctrl_1.GetPosPercent())
-#            self.sliderControl.SetValue(pos)
+            pos=int(self.text_ctrl_1.GetPosPercent())
+            self.sliderControl.SetValue(pos)
     def ReadTimeAlert(self,event):
         ttxt=u'现在是'+time.strftime("%H:%M:%S",time.localtime())+"\n"
         ttxt+=u'你已经连续阅读了'+event.ReadTime
