@@ -3724,10 +3724,10 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.frame_1_toolbar.AddLabelTool(41, "HTML", wx.Bitmap(GlobalConfig['IconDir']+u"/html--32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"过滤HTML标记", u"过滤HTML标记")
         self.frame_1_toolbar.AddLabelTool(42, u"切换为简体字", wx.Bitmap(GlobalConfig['IconDir']+u"/jian.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"切换为简体字", u"切换为简体字")
         self.frame_1_toolbar.AddLabelTool(43, u"切换为繁体字", wx.Bitmap(GlobalConfig['IconDir']+u"/fan.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"切换为繁体字", u"切换为繁体字")
-#        self.frame_1_toolbar.AddSeparator()
-#        self.sliderControl=wx.Slider(self.frame_1_toolbar, -1, 0, 0, 100,style=wx.SL_LABELS)
-#        self.frame_1_toolbar.AddControl(self.sliderControl)
-#        self.sliderControl.Bind(wx.EVT_SCROLL,self.OnSScroll)
+        self.frame_1_toolbar.AddSeparator()
+        self.sliderControl=wx.Slider(self.frame_1_toolbar, -1, 0, 0, 100,style=wx.SL_LABELS)
+        self.frame_1_toolbar.AddControl(self.sliderControl)
+        self.sliderControl.Bind(wx.EVT_SCROLL,self.OnSScroll)
 
         # Tool Bar end
         #self.text_ctrl_1 = wx.TextCtrl(self, -1, "", style=wx.TE_MULTILINE|wx.TE_READONLY|wx.TE_RICH2)
@@ -4453,14 +4453,14 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.ViewMenu.Check(503,False)
 
 
-#    def OnSScroll(self,evt):
-#        tval=self.sliderControl.GetValue()
-#        if tval<>100:
-#            tpos=int(float(self.text_ctrl_1.ValueCharCount)*(float(tval)/100.0))
-#            self.text_ctrl_1.JumpTo(tpos)
-#        else:
-#            self.text_ctrl_1.ScrollBottom()
-#        self.text_ctrl_1.SetFocus()
+    def OnSScroll(self,evt):
+        tval=self.sliderControl.GetValue()
+        if tval<>100:
+            tpos=int(float(self.text_ctrl_1.ValueCharCount)*(float(tval)/100.0))
+            self.text_ctrl_1.JumpTo(tpos)
+        else:
+            self.text_ctrl_1.ScrollBottom()
+        self.text_ctrl_1.SetFocus()
 
 
     def Tool41(self, event): # wxGlade: MyFrame.<event_handler>
