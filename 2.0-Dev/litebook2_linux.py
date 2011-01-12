@@ -3725,7 +3725,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.frame_1_toolbar.AddLabelTool(42, u"切换为简体字", wx.Bitmap(GlobalConfig['IconDir']+u"/jian.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"切换为简体字", u"切换为简体字")
         self.frame_1_toolbar.AddLabelTool(43, u"切换为繁体字", wx.Bitmap(GlobalConfig['IconDir']+u"/fan.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"切换为繁体字", u"切换为繁体字")
         self.frame_1_toolbar.AddSeparator()
-        wid=self.GetSize()[0]-1024+150
+        wid=wx.ScreenDC().GetSize()[0]-1024+50
         if wid<50:wid=50
         if wid>200:wid=200
         self.sliderControl=wx.Slider(self.frame_1_toolbar, -1, 0, 0, 100,size=(wid,-1),style=wx.SL_LABELS)
