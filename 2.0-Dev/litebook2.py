@@ -1309,6 +1309,13 @@ def GetPint():
         return 'I'
 
 
+def str2list(istr):
+    rlist=[]
+    mlist=istr[1:-1].split(',')
+    for m in mlist:
+        rlist.append(int(m))
+    return rlist
+
 def readPlugin():
     global PluginList
     PluginList={}
@@ -2309,7 +2316,7 @@ def readConfigFile():
                     GlobalConfig['backgroundimglayout']=f[11]
                     GlobalConfig['underline']=eval(f[12])
                     GlobalConfig['underlinestyle']=int(f[13])
-                    GlobalConfig['underlinecolor']=f[14]
+                    GlobalConfig['underlinecolor']=str2list(f[14])
                     GlobalConfig['pagemargin']=int(f[15])
                     GlobalConfig['bookmargin']=int(f[16])
                     GlobalConfig['vbookmargin']=int(f[17])
@@ -2331,7 +2338,7 @@ def readConfigFile():
                     l['backgroundimglayout']=f[11]
                     l['underline']=eval(f[12])
                     l['underlinestyle']=int(f[13])
-                    l['underlinecolor']=f[14]
+                    l['underlinecolor']=str2list(f[14])
                     l['pagemargin']=int(f[15])
                     l['bookmargin']=int(f[16])
                     l['vbookmargin']=int(f[17])
