@@ -1502,11 +1502,17 @@ def readKeyConfig():
         kconfig.append((u'向下翻行',"----+WXK_DOWN"))
         kconfig.append((u'向上翻页',"----+WXK_PAGEUP"))
         kconfig.append((u'向上翻页',"----+WXK_LEFT"))
-        kconfig.append((u'向上翻页',"----+WXK_UP"))
-        kconfig.append((u'向下翻页',"----+WXK_DOWN"))
         kconfig.append((u'向下翻页',"----+WXK_PAGEDOWN"))
         kconfig.append((u'向下翻页',"----+WXK_RIGHT"))
         kconfig.append((u'向下翻页',"----+WXK_SPACE"))
+
+        kconfig.append((u'向上翻半页','----+","'))
+        kconfig.append((u'向下翻半页','----+"."'))
+        kconfig.append((u'后退10%','----+"["'))
+        kconfig.append((u'前进10%','----+"]"'))
+        kconfig.append((u'后退1%','----+"9"'))
+        kconfig.append((u'前进1%','----+"0"'))
+
         kconfig.append((u'跳到首页',"----+WXK_HOME"))
         kconfig.append((u'跳到结尾',"----+WXK_END"))
         kconfig.append((u'文件列表','C---+"O"'))
@@ -1543,6 +1549,8 @@ def readKeyConfig():
         kconfig.append((u'显示进度条','----+"Z"'))
         kconfig.append((u'增大字体','----+"="'))
         kconfig.append((u'减小字体','----+"-"'))
+        for x in kconfig:
+            print "(u'"+x[0]+"','"+x[1]+"'),"
         KeyConfigList.append(kconfig)
         i=1
         tl=len(kconfig)
@@ -1560,8 +1568,12 @@ def readKeyConfig():
         kconfig.append((u'向下翻页',"----+WXK_PAGEDOWN"))
         kconfig.append((u'向下翻页',"----+WXK_RIGHT"))
         kconfig.append((u'向下翻页',"----+WXK_SPACE"))
-        kconfig.append((u'向上翻页',"----+WXK_UP"))
-        kconfig.append((u'向下翻页',"----+WXK_DOWN"))
+        kconfig.append((u'向上翻半页','----+","'))
+        kconfig.append((u'向下翻半页','----+"."'))
+        kconfig.append((u'后退10%','----+"["'))
+        kconfig.append((u'前进10%','----+"]"'))
+        kconfig.append((u'后退1%','----+"9"'))
+        kconfig.append((u'前进1%','----+"0"'))
         kconfig.append((u'跳到首页',"----+WXK_HOME"))
         kconfig.append((u'跳到结尾',"----+WXK_END"))
         kconfig.append((u'文件列表','C---+"O"'))
@@ -1604,333 +1616,15 @@ def readKeyConfig():
         kconfig=[]
         kconfig.append(('last'))
 
-        try:
-            cstr=config.get('last',u'向上翻行')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'向上翻行',cs))
-        except:
-            kconfig.append((u'向上翻行',"----+WXK_UP"))
+        for f,v in keygrid.LB2_func_list.items():
+            try:
+                cstr=config.get('last',f)
+                cstr_list=cstr.split('&&')
+                for cs in cstr_list:
+                    kconfig.append((f,cs))
+            except:
+                kconfig.append((f,v))
 
-        try:
-            cstr=config.get('last',u'向下翻行')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'向下翻行',cs))
-        except:
-            kconfig.append((u'向下翻行',"----+WXK_DOWN"))
-
-
-        try:
-            cstr=config.get('last',u'向上翻页')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'向上翻页',cs))
-        except:
-            kconfig.append((u'向上翻页',"----+WXK_PAGEUP"))
-
-        try:
-            cstr=config.get('last',u'跳到结尾')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'跳到结尾',cs))
-        except:
-            kconfig.append((u'跳到结尾',"----+WXK_END"))
-
-        try:
-            cstr=config.get('last',u'切换为繁体字')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'切换为繁体字',cs))
-        except:
-            kconfig.append((u'切换为繁体字',"----+WXK_F8"))
-
-        try:
-            cstr=config.get('last',u'另存为')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'另存为',cs))
-        except:
-            kconfig.append((u'另存为','C---+"S"'))
-
-        try:
-            cstr=config.get('last',u'向下翻页')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'向下翻页',cs))
-        except:
-            kconfig.append((u'向下翻页','----+WXK_PAGEDOWN'))
-
-        try:
-            cstr=config.get('last',u'智能分段')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'智能分段',cs))
-        except:
-            kconfig.append((u'智能分段','-A--+"P"'))
-
-        try:
-            cstr=config.get('last',u'查找')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'查找',cs))
-        except:
-            kconfig.append((u'查找','C---+"F"'))
-
-        try:
-            cstr=config.get('last',u'关于')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'关于',cs))
-        except:
-            kconfig.append((u'关于','----+WXK_F6'))
-
-        try:
-            cstr=config.get('last',u'查找下一个')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'查找下一个',cs))
-        except:
-            kconfig.append((u'查找下一个','----+WXK_F3'))
-
-        try:
-            cstr=config.get('last',u'自动翻页')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'自动翻页',cs))
-        except:
-            kconfig.append((u'自动翻页','----+WXK_RETURN'))
-
-
-        try:
-            cstr=config.get('last',u'重新载入插件')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'重新载入插件',cs))
-        except:
-            kconfig.append((u'重新载入插件','C---+"R"'))
-
-        try:
-            cstr=config.get('last',u'选项')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'选项',cs))
-        except:
-            kconfig.append((u'选项','-A--+"O"'))
-
-        try:
-            cstr=config.get('last',u'简明帮助')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'简明帮助',cs))
-        except:
-            kconfig.append((u'简明帮助','----+WXK_F1'))
-
-        try:
-            cstr=config.get('last',u'纸张显示模式')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'纸张显示模式',cs))
-        except:
-            kconfig.append((u'纸张显示模式','-A--+"M"'))
-
-        try:
-            cstr=config.get('last',u'下一个文件')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'下一个文件',cs))
-        except:
-            kconfig.append((u'下一个文件','C---+"]"'))
-
-        try:
-            cstr=config.get('last',u'添加到收藏夹')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'添加到收藏夹',cs))
-        except:
-            kconfig.append((u'添加到收藏夹','C---+"D"'))
-
-        try:
-            cstr=config.get('last',u'搜索小说网站')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'搜索小说网站',cs))
-        except:
-            kconfig.append((u'搜索小说网站','-A--+"C"'))
-
-        try:
-            cstr=config.get('last',u'全屏显示')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'全屏显示',cs))
-        except:
-            kconfig.append((u'全屏显示','C---+"I"'))
-
-        try:
-            cstr=config.get('last',u'跳到首页')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'跳到首页',cs))
-        except:
-            kconfig.append((u'跳到首页','----+WXK_HOME'))
-
-        try:
-            cstr=config.get('last',u'拷贝')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'拷贝',cs))
-        except:
-            kconfig.append((u'拷贝','C---+"C"'))
-
-        try:
-            cstr=config.get('last',u'竖排书本显示模式')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'竖排书本显示模式',cs))
-        except:
-            kconfig.append((u'竖排书本显示模式','-A--+"N"'))
-
-        try:
-            cstr=config.get('last',u'显示工具栏')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'显示工具栏',cs))
-        except:
-            kconfig.append((u'显示工具栏','C---+"T"'))
-
-        try:
-            cstr=config.get('last',u'打开文件')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'打开文件',cs))
-        except:
-            kconfig.append((u'打开文件','C---+"P"'))
-
-        try:
-            cstr=config.get('last',u'整理收藏夹')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'整理收藏夹',cs))
-        except:
-            kconfig.append((u'整理收藏夹','C---+"M"'))
-
-        try:
-            cstr=config.get('last',u'文件列表')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'文件列表',cs))
-        except:
-            kconfig.append((u'文件列表','C---+"O"'))
-
-        try:
-            cstr=config.get('last',u'切换为简体字')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'切换为简体字',cs))
-        except:
-            kconfig.append((u'切换为简体字','----+WXK_F7'))
-
-
-        try:
-            cstr=config.get('last',u'过滤HTML标记')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'过滤HTML标记',cs))
-        except:
-            kconfig.append((u'过滤HTML标记','----+WXK_F9'))
-
-
-        try:
-            cstr=config.get('last',u'书本显示模式')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'书本显示模式',cs))
-        except:
-            kconfig.append((u'书本显示模式','-A--+"B"'))
-
-        try:
-            cstr=config.get('last',u'检查更新')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'检查更新',cs))
-        except:
-            kconfig.append((u'检查更新','----+WXK_F5'))
-
-        try:
-            cstr=config.get('last',u'版本更新内容')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'版本更新内容',cs))
-        except:
-            kconfig.append((u'版本更新内容','----+WXK_F2'))
-
-
-        try:
-            cstr=config.get('last',u'查找上一个')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'查找上一个',cs))
-        except:
-            kconfig.append((u'查找上一个','----+WXK_F4'))
-
-        try:
-            cstr=config.get('last',u'显示文件侧边栏')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'显示文件侧边栏',cs))
-        except:
-            kconfig.append((u'显示文件侧边栏','-A--+"D"'))
-
-        try:
-            cstr=config.get('last',u'关闭')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'关闭',cs))
-        except:
-            kconfig.append((u'关闭','C---+"Z"'))
-
-        try:
-            cstr=config.get('last',u'退出')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'退出',cs))
-        except:
-            kconfig.append((u'退出','-A--+"X"'))
-
-        try:
-            cstr=config.get('last',u'上一个文件')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'上一个文件',cs))
-        except:
-            kconfig.append((u'上一个文件','C---+"["'))
-
-        try:
-            cstr=config.get('last',u'显示进度条')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'显示进度条',cs))
-        except:
-            kconfig.append((u'显示进度条','----+"Z"'))
-
-
-        try:
-            cstr=config.get('last',u'增大字体')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'增大字体',cs))
-        except:
-            kconfig.append((u'增大字体','----+"="'))
-
-
-        try:
-            cstr=config.get('last',u'减小字体')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'减小字体',cs))
-        except:
-            kconfig.append((u'减小字体','----+"-"'))
-        KeyConfigList.append(kconfig)
 
     secs=config.sections()
     secs.remove('last')
@@ -2538,6 +2232,7 @@ def writeConfigFile(lastpos):
 def InstallDefaultConfig():
     global ThemeList,KeyConfigList
     fname=os.path.dirname(AnyToUnicode(sys.argv[0]))+u"\\defaultconfig.ini"
+    print fname
     config=MyConfig()
     try:
         ffp=codecs.open(fname,encoding='utf-8',mode='r')
@@ -2584,314 +2279,15 @@ def InstallDefaultConfig():
         tname=sec
         kconfig=[]
         kconfig.append(tname)
-        try:
-            cstr=config.get(sec,u'向上翻页')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'向上翻页',cs))
-        except:
-            kconfig.append((u'向上翻页',"----+WXK_PAGEUP"))
 
-        try:
-            cstr=config.get(sec,u'跳到结尾')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'跳到结尾',cs))
-        except:
-            kconfig.append((u'跳到结尾',"----+WXK_END"))
-
-        try:
-            cstr=config.get(sec,u'切换为繁体字')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'切换为繁体字',cs))
-        except:
-            kconfig.append((u'切换为繁体字',"----+WXK_F8"))
-
-        try:
-            cstr=config.get(sec,u'另存为')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'另存为',cs))
-        except:
-            kconfig.append((u'另存为','C---+"S"'))
-
-        try:
-            cstr=config.get(sec,u'向下翻页')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'向下翻页',cs))
-        except:
-            kconfig.append((u'向下翻页','----+WXK_PAGEDOWN'))
-
-        try:
-            cstr=config.get(sec,u'智能分段')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'智能分段',cs))
-        except:
-            kconfig.append((u'智能分段','-A--+"P"'))
-
-        try:
-            cstr=config.get(sec,u'查找')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'查找',cs))
-        except:
-            kconfig.append((u'查找','C---+"F"'))
-
-        try:
-            cstr=config.get(sec,u'关于')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'关于',cs))
-        except:
-            kconfig.append((u'关于','----+WXK_F6'))
-
-        try:
-            cstr=config.get(sec,u'查找下一个')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'查找下一个',cs))
-        except:
-            kconfig.append((u'查找下一个','----+WXK_F3'))
-
-        try:
-            cstr=config.get(sec,u'自动翻页')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'自动翻页',cs))
-        except:
-            kconfig.append((u'自动翻页','----+WXK_RETURN'))
-
-
-        try:
-            cstr=config.get(sec,u'重新载入插件')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'重新载入插件',cs))
-        except:
-            kconfig.append((u'重新载入插件','C---+"R"'))
-
-        try:
-            cstr=config.get(sec,u'选项')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'选项',cs))
-        except:
-            kconfig.append((u'选项','-A--+"O"'))
-
-        try:
-            cstr=config.get(sec,u'简明帮助')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'简明帮助',cs))
-        except:
-            kconfig.append((u'简明帮助','----+WXK_F1'))
-
-        try:
-            cstr=config.get(sec,u'纸张显示模式')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'纸张显示模式',cs))
-        except:
-            kconfig.append((u'纸张显示模式','-A--+"M"'))
-
-        try:
-            cstr=config.get(sec,u'下一个文件')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'下一个文件',cs))
-        except:
-            kconfig.append((u'下一个文件','C---+"]"'))
-
-        try:
-            cstr=config.get(sec,u'添加到收藏夹')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'添加到收藏夹',cs))
-        except:
-            kconfig.append((u'添加到收藏夹','C---+"D"'))
-
-        try:
-            cstr=config.get(sec,u'搜索小说网站')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'搜索小说网站',cs))
-        except:
-            kconfig.append((u'搜索小说网站','-A--+"C"'))
-
-        try:
-            cstr=config.get(sec,u'全屏显示')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'全屏显示',cs))
-        except:
-            kconfig.append((u'全屏显示','C---+"I"'))
-
-        try:
-            cstr=config.get(sec,u'跳到首页')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'跳到首页',cs))
-        except:
-            kconfig.append((u'跳到首页','----+WXK_HOME'))
-
-        try:
-            cstr=config.get(sec,u'拷贝')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'拷贝',cs))
-        except:
-            kconfig.append((u'拷贝','C---+"C"'))
-
-        try:
-            cstr=config.get(sec,u'竖排书本显示模式')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'竖排书本显示模式',cs))
-        except:
-            kconfig.append((u'竖排书本显示模式','-A--+"N"'))
-
-        try:
-            cstr=config.get(sec,u'显示工具栏')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'显示工具栏',cs))
-        except:
-            kconfig.append((u'显示工具栏','C---+"T"'))
-
-        try:
-            cstr=config.get(sec,u'打开文件')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'打开文件',cs))
-        except:
-            kconfig.append((u'打开文件','C---+"P"'))
-
-        try:
-            cstr=config.get(sec,u'整理收藏夹')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'整理收藏夹',cs))
-        except:
-            kconfig.append((u'整理收藏夹','C---+"M"'))
-
-        try:
-            cstr=config.get(sec,u'文件列表')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'文件列表',cs))
-        except:
-            kconfig.append((u'文件列表','C---+"O"'))
-
-        try:
-            cstr=config.get(sec,u'切换为简体字')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'切换为简体字',cs))
-        except:
-            kconfig.append((u'切换为简体字','----+WXK_F7'))
-
-
-        try:
-            cstr=config.get(sec,u'过滤HTML标记')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'过滤HTML标记',cs))
-        except:
-            kconfig.append((u'过滤HTML标记','----+WXK_F9'))
-
-
-        try:
-            cstr=config.get(sec,u'书本显示模式')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'书本显示模式',cs))
-        except:
-            kconfig.append((u'书本显示模式','-A--+"B"'))
-
-        try:
-            cstr=config.get(sec,u'检查更新')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'检查更新',cs))
-        except:
-            kconfig.append((u'检查更新','----+WXK_F5'))
-
-        try:
-            cstr=config.get(sec,u'版本更新内容')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'版本更新内容',cs))
-        except:
-            kconfig.append((u'版本更新内容','----+WXK_F2'))
-
-
-        try:
-            cstr=config.get(sec,u'查找上一个')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'查找上一个',cs))
-        except:
-            kconfig.append((u'查找上一个','----+WXK_F4'))
-
-        try:
-            cstr=config.get(sec,u'显示文件侧边栏')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'显示文件侧边栏',cs))
-        except:
-            kconfig.append((u'显示文件侧边栏','-A--+"D"'))
-
-        try:
-            cstr=config.get(sec,u'关闭')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'关闭',cs))
-        except:
-            kconfig.append((u'关闭','C---+"Z"'))
-
-        try:
-            cstr=config.get(sec,u'退出')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'退出',cs))
-        except:
-            kconfig.append((u'退出','-A--+"X"'))
-
-        try:
-            cstr=config.get(sec,u'上一个文件')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'上一个文件',cs))
-        except:
-            kconfig.append((u'上一个文件','C---+"["'))
-
-        try:
-            cstr=config.get(sec,u'显示进度条')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'显示进度条',cs))
-        except:
-            kconfig.append((u'显示进度条','----+"Z"'))
-
-
-        try:
-            cstr=config.get(sec,u'增大字体')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'增大字体',cs))
-        except:
-            kconfig.append((u'增大字体','----+"="'))
-
-        try:
-            cstr=config.get(sec,u'减小字体')
-            cstr_list=cstr.split('&&')
-            for cs in cstr_list:
-                kconfig.append((u'减小字体',cs))
-        except:
-            kconfig.append((u'减小字体','----+"-"'))
+        for f,v in keygrid.LB2_func_list.items():
+            try:
+                cstr=config.get(sec,f)
+                cstr_list=cstr.split('&&')
+                for cs in cstr_list:
+                    kconfig.append((f,cs))
+            except:
+                kconfig.append((f,v))
 
         KeyConfigList.append(kconfig)
     GlobalConfig['InstallDefaultConfig']=False
@@ -3637,6 +3033,12 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
     u'向下翻行':'self.text_ctrl_1.ScrollLine(1)',
     u'向上翻页':'self.text_ctrl_1.ScrollP(-1)',
     u'向下翻页':'self.text_ctrl_1.ScrollP(1)',
+    u'向上翻半页':'self.text_ctrl_1.ScrollHalfP(-1)',
+    u'向下翻半页':'self.text_ctrl_1.ScrollHalfP(1)',
+    u'前进10%':'self.text_ctrl_1.ScrollPercent(10,1)',
+    u'后退10%':'self.text_ctrl_1.ScrollPercent(10,-1)',
+    u'前进1%':'self.text_ctrl_1.ScrollPercent(1,1)',
+    u'后退1%':'self.text_ctrl_1.ScrollPercent(1,-1)',
     u'跳到首页':'self.text_ctrl_1.ScrollTop()',
     u'跳到结尾':'self.text_ctrl_1.ScrollBottom()',
     u'文件列表':'self.Menu101(None)',
@@ -9476,6 +8878,7 @@ if __name__ == "__main__":
                     os.remove(os.environ['APPDATA'].decode('gbk')+u"\\litebook.ini")
                     os.remove(os.environ['APPDATA'].decode('gbk')+u"\\litebook_key.ini")
                 except:
+                    print "xixi"
                     pass
         else:
             fname=sys.argv[1]

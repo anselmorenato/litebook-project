@@ -273,6 +273,60 @@ RKeyMap= {
 "WXK_SPECIAL2":wx.WXK_SPECIAL2,
 }
 
+func_list=[u'向上翻行',u'向下翻行',u'向上翻页',u'向下翻页',u'向上翻半页',u'向下翻半页',u'前进10%',u'后退10%',u'前进1%',u'后退1%',u'跳到首页',u'跳到结尾',u'文件列表',u'打开文件',u'另存为',u'关闭',u'上一个文件',u'下一个文件',u'搜索小说网站',u'重新载入插件',u'选项',u'退出',u'拷贝',u'查找',u'查找下一个',u'查找上一个',u'纸张显示模式',u'书本显示模式',u'竖排书本显示模式',u'显示工具栏',u'全屏显示',u'显示文件侧边栏',u'自动翻页',u'智能分段',u'添加到收藏夹',u'整理收藏夹',u'简明帮助',u'版本更新内容',u'检查更新',u'关于',u'过滤HTML标记',u'切换为简体字',u'切换为繁体字',u'显示进度条',u'增大字体',u'减小字体']
+
+LB2_func_list={
+u'向上翻行':'----+WXK_UP',
+u'向下翻行':'----+WXK_DOWN',
+u'向上翻页':'----+WXK_PAGEUP',
+u'向上翻页':'----+WXK_LEFT',
+u'向下翻页':'----+WXK_PAGEDOWN',
+u'向下翻页':'----+WXK_RIGHT',
+u'向下翻页':'----+WXK_SPACE',
+u'向上翻半页':'----+","',
+u'向下翻半页':'----+"."',
+u'后退10%':'----+"["',
+u'前进10%':'----+"]"',
+u'后退1%':'----+"9"',
+u'前进1%':'----+"0"',
+u'跳到首页':'----+WXK_HOME',
+u'跳到结尾':'----+WXK_END',
+u'文件列表':'C---+"O"',
+u'打开文件':'C---+"P"',
+u'另存为':'C---+"S"',
+u'关闭':'C---+"Z"',
+u'上一个文件':'C---+"["',
+u'下一个文件':'C---+"]"',
+u'搜索小说网站':'-A--+"C"',
+u'重新载入插件':'C---+"R"',
+u'选项':'-A--+"O"',
+u'退出':'-A--+"X"',
+u'拷贝':'C---+"C"',
+u'查找':'C---+"F"',
+u'查找下一个':'----+WXK_F3',
+u'查找上一个':'----+WXK_F4',
+u'纸张显示模式':'-A--+"M"',
+u'书本显示模式':'-A--+"B"',
+u'竖排书本显示模式':'-A--+"N"',
+u'显示工具栏':'C---+"T"',
+u'全屏显示':'C---+"I"',
+u'显示文件侧边栏':'-A--+"D"',
+u'自动翻页':'----+WXK_RETURN',
+u'智能分段':'-A--+"P"',
+u'添加到收藏夹':'C---+"D"',
+u'整理收藏夹':'C---+"M"',
+u'简明帮助':'----+WXK_F1',
+u'版本更新内容':'----+WXK_F2',
+u'检查更新':'----+WXK_F5',
+u'关于':'----+WXK_F6',
+u'过滤HTML标记':'----+WXK_F9',
+u'切换为简体字':'----+WXK_F7',
+u'切换为繁体字':'----+WXK_F8',
+u'显示进度条':'----+"Z"',
+u'增大字体':'----+"="',
+u'减小字体':'----+"-"',
+}
+
 def str2menu(keystr):
     mstr=' \t'
     mod,keysub=keystr.split('+',1)
@@ -340,7 +394,7 @@ def key2str(evt):
 class KeyConfigGrid(gridlib.Grid):
     def __init__(self,parent):
 
-        self.func_list=[u'向上翻行',u'向下翻行',u'向上翻页',u'向下翻页',u'跳到首页',u'跳到结尾',u'文件列表',u'打开文件',u'另存为',u'关闭',u'上一个文件',u'下一个文件',u'搜索小说网站',u'重新载入插件',u'选项',u'退出',u'拷贝',u'查找',u'查找下一个',u'查找上一个',u'纸张显示模式',u'书本显示模式',u'竖排书本显示模式',u'显示工具栏',u'全屏显示',u'显示文件侧边栏',u'自动翻页',u'智能分段',u'添加到收藏夹',u'整理收藏夹',u'简明帮助',u'版本更新内容',u'检查更新',u'关于',u'过滤HTML标记',u'切换为简体字',u'切换为繁体字',u'显示进度条',u'增大字体',u'减小字体']
+
         gridlib.Grid.__init__(self,parent,name='OptionGrid')
         self.curCol=None
         self.curRow=None
@@ -439,10 +493,11 @@ class KeyConfigGrid(gridlib.Grid):
 
 
     def AppendLine(self,func,key):
-        if func not in self.func_list:return False
+        global func_list
+        if func not in func_list:return False
         self.AppendRows()
         r=self.GetNumberRows()
-        self.SetCellEditor(r-1,0,gridlib.GridCellChoiceEditor(self.func_list))
+        self.SetCellEditor(r-1,0,gridlib.GridCellChoiceEditor(func_list))
 #        cedit=KeyEditor()
 #        self.SetCellEditor(r-1,1,cedit)
 #        self.SetCellEditor(r-1,1,mycell())
