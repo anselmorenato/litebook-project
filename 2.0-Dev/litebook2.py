@@ -1549,6 +1549,8 @@ def readKeyConfig():
         kconfig.append((u'显示进度条','----+"Z"'))
         kconfig.append((u'增大字体','----+"="'))
         kconfig.append((u'减小字体','----+"-"'))
+        for k in kconfig:
+            print k[0],k[1]
         KeyConfigList.append(kconfig)
         i=1
         tl=len(kconfig)
