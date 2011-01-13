@@ -2929,6 +2929,13 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
     u'向下翻行':'self.text_ctrl_1.ScrollLine(1)',
     u'向上翻页':'self.text_ctrl_1.ScrollP(-1)',
     u'向下翻页':'self.text_ctrl_1.ScrollP(1)',
+    u'向上翻半页':'self.text_ctrl_1.ScrollHalfP(-1)',
+    u'向下翻半页':'self.text_ctrl_1.ScrollHalfP(1)',
+    u'前进10%':'self.text_ctrl_1.ScrollPercent(10,1)',
+    u'后退10%':'self.text_ctrl_1.ScrollPercent(10,-1)',
+    u'前进1%':'self.text_ctrl_1.ScrollPercent(1,1)',
+    u'后退1%':'self.text_ctrl_1.ScrollPercent(1,-1)',
+
     u'跳到首页':'self.text_ctrl_1.ScrollTop()',
     u'跳到结尾':'self.text_ctrl_1.ScrollBottom()',
     u'文件列表':'self.Menu101(None)',
