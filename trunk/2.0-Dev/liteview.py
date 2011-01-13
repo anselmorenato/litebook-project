@@ -820,6 +820,42 @@ class LiteView(wx.ScrolledWindow):
         return r
 
 
+    def ScrollHalfP(self,direction=1):
+        """翻半页"""
+        if self.show_mode<>'paper':return
+        line_no=len(self.curPageTextList)
+        self.ScrollLine(direction,line_no/2)
+
+    def ScrollPercent(self,percent,direction=1):
+        """按百分比翻页"""
+        if not isinstance(percent,int) or percent<=0 or percent>100:return
+        delta=(self.ValueCharCount*percent)/100
+        if direction==1:
+            newpos=self.current_pos+delta
+            if newpos<self.ValueCharCount:
+                self.current_pos=newpos
+                self.ShowPos()
+            else:
+                self.start_pos=self.ValueCharCount
+                self.ShowPos(-1)
+        else:
+            newpos=self.start_pos-delta
+            if newpos<=0:
+                self.current_pos=0
+                self.ShowPos()
+            else:
+                self.start_pos=newpos
+                self.ShowPos(-1)
+        self.Refresh()
+
+
+
+
+
+
+
+
+
     def ScrollLine(self,direction=1,line_count=1):
         if self.show_mode<>'paper':return
         line_no=len(self.curPageTextList)
