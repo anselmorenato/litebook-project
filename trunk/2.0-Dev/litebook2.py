@@ -1388,8 +1388,8 @@ ThemeList=[]
 BookDB=[]
 Ticking=True
 SupportedFileTypes=['.zip','.txt','.rar','.umd','.jar','.epub']
-Version=u'2.0 final'
-I_Version=2.08  # this is used to check updated version
+Version=u'2.0 Windows Final'
+I_Version=2.10  # this is used to check updated version
 SqlCon=None
 linestyle={u'虚线':wx.DOT,u'实线':wx.SOLID,u'长虚线':wx.LONG_DASH,u'点虚线':wx.DOT_DASH}
 rlinestyle={wx.DOT:u'虚线',wx.SOLID:u'实线',wx.LONG_DASH:u'长虚线',wx.DOT_DASH:u'点虚线'}
@@ -1549,8 +1549,6 @@ def readKeyConfig():
         kconfig.append((u'显示进度条','----+"Z"'))
         kconfig.append((u'增大字体','----+"="'))
         kconfig.append((u'减小字体','----+"-"'))
-        for x in kconfig:
-            print "(u'"+x[0]+"','"+x[1]+"'),"
         KeyConfigList.append(kconfig)
         i=1
         tl=len(kconfig)
@@ -2234,7 +2232,6 @@ def writeConfigFile(lastpos):
 def InstallDefaultConfig():
     global ThemeList,KeyConfigList
     fname=os.path.dirname(AnyToUnicode(sys.argv[0]))+u"\\defaultconfig.ini"
-    print fname
     config=MyConfig()
     try:
         ffp=codecs.open(fname,encoding='utf-8',mode='r')
@@ -8880,7 +8877,6 @@ if __name__ == "__main__":
                     os.remove(os.environ['APPDATA'].decode('gbk')+u"\\litebook.ini")
                     os.remove(os.environ['APPDATA'].decode('gbk')+u"\\litebook_key.ini")
                 except:
-                    print "xixi"
                     pass
         else:
             fname=sys.argv[1]
