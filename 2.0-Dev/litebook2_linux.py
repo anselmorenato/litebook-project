@@ -1354,8 +1354,8 @@ BookMarkList=[]
 ThemeList=[]
 BookDB=[]
 Ticking=True
-Version='2.0 Linux final'
-I_Version=2.08 # this is used to check updated version
+Version='2.0 Linux Final'
+I_Version=2.10 # this is used to check updated version
 
 def cur_file_dir():
     #获取脚本路径
