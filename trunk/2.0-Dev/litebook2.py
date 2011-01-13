@@ -1623,8 +1623,9 @@ def readKeyConfig():
                 for cs in cstr_list:
                     kconfig.append((f,cs))
             except:
-                kconfig.append((f,v))
 
+                kconfig.append((f,v))
+        KeyConfigList.append(kconfig)
 
     secs=config.sections()
     secs.remove('last')
@@ -1647,6 +1648,7 @@ def readKeyConfig():
     tl=len(kconfig)
     while i<tl:
         KeyMenuList[kconfig[i][0]]=keygrid.str2menu(kconfig[i][1])
+        #print kconfig[i][0]
         i+=1
 
 
