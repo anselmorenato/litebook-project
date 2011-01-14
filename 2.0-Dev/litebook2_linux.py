@@ -1371,6 +1371,7 @@ def cur_file_dir():
 
 def str2list(istr):
     rlist=[]
+    if istr[0]<>'(':return istr
     mlist=istr[1:-1].split(',')
     for m in mlist:
         rlist.append(int(m))
@@ -1601,7 +1602,7 @@ def readKeyConfig():
         kconfig.append((u'显示工具栏','C---+"T"'))
         kconfig.append((u'全屏显示','C---+"I"'))
         kconfig.append((u'显示文件侧边栏','-A--+"D"'))
-        kconfig.append((u'自动翻页','----+WXK_RETURN'))
+        kconfig.append((u'自动翻页','-A--+"T"'))
         kconfig.append((u'智能分段','-A--+"P"'))
         kconfig.append((u'添加到收藏夹','C---+"D"'))
         kconfig.append((u'整理收藏夹','C---+"M"'))
@@ -1662,7 +1663,7 @@ def readKeyConfig():
         kconfig.append((u'显示工具栏','C---+"T"'))
         kconfig.append((u'全屏显示','C---+"I"'))
         kconfig.append((u'显示文件侧边栏','-A--+"D"'))
-        kconfig.append((u'自动翻页','----+WXK_RETURN'))
+        kconfig.append((u'自动翻页','-A--+"T"'))
         kconfig.append((u'智能分段','-A--+"P"'))
         kconfig.append((u'添加到收藏夹','C---+"D"'))
         kconfig.append((u'整理收藏夹','C---+"M"'))
