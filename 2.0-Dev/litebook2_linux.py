@@ -21,7 +21,7 @@
 #update on 2010.11.27
 # 1st 2.0 beta for linux
 #
-
+import ComboDialog
 import liteview
 import webbrowser
 import keygrid
@@ -2011,7 +2011,10 @@ def readConfigFile():
                     l['centralmargin']=int(f[18])
                     l['linespace']=int(f[19])
                     l['vlinespace']=int(f[20])
-                    l['name']=name
+                    if len(f)==22:
+                        l['name']=f[21]
+                    else:
+                        l['name']=name
                     l['config']=ft[1]
                 ThemeList.append(l)
 
@@ -7425,10 +7428,12 @@ class NewOptionDialog(wx.Dialog):
         global ThemeList
         l={}
         l['name']=''
+        tlist=[]
+        for t in ThemeList:
+            tlist.append(t['name'])
         while l['name']=='':
-            dlg = wx.TextEntryDialog(
-                    self, u'请输入新显示方案的名称(不能为空)：',
-                    u'另存为新方案')
+            dlg = ComboDialog.ComboDialog(
+                    self,tlist )
             if dlg.ShowModal() == wx.ID_OK:
                 l['name']=dlg.GetValue().strip()
                 dlg.Destroy()
@@ -7477,7 +7482,7 @@ class NewOptionDialog(wx.Dialog):
         l['config']+=u'|'+unicode(l['centralmargin'])
         l['config']+=u'|'+unicode(l['linespace'])
         l['config']+=u'|'+unicode(l['vlinespace'])
-
+        l['config']+=u'|'+unicode(l['name'])
 
 
         ThemeList.append(l)
