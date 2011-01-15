@@ -10,10 +10,10 @@ import wx
 
 
 class ComboDialog(wx.Dialog):
-    def __init__(self, parent,ichoice=[]):
+    def __init__(self, parent,ichoice=[],ititle='',idesc=''):
         # begin wxGlade: MyDialog.__init__
-        wx.Dialog.__init__(self, parent=parent,title=u'输入主题名')
-        self.sizer_1_staticbox = wx.StaticBox(self, -1, u"输入或选择主题名")
+        wx.Dialog.__init__(self, parent=parent,title=ititle)
+        self.sizer_1_staticbox = wx.StaticBox(self, -1, idesc)
         self.combo_box_1 = wx.ComboBox(self, -1, choices=ichoice, style=wx.CB_DROPDOWN)
         self.button_1 = wx.Button(self, -1, u" 确定")
         self.button_2 = wx.Button(self, -1, u"取消")

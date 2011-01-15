@@ -1390,8 +1390,8 @@ ThemeList=[]
 BookDB=[]
 Ticking=True
 SupportedFileTypes=['.zip','.txt','.rar','.umd','.jar','.epub']
-Version=u'2.0 Windows Final'
-I_Version=2.10  # this is used to check updated version
+Version=u'2.1 Windows'
+I_Version=2.11  # this is used to check updated version
 SqlCon=None
 linestyle={u'虚线':wx.DOT,u'实线':wx.SOLID,u'长虚线':wx.LONG_DASH,u'点虚线':wx.DOT_DASH}
 rlinestyle={wx.DOT:u'虚线',wx.SOLID:u'实线',wx.LONG_DASH:u'长虚线',wx.DOT_DASH:u'点虚线'}
@@ -7890,11 +7890,14 @@ class NewOptionDialog(wx.Dialog):
         global KeyConfigList
         kconfig=[]
         kconfig.append((''))
+        tlist=[]
+        for k in KeyConfigList:
+            if k[0]<>'last':
+                tlist.append(k[0])
 
         while kconfig[0]=='':
-            dlg = wx.TextEntryDialog(
-                    self, u'请输入新显示方案的名称(不能为空)：',
-                    u'另存为新方案')
+            dlg = ComboDialog.ComboDialog(
+                    self,tlist,u'输入方案名',u'输入或选择方案名' )
             if dlg.ShowModal() == wx.ID_OK:
                 kconfig[0]=dlg.GetValue().strip()
                 dlg.Destroy()
@@ -7940,7 +7943,7 @@ class NewOptionDialog(wx.Dialog):
             tlist.append(t['name'])
         while l['name']=='':
             dlg = ComboDialog.ComboDialog(
-                    self,tlist )
+                    self,tlist,u'输入主题名',u'输入或选择主题名'  )
             if dlg.ShowModal() == wx.ID_OK:
                 l['name']=dlg.GetValue().strip()
                 dlg.Destroy()
