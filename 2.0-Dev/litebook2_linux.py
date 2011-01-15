@@ -2197,8 +2197,6 @@ def writeConfigFile(lastpos):
 def UpdateOpenedFileList(filename,ftype,zfile=''):
     global OpenedFileList,GlobalConfig,SqlCon
     fi={}
-    for f in OpenedFileList:
-        if f['file']==filename:return
     fi['type']=ftype
     fi['file']=filename
     fi['zfile']=zfile
@@ -4979,6 +4977,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             self.text_ctrl_1.SetValue(event.bk)
             OnScreenFileList=[]
             OnScreenFileList.append((event.name,'',event.bk.__len__()))
+            #change the title
+            self.SetTitle(u'Litebook2 轻巧读书 --- '+event.name)
         else:
             if rr==u'另存为...':
                 wildcard = u"文本文件(UTF-8) (*.txt)|*.txt|"     \

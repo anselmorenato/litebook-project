@@ -5127,6 +5127,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             self.text_ctrl_1.SetValue(event.bk)
             OnScreenFileList=[]
             OnScreenFileList.append((event.name,'',event.bk.__len__()))
+            self.SetTitle(u'Litebook2 轻巧读书 --- '+event.name)
         else:
             if rr==u'另存为...':
                 wildcard = u"文本文件(UTF-8) (*.txt)|*.txt|"     \
