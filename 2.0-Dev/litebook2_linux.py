@@ -8626,8 +8626,9 @@ if __name__ == "__main__":
     fname=None
     if len(sys.argv)>1:
         if sys.argv[1]=='-reset':
-            dlg=wx.MessageDialog(None,u"此操作将把当前配置恢复为缺省配置，可以解决某些启动问题，但是会覆盖当前设置，是否继续？",u"恢复到LiteBook的缺省设置",wx.YES_NO|wx.NO_DEFAULT)
-            if dlg.ShowModal()==wx.ID_YES:
+            print u"此操作将把当前配置恢复为缺省配置，可以解决某些启动问题，但是会覆盖当前设置，是否继续？(Y/n)"
+            inc=raw_input()
+            if inc=='Y':
                 try:
                     os.remove(unicode(os.environ['HOME'],'utf-8')+u"/.litebook_key.ini")
                     os.remove(unicode(os.environ['HOME'],'utf-8')+u"/.litebook.ini")
