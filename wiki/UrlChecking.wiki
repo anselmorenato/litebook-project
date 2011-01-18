@@ -1,4 +1,4 @@
-litebookwinlatestversion----1.73
-litebooklinuxlatestversion----1.73
+litebookwinlatestversion----2.11
+litebooklinuxlatestversion----2.11
 litebookwindownloadurl----code.google.com/p/litebook-project/downloads/list
 litebooklinuxdownloadurl----code.google.com/p/litebook-project/downloads/list
