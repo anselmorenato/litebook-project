@@ -76,3 +76,7 @@ fanjian:ne.manman@gmail.com
 本软件的网络搜索功能支持并感谢如下网站：
 易读：www.yilook.com
 小说520：www.xsxs520.com
+
+7.本软件授权（License）
+本软件遵循Apache License 2.0和如下条款：
+- 如果你希望重新分发（无论修改或是不修改源码），那么在你这么做以前，必须发一个email到litebook.author@gmail.com告知。
