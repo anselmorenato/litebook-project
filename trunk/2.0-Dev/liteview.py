@@ -1026,9 +1026,9 @@ class LiteView(wx.ScrolledWindow):
                 if os.name=='nt' or sys.platform=='win32':
                     if img.find('\\')==-1:
                         if not isinstance(sys.argv[0],unicode):
-                            argv0=sys.argv[0].decode('gbk')
+                            argv0=os.path.abspath(sys.argv[0]).decode('gbk')
                         else:
-                            argv0=sys.argv[0]
+                            argv0=os.path.abspath(sys.argv[0])
                         img=os.path.dirname(argv0)+u"\\background\\"+img
                 else:
                     if img.find('/')==-1:
