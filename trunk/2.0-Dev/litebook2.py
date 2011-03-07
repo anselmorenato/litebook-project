@@ -1461,8 +1461,8 @@ ThemeList=[]
 BookDB=[]
 Ticking=True
 SupportedFileTypes=['.zip','.txt','.rar','.umd','.jar','.epub']
-Version=u'2.5 Windows alpha'
-I_Version=2.40  # this is used to check updated version
+Version=u'2.2 Windows beta'
+I_Version=2.19  # this is used to check updated version
 SqlCon=None
 linestyle={u'虚线':wx.DOT,u'实线':wx.SOLID,u'长虚线':wx.LONG_DASH,u'点虚线':wx.DOT_DASH}
 rlinestyle={wx.DOT:u'虚线',wx.SOLID:u'实线',wx.LONG_DASH:u'长虚线',wx.DOT_DASH:u'点虚线'}
@@ -1626,6 +1626,7 @@ def readKeyConfig():
         kconfig.append((u'增大字体','----+"="'))
         kconfig.append((u'减小字体','----+"-"'))
         kconfig.append((u'清空缓存','CA--+"Q"'))
+        kconfig.append((u'最小化','----+WXK_ESCAPE'))
         KeyConfigList.append(kconfig)
         i=1
         tl=len(kconfig)
@@ -1688,6 +1689,7 @@ def readKeyConfig():
         kconfig.append((u'增大字体','----+"="'))
         kconfig.append((u'减小字体','----+"-"'))
         kconfig.append((u'清空缓存','CA--+"Q"'))
+        kconfig.append((u'最小化','----+WXK_ESCAPE'))
 
         KeyConfigList.append(kconfig)
     else:
@@ -2027,7 +2029,15 @@ def readConfigFile():
         GlobalConfig['ShowAllFileInSidebar']=True
 
     try:
-        flist=(config.items('LastOpenedFiles'))
+        t_flist=(config.items('LastOpenedFiles'))
+        di={}
+        for f in t_flist:
+            di[f[0]]=f[1]
+        flist=[]
+        newl=di.keys()
+        newl.sort()
+        for k in newl:
+            flist.append((k,di[k]))
         i=1
         for f in flist:
             if i>GlobalConfig['MaxOpenedFiles']: break
@@ -3202,6 +3212,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
     u'退出':'self.Menu107(None)',
     u'拷贝':'self.Menu202(None)',
     u'查找':'self.Menu203(None)',
+    u'替换':'self.Menu206(None)',
     u'查找下一个':'self.Menu204(None)',
     u'查找上一个':'self.Menu205(None)',
     u'纸张显示模式':'self.Menu601(None)',
@@ -3225,7 +3236,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
     u'显示进度条':'self.ShowSlider()',
     u'增大字体':'self.ChangeFontSize(1)',
     u'减小字体':'self.ChangeFontSize(-1)',
-    u'清空缓存':'self.Menu112()'
+    u'清空缓存':'self.Menu112()',
+    u'最小化':'self.OnESC(None)'
     }
     def __init__(self,parent,openfile=None):
         global GlobalConfig
@@ -3509,6 +3521,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.Bind(wx.EVT_TEXT,self.SearchSidebar,self.text_ctrl_2)
 
         #register ESC as system hotkey
+
         if GlobalConfig['EnableESC']:
             self.RegisterHotKey(1,0,wx.WXK_ESCAPE)
             self.Bind(wx.EVT_HOTKEY,self.OnESC)
@@ -3717,6 +3730,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         mbar.SetLabel(105,u"下一个文件(&N)"+KeyMenuList[u'下一个文件'])
         mbar.SetLabel(110,u"搜索小说网站(&S)"+KeyMenuList[u'搜索小说网站'])
         mbar.SetLabel(111,u"重新载入插件"+KeyMenuList[u'重新载入插件'])
+        mbar.SetLabel(112,u"清空缓存"+KeyMenuList[u'清空缓存'])
         mbar.SetLabel(106,u"选项(&O)"+KeyMenuList[u'选项'])
         mbar.SetLabel(107,u"退出(&X)"+KeyMenuList[u'退出'])
         mbar.SetLabel(202,u"拷贝(&C)"+KeyMenuList[u'拷贝'])
@@ -3729,6 +3743,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         mbar.SetLabel(603,u'竖排书本显示模式'+KeyMenuList[u'竖排书本显示模式'])
         mbar.SetLabel(507,u"增大字体"+KeyMenuList[u'增大字体'])
         mbar.SetLabel(508,u"减小字体"+KeyMenuList[u'减小字体'])
+        mbar.SetLabel(509,u"显示目录"+KeyMenuList[u'显示目录'])
 
         mbar.SetLabel(501,u"显示工具栏"+KeyMenuList[u'显示工具栏'])
         mbar.SetLabel(503, u"全屏显示"+KeyMenuList[u'全屏显示'])
@@ -8056,16 +8071,12 @@ class NewOptionDialog(wx.Dialog):
 
         GlobalConfig['LoadLastFile']=self.checkbox_1.GetValue()
         GlobalConfig['EnableESC']=self.checkbox_3.GetValue()
+
         GlobalConfig['VerCheckOnStartup']=self.checkbox_2.GetValue()
         if GlobalConfig['ShowAllFileInSidebar']==self.checkbox_5.GetValue():
             self.GetParent().UpdateSidebar=True
         GlobalConfig['ShowAllFileInSidebar']=not self.checkbox_5.GetValue()
-        if GlobalConfig['EnableESC']:
-            self.GetParent().RegisterHotKey(1,0,wx.WXK_ESCAPE)
-            self.GetParent().Bind(wx.EVT_HOTKEY,self.GetParent().OnESC)
-        else:
-            self.GetParent().UnregisterHotKey(1)
-            self.GetParent().Unbind(wx.EVT_HOTKEY)
+
 
         GlobalConfig['EnableSidebarPreview']=self.checkbox_4.GetValue()
         try:
@@ -8131,6 +8142,12 @@ class NewOptionDialog(wx.Dialog):
             KeyMenuList[kconfig[i][0]]=keygrid.str2menu(kconfig[i][1])
             i+=1
 
+        if GlobalConfig['EnableESC']:
+            self.GetParent().RegisterHotKey(1,0,wx.WXK_ESCAPE)
+            self.GetParent().Bind(wx.EVT_HOTKEY,self.GetParent().OnESC)
+        else:
+            self.GetParent().UnregisterHotKey(1)
+            self.GetParent().Unbind(wx.EVT_HOTKEY)
 
         self.Destroy()
 

@@ -7,8 +7,8 @@
 # - liteview
 # - chardet
 # - rarfile
-# - unrar2
-# - wxpython 2.8.10.1 and later
+# - unrar2 (modified)
+# - wxpython 2.8.10.1 unicode
 #
 #
 
@@ -21,6 +21,7 @@
 #update on 2010.11.27
 # 1st 2.0 beta for linux
 #
+import gcepub
 import ComboDialog
 import liteview
 import webbrowser
@@ -64,6 +65,10 @@ try:
     from agw import hyperlink as hl
 except ImportError: # if it's not there locally, try the wxPython lib.
     import wx.lib.agw.hyperlink as hl
+try:
+    from agw import genericmessagedialog as GMD
+except ImportError: # if it's not there locally, try the wxPython lib.
+    import wx.lib.agw.genericmessagedialog as GMD
 
 # begin wxGlade: extracode
 # end wxGlade
@@ -1354,8 +1359,9 @@ BookMarkList=[]
 ThemeList=[]
 BookDB=[]
 Ticking=True
-Version='2.1 Linux'
-I_Version=2.11 # this is used to check updated version
+Version='2.2 Linux beta'
+I_Version=2.19 # this is used to check updated version
+lb_hash='3de03ac38cc1c2dc0547ee09f866ee7b'
 
 def cur_file_dir():
     #获取脚本路径
@@ -1462,6 +1468,61 @@ def isfull(l):
     if count==0: return True
     else:
         return int((float(n-count)/float(n))*100)
+
+def GenCatalog(instr):
+    max_chapter_len=50 #the chapter len>50 will be skipped,this is used to detect redundant chapter lines
+    if not isinstance(instr,unicode):
+        instr=instr.decode("gbk")
+    rlist={}
+    c_list=[]
+    cur_pos=0
+    n=len(instr)
+    hash_len=len(lb_hash)
+    cpos=instr.find(lb_hash)
+    if cpos<>-1:
+        while cur_pos<n:
+            cur_pos=instr.find(lb_hash,cur_pos)
+            if cur_pos==-1: break
+            tstr=instr[cur_pos:cur_pos+100]
+            llist=tstr.splitlines()
+            chapter=llist[0][hash_len:]
+            rlist[chapter]=cur_pos
+            c_list.append(chapter)
+            cur_pos+=1
+    else:
+        #if there is NO lb_hash string found, try to automatic guess the catalog
+        chnum_str=u'(零|一|二|三|四|五|六|七|八|九|十|百|千|万|0|1|2|3|4|5|6|7|8|9)'
+        ch_ten_str=u'(十|百|千|万)'
+        ch_ten_dict={u'十':u'0',u'百':u'00',u'千':u'000',u'万':u'0000',}
+        ch_dict={u'零':u'0',u'一':u'1',u'二':u'2',u'三':u'3',u'四':u'4',u'五':u'5',u'六':u'6',u'七':u'7',u'八':u'8',u'九':u'9',}
+        p=re.compile(u'第'+chnum_str+u'+(章|节|部|卷)',re.L|re.U)
+        m_list=p.finditer(instr)
+        #last_chapter=None
+        for m in m_list:
+            re_start_pos=m.start()
+            re_end_pos=m.end()
+##            if last_chapter==instr[re_start_pos:re_end_pos]:
+##                continue
+##            else:
+##                last_chapter=instr[re_start_pos:re_end_pos]
+            start_pos=re_start_pos
+            ch=instr[start_pos]
+            pos1=start_pos
+            while ch<>'\n':
+                pos1-=1
+                ch=instr[pos1]
+            pos1+=1
+            pos2=start_pos
+            ch=instr[start_pos]
+            while ch<>'\n':
+                pos2+=1
+                ch=instr[pos2]
+            #pos2-=1
+            if pos2-pos1>50:continue
+            chapter=instr[pos1:pos2]
+            rlist[chapter]=pos1
+            c_list.append(chapter)
+    return (rlist,c_list)
 
 
 def AnyToUnicode(input_str,coding=None):
@@ -1596,9 +1657,11 @@ def readKeyConfig():
         kconfig.append((u'查找','C---+"F"'))
         kconfig.append((u'查找下一个','----+WXK_F3'))
         kconfig.append((u'查找上一个','----+WXK_F4'))
+        kconfig.append((u'替换','C---+"H"'))
         kconfig.append((u'纸张显示模式','-A--+"M"'))
         kconfig.append((u'书本显示模式','-A--+"B"'))
         kconfig.append((u'竖排书本显示模式','-A--+"N"'))
+        kconfig.append((u'显示目录','C---+"U"'))
         kconfig.append((u'显示工具栏','C---+"T"'))
         kconfig.append((u'全屏显示','C---+"I"'))
         kconfig.append((u'显示文件侧边栏','-A--+"D"'))
@@ -1616,7 +1679,8 @@ def readKeyConfig():
         kconfig.append((u'显示进度条','----+"Z"'))
         kconfig.append((u'增大字体','----+"="'))
         kconfig.append((u'减小字体','----+"-"'))
-
+        kconfig.append((u'清空缓存','CA--+"Q"'))
+        kconfig.append((u'最小化','----+WXK_ESCAPE'))
         KeyConfigList.append(kconfig)
         i=1
         tl=len(kconfig)
@@ -1655,12 +1719,14 @@ def readKeyConfig():
         kconfig.append((u'退出','-A--+"X"'))
         kconfig.append((u'拷贝','C---+"C"'))
         kconfig.append((u'查找','C---+"F"'))
+        kconfig.append((u'替换','C---+"H"'))
         kconfig.append((u'查找下一个','----+WXK_F3'))
         kconfig.append((u'查找上一个','----+WXK_F4'))
         kconfig.append((u'纸张显示模式','-A--+"M"'))
         kconfig.append((u'书本显示模式','-A--+"B"'))
         kconfig.append((u'竖排书本显示模式','-A--+"N"'))
         kconfig.append((u'显示工具栏','C---+"T"'))
+        kconfig.append((u'显示目录','C---+"U"'))
         kconfig.append((u'全屏显示','C---+"I"'))
         kconfig.append((u'显示文件侧边栏','-A--+"D"'))
         kconfig.append((u'自动翻页','-A--+"T"'))
@@ -1677,6 +1743,8 @@ def readKeyConfig():
         kconfig.append((u'显示进度条','----+"Z"'))
         kconfig.append((u'增大字体','----+"="'))
         kconfig.append((u'减小字体','----+"-"'))
+        kconfig.append((u'清空缓存','CA--+"Q"'))
+        kconfig.append((u'最小化','----+WXK_ESCAPE'))
 
         KeyConfigList.append(kconfig)
     else:
@@ -1918,7 +1986,15 @@ def readConfigFile():
         GlobalConfig['ShowAllFileInSidebar']=True
 
     try:
-        flist=(config.items('LastOpenedFiles'))
+        t_flist=(config.items('LastOpenedFiles'))
+        di={}
+        for f in t_flist:
+            di[f[0]]=f[1]
+        flist=[]
+        newl=di.keys()
+        newl.sort()
+        for k in newl:
+            flist.append((k,di[k]))        
         i=1
         for f in flist:
             if i>GlobalConfig['MaxOpenedFiles']: break
@@ -2341,6 +2417,24 @@ def jarfile_decode(infile):
     if not zipfile.is_zipfile(infile):
         return False
     zfile=zipfile.ZipFile(infile)
+    cache_dir=cur_file_dir()+u"/cache"
+    fp=open(infile,'r')
+    s=fp.read()
+    m=hashlib.md5()
+    m.update(s)
+    c_name=m.hexdigest()
+    if os.path.isfile(cache_dir+"/"+c_name):
+        ffp=codecs.open(cache_dir+"/"+c_name,encoding='gbk',mode='r')
+        try:
+            s=ffp.read()
+            if s<>'' and s<>None and s<>False:
+                ffp.close()
+                return s
+            else:
+                ffp.close()
+        except:
+            ffp.close()
+    
     i=1
     content=u''
     while True:
@@ -2350,35 +2444,79 @@ def jarfile_decode(infile):
             break
         content+=txt.decode('utf-16','ignore')
         i+=1
-    return content
+    s=content
+    s=s.encode('gbk','ignore')
+    s=s.decode('gbk')
+    CFile=codecs.open(cache_dir+u'/'+c_name,encoding='gbk',mode='w')
+    CFile.write(s)
+    CFile.close()
+    return s    
 
 def epubfile_decode(infile):
     #decode epub file,return unicode
-    if not zipfile.is_zipfile(infile):
-        return False
+    global lb_hash
+    if not zipfile.is_zipfile(infile):return False
     zfile=zipfile.ZipFile(infile)
+
+    cache_dir=cur_file_dir()+u"/cache"
+    fp=open(infile,'r')
+    s=fp.read()
+    m=hashlib.md5()
+    m.update(s)
+    c_name=m.hexdigest()
+    if os.path.isfile(cache_dir+"/"+c_name):
+        ffp=codecs.open(cache_dir+"/"+c_name,encoding='gbk',mode='r')
+        try:
+            s=ffp.read()
+            if s<>'' and s<>None and s<>False:
+                ffp.close()
+                return s
+            else:
+                ffp.close()
+        except:
+            ffp.close()
+
+
+
     i=1
     content=u''
     clist=[]
     for fname in zfile.namelist():
+        if os.path.basename(fname).lower()=='toc.ncx':
+            dirfile=fname
         fext=os.path.splitext(fname)[1].lower()
         if fext==".xml" or fext==".html" or fext==".htm":
             if fname<>'META-INF/container.xml':
                 clist.append(fname)
+    fp=zfile.open(dirfile)
+    instr=fp.read()
+    gc=gcepub.GCEPUB(instr)
+    gc.parser()
+    rlist=gc.GetRList()
     clist=sorted(clist)
     for fname in clist:
-        fname=fname.decode("GBK","replace")
         try:
-            txt=zfile.read(fname)
+            fp=zfile.open(fname,"r")
+        except:break
+        txt=fp.read()
+        fname=fname.decode('gbk')
+        try:
+            chapter=rlist[os.path.basename(fname)]
         except:
-            break
-
+            chapter='LiteBook'
+        content+=lb_hash+chapter+'\n'
         try:
             content+=txt.decode('utf-8','ignore')
         except:
-            content+=txt.decode('utf-16','ignor')
+            content+=txt.decode('utf-16','ignore')
+    s=htm2txt(content)
+    s=s.encode('gbk','ignore')
+    s=s.decode('gbk')
+    CFile=codecs.open(cache_dir+u'/'+c_name,encoding='gbk',mode='w')
+    CFile.write(s)
+    CFile.close()
+    return s
 
-    return htm2txt(content)
 
 import struct
 import zlib
@@ -2926,6 +3064,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
     UpdateSidebar=False
     SidebarPos=300 # inital postion value for dir sidebar
     Formated=False
+    cur_catalog=None
     func_list={
     u'向上翻行':'self.text_ctrl_1.ScrollLine(-1)',
     u'向下翻行':'self.text_ctrl_1.ScrollLine(1)',
@@ -2952,12 +3091,14 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
     u'退出':'self.Menu107(None)',
     u'拷贝':'self.Menu202(None)',
     u'查找':'self.Menu203(None)',
+    u'替换':'self.Menu206(None)',
     u'查找下一个':'self.Menu204(None)',
     u'查找上一个':'self.Menu205(None)',
     u'纸张显示模式':'self.Menu601(None)',
     u'书本显示模式':'self.Menu602(None)',
     u'竖排书本显示模式':'self.Menu603(None)',
     u'显示工具栏':'self.Menu501(None)',
+    u'显示目录':'self.Menu509(None)',
     u'全屏显示':'self.Menu503(None)',
     u'显示文件侧边栏':'self.Menu502(None)',
     u'自动翻页':'self.Menu505(None)',
@@ -2974,6 +3115,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
     u'显示进度条':'self.ShowSlider()',
     u'增大字体':'self.ChangeFontSize(1)',
     u'减小字体':'self.ChangeFontSize(-1)',
+    u'清空缓存':'self.Menu112()',
+    u'最小化':'self.OnESC(None)',
     }
 
     def __init__(self,parent,openfile=None):
@@ -2983,7 +3126,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.toolbar_visable=True
         self.FileHistoryDiag=None
         self.cnsort=cnsort()
-
+        self.last_search_pos=False
+        
         # begin wxGlade: MyFrame.__init__
         #kwds["style"] = wx.DEFAULT_FRAME_STYLE
         wx.Frame.__init__(self,parent,-1)
@@ -2997,6 +3141,11 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.window_1_pane_1 = wx.Panel(self.window_1, -1)
         self.list_ctrl_1 = wx.ListCtrl(self.window_1_pane_1, -1, style=wx.LC_REPORT)
         self.text_ctrl_1 = liteview.LiteView(self.window_1_pane_2)
+        
+        #set droptarget
+        dt = FileDrop(self)
+        self.text_ctrl_1.SetDropTarget(dt)        
+        
         #load apperance
 
         if GlobalConfig['backgroundimg']<>'' and GlobalConfig['backgroundimg']<>None:
@@ -3039,7 +3188,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         wxglade_tmp_menu.Append(110, u"搜索小说网站(&S)"+KeyMenuList[u'搜索小说网站'], u"搜索小说网站", wx.ITEM_NORMAL)
         wxglade_tmp_menu.Append(111, u"重新载入插件"+KeyMenuList[u'重新载入插件'], u"重新载入插件", wx.ITEM_NORMAL)
         wxglade_tmp_menu.AppendSeparator()
-
+        wxglade_tmp_menu.Append(112, u"清空缓存(&O)"+KeyMenuList[u'清空缓存'], u"清空缓存目录", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.AppendSeparator()        
         wxglade_tmp_menu.Append(106, u"选项(&O)"+KeyMenuList[u'选项'], u"程序的设置选项", wx.ITEM_NORMAL)
         wxglade_tmp_menu.AppendSeparator()
         wxglade_tmp_menu.Append(107, u"退出(&X)"+KeyMenuList[u'退出'], u"退出本程序", wx.ITEM_NORMAL)
@@ -3050,6 +3200,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         wxglade_tmp_menu.Append(203, u"查找(&S)"+KeyMenuList[u'查找'], u"在打开的文件中查找", wx.ITEM_NORMAL)
         wxglade_tmp_menu.Append(204, u"查找下一个(&N)"+KeyMenuList[u'查找下一个'], u"查找下一个", wx.ITEM_NORMAL)
         wxglade_tmp_menu.Append(205, u"查找上一个(&N)"+KeyMenuList[u'查找上一个'], u"查找上一个", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(206, u"替换(&R)"+KeyMenuList[u'替换'], u"在打开的文件中查找并替换", wx.ITEM_NORMAL)
         self.frame_1_menubar.Append(wxglade_tmp_menu, u"查找(&S)")
         wxglade_tmp_menu = wx.Menu()
         self.ViewMenu=wxglade_tmp_menu
@@ -3065,6 +3216,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         wxglade_tmp_menu.Append(502, u"显示文件侧边栏"+KeyMenuList[u'显示文件侧边栏'], u"是否显示文件侧边栏", wx.ITEM_CHECK)
         wxglade_tmp_menu.Append(505, u"自动翻页"+KeyMenuList[u'自动翻页'], u"是否自动翻页", wx.ITEM_CHECK)
         wxglade_tmp_menu.Append(506, u"显示进度条"+KeyMenuList[u'显示进度条'], u"显示进度条", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(509, u"显示目录"+KeyMenuList[u'显示目录'], u"显示目录", wx.ITEM_NORMAL)
         if not GlobalConfig['HideToolbar']:
             self.toolbar_visable=True
             wxglade_tmp_menu.Check(501,True)
@@ -3148,10 +3300,12 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.Bind(wx.EVT_MENU, self.Menu109, id=109)
         self.Bind(wx.EVT_MENU, self.Menu110, id=110)
         self.Bind(wx.EVT_MENU, self.Menu111, id=111)
+        self.Bind(wx.EVT_MENU, self.Menu112, id=112)
         self.Bind(wx.EVT_MENU, self.Menu202, id=202)
         self.Bind(wx.EVT_MENU, self.Menu203, id=203)
         self.Bind(wx.EVT_MENU, self.Menu204, id=204)
         self.Bind(wx.EVT_MENU, self.Menu205, id=205)
+        self.Bind(wx.EVT_MENU, self.Menu206, id=206)
         self.Bind(wx.EVT_MENU, self.Menu301, id=301)
         self.Bind(wx.EVT_MENU, self.Menu302, id=302)
         self.Bind(wx.EVT_MENU, self.Menu401, id=401)
@@ -3165,6 +3319,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.Bind(wx.EVT_MENU, self.ShowSlider, id=506)
         self.Bind(wx.EVT_MENU, self.Menu507, id=507)
         self.Bind(wx.EVT_MENU, self.Menu508, id=508)
+        self.Bind(wx.EVT_MENU, self.Menu509, id=509)
         self.Bind(wx.EVT_MENU, self.Menu601, id=601)
         self.Bind(wx.EVT_MENU, self.Menu602, id=602)
         self.Bind(wx.EVT_MENU, self.Menu603, id=603)
@@ -3204,6 +3359,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.Bind(wx.EVT_FIND, self.OnFind)
         self.Bind(wx.EVT_FIND_NEXT, self.OnFind)
         self.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
+        self.Bind(wx.EVT_FIND_REPLACE, self.OnReplace)
+        self.Bind(wx.EVT_FIND_REPLACE_ALL, self.OnReplace)        
         self.Bind(wx.EVT_CLOSE,self.OnClose)
         self.Bind(wx.EVT_ACTIVATE,self.OnWinActive)
         self.Bind(EVT_UPDATE_STATUSBAR,self.UpdateStatusBar)
@@ -3229,25 +3386,25 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         # load last opened file
         if openfile<>None:
             openfile=openfile.decode('GBK')
-            self.LoadFile([openfile])
+            self.LoadFile([openfile],startup=True)
         else:
             if GlobalConfig['LoadLastFile']==True:
                 flist=[]
                 if GlobalConfig['LastFile'].find('*')==-1: # if there is only one last opened file
                     flist.append(GlobalConfig['LastFile'])
                     if GlobalConfig['LastZipFile']=='':
-                        if flist[0].strip()<>'':self.LoadFile(flist,pos=GlobalConfig['LastPos'])
+                        if flist[0].strip()<>'':self.LoadFile(flist,pos=GlobalConfig['LastPos'],startup=True)
                     else:
-                        if flist[0].strip()<>'':self.LoadFile(flist,'zip',GlobalConfig['LastZipFile'],pos=GlobalConfig['LastPos'])
+                        if flist[0].strip()<>'':self.LoadFile(flist,'zip',GlobalConfig['LastZipFile'],pos=GlobalConfig['LastPos'],startup=True)
                 else: # if there are multiple last opened files
                     for f in GlobalConfig['LastFile'].split('*'):
                         flist=[]
                         if f.find('|')==-1:
                             flist.append(f)
-                            self.LoadFile(flist,openmethod='append')
+                            self.LoadFile(flist,openmethod='append',startup=True)
                         else:
                             flist.append(f.split('|')[1])
-                            self.LoadFile(flist,'zip',f.split('|')[0].strip(),openmethod='append')
+                            self.LoadFile(flist,'zip',f.split('|')[0].strip(),openmethod='append',startup=True)
                     self.text_ctrl_1.SetSelection(GlobalConfig['LastPos'],GlobalConfig['LastPos'])
                     self.text_ctrl_1.ShowPosition(GlobalConfig['LastPos'])
 
@@ -3418,12 +3575,15 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         mbar.SetLabel(105,u"下一个文件(&N)"+KeyMenuList[u'下一个文件'])
         mbar.SetLabel(110,u"搜索小说网站(&S)"+KeyMenuList[u'搜索小说网站'])
         mbar.SetLabel(111,u"重新载入插件"+KeyMenuList[u'重新载入插件'])
+        mbar.SetLabel(112,u"清空缓存"+KeyMenuList[u'清空缓存'])
+            
         mbar.SetLabel(106,u"选项(&O)"+KeyMenuList[u'选项'])
         mbar.SetLabel(107,u"退出(&X)"+KeyMenuList[u'退出'])
         mbar.SetLabel(202,u"拷贝(&C)"+KeyMenuList[u'拷贝'])
         mbar.SetLabel(203,u"查找(&S)"+KeyMenuList[u'查找'])
         mbar.SetLabel(204,u"查找下一个(&N)"+KeyMenuList[u'查找下一个'])
         mbar.SetLabel(205,u"查找上一个(&N)"+KeyMenuList[u'查找上一个'])
+        mbar.SetLabel(206,u"替换(&R)"+KeyMenuList[u'替换'])
         mbar.SetLabel(601,u'纸张显示模式'+KeyMenuList[u'纸张显示模式'])
         mbar.SetLabel(602,u'书本显示模式'+KeyMenuList[u'书本显示模式'])
         mbar.SetLabel(603,u'竖排书本显示模式'+KeyMenuList[u'竖排书本显示模式'])
@@ -3436,7 +3596,9 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         mbar.SetLabel(505,u"自动翻页"+KeyMenuList[u'自动翻页'])
         mbar.SetLabel(506,u"显示进度条"+KeyMenuList[u'显示进度条'])
         mbar.SetLabel(504,u"智能分段"+KeyMenuList[u'智能分段'])
-
+        mbar.SetLabel(507,u"增大字体"+KeyMenuList[u'增大字体'])
+        mbar.SetLabel(508,u"减小字体"+KeyMenuList[u'减小字体'])        
+        mbar.SetLabel(509,u"显示目录"+KeyMenuList[u'显示目录'])
         mbar.SetLabel(301,u"添加到收藏夹(&A)"+KeyMenuList[u'添加到收藏夹'])
         mbar.SetLabel(302,u"整理收藏夹(&M)"+KeyMenuList[u'整理收藏夹'])
         mbar.SetLabel(701,u"过滤HTML标签"+KeyMenuList[u'过滤HTML标记'])
@@ -3489,6 +3651,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         OnScreenFileList=[]
         self.frame_1_statusbar.SetStatusText('Ready.')
         self.SetTitle(u'Litebook2 轻巧读书')
+        self.cur_catalog=None
 
     def Menu104(self, event): # wxGlade: MyFrame.<event_handler>
         self.LoadNextFile(-1)
@@ -3566,6 +3729,27 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         #dlg=FileHistoryDialog(self)
         self.FileHistoryDiag.ShowModal()
         self.FileHistoryDiag.Hide()
+        
+    def Menu112(self,evt):
+        dlg=wx.MessageDialog(self,u'此操作将清空目前所有的缓存文件，确认继续吗？',u'清空缓存',wx.NO_DEFAULT|wx.YES_NO|wx.ICON_QUESTION)
+        if dlg.ShowModal()==wx.ID_YES:
+            flist=glob.glob(cur_file_dir()+u"/cache/*")
+            suc=True
+            for f in flist:
+                try:
+                    os.remove(f)
+                except:
+                    suc=False
+            dlg.Destroy()
+            if suc:
+                mstr=u'缓存已经全部清空！'
+            else:
+                mstr=u'操作结束，过程中发生一些错误'
+            dlg=wx.MessageDialog(self,mstr,u'清空缓存的结果',wx.ICON_INFORMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+    
+        
     def Menu111(self,event):
         readPlugin()
     def Menu110(self,event):
@@ -3611,6 +3795,14 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
     def Menu205(self, event): # wxGlade: MyFrame.<event_handler>
         self.search_flg=0
         self.FindNext()
+    def Menu206(self,evt):
+        searchdata = wx.FindReplaceData()
+        searchdata.SetFlags(1)
+        searchdata.SetFindString(self.search_str)
+        searchdlg = wx.FindReplaceDialog(self, searchdata, u"替换",wx.FR_REPLACEDIALOG| wx.FR_NOMATCHCASE | wx.FR_NOWHOLEWORD)
+        searchdlg.data=searchdata
+        searchdlg.Show(True)
+    
 
     def Menu301(self, event): # wxGlade: MyFrame.<event_handler>
         global OnScreenFileList,BookMarkList
@@ -3761,6 +3953,32 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 
     def Menu508(self,evt):
         self.ChangeFontSize(-1)
+    def Menu509(self,evt):
+        if self.cur_catalog==None:
+            rlist,c_list=GenCatalog(self.text_ctrl_1.GetValue())
+            self.cur_catalog=(rlist,c_list)
+        else:
+            rlist=self.cur_catalog[0]
+            c_list=self.cur_catalog[1]
+        dlg = wx.SingleChoiceDialog(
+                self, u'选择章节并跳转', u'章节选择',
+                choices=c_list,
+                style=wx.CHOICEDLG_STYLE
+                )
+        c_pos=self.text_ctrl_1.GetStartPos()
+        i=0
+        for cc in c_list:
+            if c_pos<rlist[cc]:
+                break
+            else:
+                i+=1
+        dlg.SetSelection(i-1)
+        if dlg.ShowModal() == wx.ID_OK:
+            i=dlg.GetSelection()
+            pos=rlist[c_list[i]]
+            self.text_ctrl_1.JumpTo(pos)
+        dlg.Destroy()
+    
 
     def Menu601(self,event):
         global GlobalConfig
@@ -3949,7 +4167,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 
 
 
-    def LoadFile(self, filepath,type='file',zipfilepath='',openmethod='load',pos=0):
+    def LoadFile(self, filepath,type='file',zipfilepath='',openmethod='load',pos=0,startup=False):
         global GlobalConfig,current_file,current_file_list,current_zip_file,load_zip,OnScreenFileList,CurOnScreenFileIndex
         utext=u''
         ii=0#this is used increase randombility of LiteBook-ID
@@ -3957,10 +4175,22 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         if openmethod=='load':
             self.buff=""
             OnScreenFileList=[]
+        if startup==False:
+            ldlg = GMD.GenericMessageDialog(self, u' 正在载入。。。',u"载入中...",wx.ICON_INFORMATION)
+            ldlg.Show()
+            ldlg.Refresh()
+            ldlg.Update()            
+            
+        else:
+            ldlg=GMD.GenericMessageDialog(self, u' 正在载入。。。',u"载入中...",wx.ICON_INFORMATION)
+        
         if type=='file':
-            if os.path.isfile(filepath[0])==False: return False
+            if os.path.isfile(filepath[0])==False:
+                ldlg.Destroy()
+                return False
             if filepath[0].strip()<>'':GlobalConfig['LastDir']=os.path.split(filepath[0])[0]
             else:
+                ldlg.Destroy()
                 return
             load_zip=False
             self.GenList('file')
@@ -3974,6 +4204,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                             dlg = wx.MessageDialog(self, eachfile+u' 文件打开错误！',u"错误！",wx.OK|wx.ICON_ERROR)
                             dlg.ShowModal()
                             dlg.Destroy()
+                            ldlg.Destroy()
                             return False
                         m=hashlib.md5()
                         eachfile=eachfile.encode('gbk')
@@ -3991,6 +4222,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                                 dlg = wx.MessageDialog(self, eachfile+u' 文件打开错误！',u"错误！",wx.OK|wx.ICON_ERROR)
                                 dlg.ShowModal()
                                 dlg.Destroy()
+                                ldlg.Destroy()
                                 return False
                             utext=umdinfo['Content']
                             m=hashlib.md5()
@@ -4009,6 +4241,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                                     dlg = wx.MessageDialog(self, eachfile+u' 文件打开错误！',u"错误！",wx.OK|wx.ICON_ERROR)
                                     dlg.ShowModal()
                                     dlg.Destroy()
+                                    ldlg.Destroy()
                                     return False
                                 m=hashlib.md5()
                                 eachfile=eachfile.encode('gbk')
@@ -4021,7 +4254,9 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                                 fsize=utext.__len__()
                             else:
                                 coding=DetectFileCoding(eachfile)
-                                if coding=='error': return False
+                                if coding=='error':
+                                    ldlg.Destroy()
+                                    return False
                                 try:
                                     file_handler=open(eachfile,'rb')
                                     t_buff=file_handler.read()
@@ -4029,6 +4264,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                                     dlg = wx.MessageDialog(self, eachfile+u' 文件打开错误！',u"错误！",wx.OK|wx.ICON_ERROR)
                                     dlg.ShowModal()
                                     dlg.Destroy()
+                                    ldlg.Destroy()
                                     return False
                                 m=hashlib.md5()
                                 if GlobalConfig['HashTitle']==False:
@@ -4059,7 +4295,9 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 
 
         else:
-            if os.path.isfile(zipfilepath)==False: return False
+            if os.path.isfile(zipfilepath)==False:
+                ldlg.Destroy()
+                return False
             if type=='zip':
                 if os.path.isfile(zipfilepath):
                     file_ext=os.path.splitext(zipfilepath)[1].lower()
@@ -4074,6 +4312,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                             dlg = wx.MessageDialog(self, zipfilepath+u' 文件打开错误！',u"错误！",wx.OK|wx.ICON_ERROR)
                             dlg.ShowModal()
                             dlg.Destroy()
+                            ldlg.Destroy()
                             return False
 
                         for eachfile in filepath:
@@ -4083,7 +4322,9 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                                 #print chardet.detect(eachfile)['encoding']
                             #eachfile=eachfile.encode('gbk')
                             coding=DetectFileCoding(eachfile,'zip',zipfilepath)
-                            if coding=='error': return False
+                            if coding=='error':
+                                ldlg.Destroy()
+                                return False
                             try:
                                 if isinstance(eachfile, unicode):
                                     eachfile=eachfile.encode('gbk')
@@ -4093,6 +4334,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                                 dlg = wx.MessageDialog(self, eachfile+u' 文件打开错误！',u"错误！",wx.OK|wx.ICON_ERROR)
                                 dlg.ShowModal()
                                 dlg.Destroy()
+                                ldlg.Destroy()
                                 return False
                             m=hashlib.md5()
                             if GlobalConfig['HashTitle']==False:
@@ -4136,13 +4378,16 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                                     dlg = wx.MessageDialog(self, zipfilepath+u' 文件打开错误！',u"错误！",wx.OK|wx.ICON_ERROR)
                                     dlg.ShowModal()
                                     dlg.Destroy()
+                                    ldlg.Destroy()
                                     return False
                                 each_ext=os.path.splitext(eachfile)[1].lower()
                                 if isinstance(eachfile,unicode):
                                     eachfile=eachfile.encode('gbk')
                                 #eachfile=eachfile.encode('gbk')
                                 coding=DetectFileCoding(eachfile,'rar',zipfilepath)
-                                if coding=='error': return False
+                                if coding=='error':
+                                    ldlg.Destroy()
+                                    return False
                                 m=hashlib.md5()
                                 if GlobalConfig['HashTitle']==False:
                                     m.update(t_buff)
@@ -4183,8 +4428,11 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             self.fenduan()
             self.Formated=not self.Formated
 
-        #change the title
+        #fresh sth
         self.SetTitle(u'Litebook2 轻巧读书 --- '+filepath[0])
+        self.cur_catalog=None
+        self.text_ctrl_1.SetFocus()
+        ldlg.Destroy()        
 
 
 
@@ -4392,15 +4640,16 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         fstr=event.GetFindString()
         flag=event.GetFlags()
         fstr=fstr.strip()
+        if self.last_search_pos==False: self.last_search_pos=self.text_ctrl_1.start_pos
         if fstr<>'':
             if fstr<>self.search_str:
                 self.search_str=fstr
-                pos=self.text_ctrl_1.Find(fstr)
+                pos=self.text_ctrl_1.Find(fstr,self.text_ctrl_1.start_pos)
             else:
                 if flag&wx.FR_DOWN:
                     pos=self.text_ctrl_1.Find(fstr,self.last_search_pos+1)
                 else:
-                    pos=self.text_ctrl_1.GetValue().rfind(fstr,self.last_search_pos-1,-1)
+                    pos=self.text_ctrl_1.Find(fstr,self.last_search_pos-1,-1)
             if pos==False:
                 dlg = wx.MessageDialog(self, u'没有找到"'+fstr+u'"',u"查找失败！",wx.OK|wx.ICON_INFORMATION)
                 dlg.ShowModal()
@@ -4411,7 +4660,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                 self.last_search_pos=pos
         self.search_str=fstr
         self.search_flg=flag
-        event.GetDialog().Destroy()
+        #event.GetDialog().Destroy()
 
 
 
@@ -4420,6 +4669,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 
     def FindNext(self):
         if self.search_str=='': return
+        if self.last_search_pos==False: self.last_search_pos=self.text_ctrl_1.start_pos
         if self.search_flg&wx.FR_DOWN:
             pos=self.text_ctrl_1.Find(self.search_str,self.last_search_pos+1)
         else:
@@ -4432,6 +4682,23 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 ##        self.text_ctrl_1.ShowPosition(pos)
         self.last_search_pos=pos
 
+    def OnReplace(self,evt):
+        fstr=evt.GetFindString()
+        rstr=evt.GetReplaceString()
+        flag=evt.GetFlags()
+        buf=self.text_ctrl_1.GetValue()
+        if evt.GetEventType()==wx.wxEVT_COMMAND_FIND_REPLACE:
+            pos=self.text_ctrl_1.GetValue().find(fstr,self.text_ctrl_1.start_pos)
+            #self.text_ctrl_1.JumpTo(pos)
+            buf=buf[:pos]+buf[pos:].replace(fstr,rstr,1)
+            self.text_ctrl_1.SetValue(buf)
+            self.last_search_pos=pos
+            self.text_ctrl_1.JumpTo(pos)
+        else:
+            buf=buf.replace(fstr,rstr)
+            self.text_ctrl_1.SetValue(buf)
+            evt.GetDialog().Destroy()    
+    
     def OpenLastFile(self, event):
         global OpenedFileList
         id=event.GetId()
@@ -4444,6 +4711,12 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                 else:
                     self.LoadFile(flist,'zip',f['zfile'])
                 break
+
+    def OnESC(self,event):
+        if self.IsIconized():
+            self.Iconize(False)
+        else:
+            self.Iconize()    
 
     def OnClose(self, event):
         global OnDirectSeenPage,GlobalConfig,writeKeyConfig
@@ -4595,14 +4868,10 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             txt=event.Value
             txt_len=dc.GetTextExtent(txt)[0]
             if txt_len>field_len:
-                llist=dc.GetPartialTextExtents(txt)
-                m=len(llist)
-                i=m-1
-                while i>=0:
-                    if llist[i]<=field_len:break
-                    i-=1
-                if i>=3:i-=3
-                txt="..."+txt[-1*i:]
+                tlist=txt.split('/')
+                m=len(tlist)
+                txt=txt[:6]+u'.../'+tlist[m-2]+u"/"+tlist[m-1]                
+
             self.frame_1_statusbar.SetStatusText(txt,0)
             pos=int(self.text_ctrl_1.GetPosPercent())
             self.sliderControl.SetValue(pos)
@@ -4979,6 +5248,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             OnScreenFileList.append((event.name,'',event.bk.__len__()))
             #change the title
             self.SetTitle(u'Litebook2 轻巧读书 --- '+event.name)
+            self.cur_catalog=None
         else:
             if rr==u'另存为...':
                 wildcard = u"文本文件(UTF-8) (*.txt)|*.txt|"     \
@@ -6209,7 +6479,10 @@ class DisplayPosThread():
             percent=self.win.text_ctrl_1.GetPosPercent()
             if percent<>False:
                 percent=int(percent)
-                txt=OnScreenFileList[0][0]+u' , '+unicode(percent)+u'%'
+                try:
+                    txt=unicode(percent)+u'% , '+OnScreenFileList[0][0]
+                except:
+                    txt=" "                
                 evt = UpdateStatusBarEvent(FieldNum = 0, Value =txt)
             else:
                 evt = UpdateStatusBarEvent(FieldNum = 0, Value ='')
@@ -8603,8 +8876,32 @@ class cnsort:
                rstr+=self.searchdict(self.dic_py,ichr)[:-1]
         return rstr
 
+class FileDrop(wx.FileDropTarget):
+    def __init__(self, window):
+        wx.FileDropTarget.__init__(self)
+        self.window = window
+
+    def OnDropFiles(self, x, y, filenames):
+        self.window.Menu103(None)
+        for fname in filenames:
+            sufix=fname.lower()[-4:]
+            if sufix=='.rar' or sufix=='.zip':
+                dlg=ZipFileDialog(self.window,fname)
+                dlg.ShowModal()
+                if dlg.selected_files<>[]:
+                    self.window.LoadFile(dlg.selected_files,'zip',fname,openmethod='append')
+                    dlg.Destroy()
+                else:
+                    dlg.Destroy()
+            else:
+                self.window.LoadFile(filenames,openmethod='append')
+
+
 
 if __name__ == "__main__":
+    cache_dir=cur_file_dir()+u"/cache"
+    if not os.path.isdir(cache_dir):
+        os.mkdir(cache_dir)    
     try:
         SqlCon = sqlite3.connect(unicode(os.environ['HOME'],'utf-8')+u"/.litebook.bookdb")
     except:
