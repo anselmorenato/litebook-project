@@ -34,13 +34,14 @@ Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\unrar.dll"; DestDir: "{ap
 Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\w9xpopen.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\litebook2.exe.manifest"; DestDir: "{app}"; Flags: ignoreversion
 Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\litebook.ico"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\LiteBook_Readme.txt"; DestDir: "{app}"; Flags: ignoreversion
+;Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\LiteBook_Readme.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\defaultconfig.ini"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\LiteBook_WhatsNew.txt"; DestDir: "{app}"; Flags: ignoreversion
+;Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\LiteBook_WhatsNew.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\py.dat"; DestDir: "{app}"; Flags: ignoreversion
 Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\bh.dat"; DestDir: "{app}"; Flags: ignoreversion
 Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\icon\*"; DestDir: "{app}\icon"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\lib\*"; DestDir: "{app}\lib"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\UnRAR2\*"; DestDir: "{app}\UnRAR2"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\helpdoc\*"; DestDir: "{app}\helpdoc"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\background\*"; DestDir: "{app}\background"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\plugin\*"; DestDir: "{app}\plugin"; Flags: ignoreversion recursesubdirs createallsubdirs

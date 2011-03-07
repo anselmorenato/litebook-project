@@ -132,6 +132,38 @@ def get_search_result(url,key,useproxy,proxyserver='',proxyport=0,proxyuser='',p
 
 
 
+class GetContent(HTMLParser):
+    #this class is used to extract content of result Page from www.xsxs520.com
+    #the result is put into self.rstr
+    rstr=''
+    title=''
+    start_counting=False
+    start_adv=False
+    start_title=False
+    i=0
+    def handle_starttag(self,tag, attrs):
+        if tag=='h1':
+            self.start_counting=True
+            self.start_title=True
+        if tag=='div':
+            if attrs[0][0]=='id' and attrs[0][1]=='Centent_top': self.start_adv=True
+            if self.i>=4:
+                self.start_counting=False
+            if self.start_counting:
+                self.i+=1
+
+
+    def handle_endtag(self,tag):
+        if tag=='h1':self.start_title=False
+        if tag=='div':
+            if self.start_adv:self.start_adv=False
+
+
+    def handle_data(self,data):
+        if self.start_title:self.title=data.decode('gbk','replace')
+        if self.start_counting and not self.start_adv:
+            self.rstr+=data.decode('gbk','replace')
+
 
 class DBIP(HTMLParser):
     #this class is used to Decode Book Index Page from www.xsxs520.com
@@ -303,10 +335,16 @@ def GetBook(url,bkname='',win=None,evt=None,useproxy=False,proxyserver='',proxyp
                 evt.status='nok'
                 return None
             else:
-                bb+=tr[x]
+                mycd=GetContent()
+                ttt=tr[x].replace('<br />','\n')
+                mycd.feed(ttt)
+                bb+='3de03ac38cc1c2dc0547ee09f866ee7b'+mycd.title+'\n'
+                bb+=mycd.rstr
+                #bb+=tr[x]
                 x+=1
         i+=n
     if not isinstance(bb,unicode):
+
         bb=bb.decode('GBK','replace')
         bb=htm2txt(bb)
     evt.Value=bkname+u' 下载完毕!'

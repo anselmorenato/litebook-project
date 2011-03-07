@@ -1,4 +1,4 @@
-var strings = new Object();
+﻿var strings = new Object();
 
 if(navigator.browserLanguage){
   lang = navigator.browserLanguage;
@@ -8,7 +8,7 @@ if(navigator.browserLanguage){
 
 lang = lang.substr(0,2).toLowerCase();
 
-
+lang="en";
 
 if(lang=='de'){/////////////////////////////German////////////////////////////////////////////////////
 
@@ -97,34 +97,6 @@ strings["Current topic:"]                        = "Huidig onderwerp:";
 strings["Remove"]                                = "Verwijder";
 strings["Add"]                                   = "Voeg toe";
 
-}else if(lang=='cn' || lang=='ch'){//////////////////////////Chinese//////////////////////////////////////////////////////////
-
-strings["Contents"]                              = "内容";
-strings["Index"]                                 = "索引";
-strings["Search"]                                = "搜索";
-strings["Bookmark"]                              = "书签";
-
-strings["Loading the data for search..."]        = "正在载入搜索结果...";
-strings["Type in the word(s) to search for:"]    = "请输入搜索关键字:";
-strings["Search title only"]                     = "只搜索标题";
-strings["Search previous results"]               = "搜索之前的结果";
-strings["Display"]                               = "显示";
-strings["No topics found!"]                      = "未找到结果";
-
-strings["Type in the keyword to find:"]          = "请输入搜索关键字:";
-
-strings["Show all"]                              = "显示所有";
-strings["Hide all"]                              = "隐藏所有";
-strings["Previous"]                              = "前一个";
-strings["Next"]                                  = "下一个";
-
-strings["Loading table of contents..."]          = "正在载入目录 ...";
-
-strings["Topics:"]                               = "主题：";
-strings["Current topic:"]                        = "当前主题:";
-strings["Remove"]                                = "删除";
-strings["Add"]                                   = "增加";
-
 
 }else if(lang=='it'){//////////////////////////Italian////////////////////////////////////////////////
 
@@ -158,7 +130,7 @@ strings["Add"]                                   = "Aggiungi";
 }else if(lang=='se'){//////////////////////////Spanish////////////////////////////////////////////////
 
 strings["Contents"]                              = "Contenidos";
-strings["Index"]                                 = "U+00CDndice";
+strings["Index"]                                 = "Índice";
 strings["Search"]                                = "Buscar";
 strings["Bookmark"]                              = "Guardar";
 
@@ -181,7 +153,7 @@ strings["Loading table of contents..."]          = "Carga de la tabla de conteni
 strings["Topics:"]                               = "Temas";
 strings["Current topic:"]                        = "Tema actual:";
 strings["Remove"]                                = "Eliminar";
-strings["Add"]                                   = "AU+00F1adir";
+strings["Add"]                                   = "Añadir";
 
 
 }else{//////////////////////////////////////English///////////////////////////////////////////////////
