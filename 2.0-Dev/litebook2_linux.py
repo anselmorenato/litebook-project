@@ -12,6 +12,10 @@
 #
 
 #
+#update on 2011-03-08 fix a bug of underline color
+#
+
+#
 #update on 2011-03-07 fix a bug when loading file from rar
 #
 
@@ -1362,8 +1366,8 @@ BookMarkList=[]
 ThemeList=[]
 BookDB=[]
 Ticking=True
-Version='2.2 Linux'
-I_Version=2.20 # this is used to check updated version
+Version='2.21 Linux'
+I_Version=2.21 # this is used to check updated version
 lb_hash='3de03ac38cc1c2dc0547ee09f866ee7b'
 
 def cur_file_dir():
@@ -1380,7 +1384,8 @@ def cur_file_dir():
 
 def str2list(istr):
     rlist=[]
-    if istr[0]<>'(':return istr
+    if istr[0]<>'[' and istr[0]<>'(':
+        return istr
     mlist=istr[1:-1].split(',')
     for m in mlist:
         rlist.append(int(m))

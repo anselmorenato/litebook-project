@@ -1383,7 +1383,8 @@ def GenCatalog(instr):
 
 def str2list(istr):
     rlist=[]
-    if istr[0]<>'(':return istr
+    if istr[0]<>'[' and istr[0]<>'(':
+        return istr
     mlist=istr[1:-1].split(',')
     for m in mlist:
         rlist.append(int(m))
@@ -1461,8 +1462,8 @@ ThemeList=[]
 BookDB=[]
 Ticking=True
 SupportedFileTypes=['.zip','.txt','.rar','.umd','.jar','.epub']
-Version=u'2.2 Windows'
-I_Version=2.20  # this is used to check updated version
+Version=u'2.21 Windows'
+I_Version=2.21  # this is used to check updated version
 SqlCon=None
 linestyle={u'虚线':wx.DOT,u'实线':wx.SOLID,u'长虚线':wx.LONG_DASH,u'点虚线':wx.DOT_DASH}
 rlinestyle={wx.DOT:u'虚线',wx.SOLID:u'实线',wx.LONG_DASH:u'长虚线',wx.DOT_DASH:u'点虚线'}
