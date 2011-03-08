@@ -7,9 +7,12 @@
 # - liteview
 # - chardet
 # - rarfile
-# - unrar2 (modified)
 # - wxpython 2.8.10.1 unicode
 #
+#
+
+#
+#update on 2011-03-07 fix a bug when loading file from rar
 #
 
 #
@@ -1428,9 +1431,9 @@ def DetectFileCoding(filepath,type='txt',zipfilepath=''):
         detector = UniversalDetector()
         line_count=0
         for line in lines:
-            line=line[:100] # decrease this number to improve speed
+            line=line[:800] # decrease this number to improve speed
             detector.feed(line)
-            if detector.done or line_count==50: break# decrease this number to improve speed
+            if detector.done or line_count==1000: break# decrease this number to improve speed
             line_count+=1
         detector.close()
         if detector.result['encoding']<>None:
@@ -2919,14 +2922,15 @@ class ZipFileDialog(wx.Dialog):
             rarfile_list=[]
             rname_list=[]
             for line in rfile.namelist():
+                line=line.replace('\\','/')
                 #line=line.decode('GBK')
-                if isinstance(line,unicode):
-                    line=line.encode('gbk')
+#                if isinstance(line,unicode):
+#                    line=line.encode('gbk')
                 if rfile.getinfo(line).isdir():
 #                    if isinstance(line,str):
 #                        line=line.decode('gbk')
                     line+="/"
-                rarfile_list.append((line.replace("plugi","/")).decode('GBK'))
+                rarfile_list.append((line.replace("plugi","/")))
             for rr in rarfile_list:
                 self.AddLeaf(rr,self.tree_ctrl_1)
         self.image_list=wx.ImageList(16,16,mask=False,initialCount=5)

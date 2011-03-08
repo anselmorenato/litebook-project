@@ -3018,7 +3018,8 @@ class ZipFileDialog(wx.Dialog):
             rarfile_list=[]
             for line in rfile.namelist():
                 if rfile.getinfo(line).isdir():
-                    line=line.decode('GBK')
+                    if not isinstance(line,unicode):
+                        line=line.decode('GBK','ignore')
                     line+=u"\\"
                 rarfile_list.append(line.replace("\\","/"))
             #self.AddTreeNodes(root,rarfile_list)
