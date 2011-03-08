@@ -1994,10 +1994,13 @@ def readConfigFile():
         for f in t_flist:
             di[f[0]]=f[1]
         flist=[]
-        newl=di.keys()
+        tmp_newl=di.keys()
+        newl=[]
+        for n  in tmp_newl:
+            newl.append(int(n))
         newl.sort()
         for k in newl:
-            flist.append((k,di[k]))        
+            flist.append((k,di[str(k)]))        
         i=1
         for f in flist:
             if i>GlobalConfig['MaxOpenedFiles']: break
