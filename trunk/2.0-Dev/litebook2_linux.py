@@ -1362,8 +1362,8 @@ BookMarkList=[]
 ThemeList=[]
 BookDB=[]
 Ticking=True
-Version='2.2 Linux beta'
-I_Version=2.19 # this is used to check updated version
+Version='2.2 Linux'
+I_Version=2.20 # this is used to check updated version
 lb_hash='3de03ac38cc1c2dc0547ee09f866ee7b'
 
 def cur_file_dir():
@@ -2000,7 +2000,7 @@ def readConfigFile():
             newl.append(int(n))
         newl.sort()
         for k in newl:
-            flist.append((k,di[str(k)]))        
+            flist.append((k,di[str(k)]))
         i=1
         for f in flist:
             if i>GlobalConfig['MaxOpenedFiles']: break
@@ -2440,7 +2440,7 @@ def jarfile_decode(infile):
                 ffp.close()
         except:
             ffp.close()
-    
+
     i=1
     content=u''
     while True:
@@ -2456,7 +2456,7 @@ def jarfile_decode(infile):
     CFile=codecs.open(cache_dir+u'/'+c_name,encoding='gbk',mode='w')
     CFile.write(s)
     CFile.close()
-    return s    
+    return s
 
 def epubfile_decode(infile):
     #decode epub file,return unicode
@@ -3134,7 +3134,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.FileHistoryDiag=None
         self.cnsort=cnsort()
         self.last_search_pos=False
-        
+
         # begin wxGlade: MyFrame.__init__
         #kwds["style"] = wx.DEFAULT_FRAME_STYLE
         wx.Frame.__init__(self,parent,-1)
@@ -3148,11 +3148,11 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.window_1_pane_1 = wx.Panel(self.window_1, -1)
         self.list_ctrl_1 = wx.ListCtrl(self.window_1_pane_1, -1, style=wx.LC_REPORT)
         self.text_ctrl_1 = liteview.LiteView(self.window_1_pane_2)
-        
+
         #set droptarget
         dt = FileDrop(self)
-        self.text_ctrl_1.SetDropTarget(dt)        
-        
+        self.text_ctrl_1.SetDropTarget(dt)
+
         #load apperance
 
         if GlobalConfig['backgroundimg']<>'' and GlobalConfig['backgroundimg']<>None:
@@ -3196,7 +3196,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         wxglade_tmp_menu.Append(111, u"重新载入插件"+KeyMenuList[u'重新载入插件'], u"重新载入插件", wx.ITEM_NORMAL)
         wxglade_tmp_menu.AppendSeparator()
         wxglade_tmp_menu.Append(112, u"清空缓存(&O)"+KeyMenuList[u'清空缓存'], u"清空缓存目录", wx.ITEM_NORMAL)
-        wxglade_tmp_menu.AppendSeparator()        
+        wxglade_tmp_menu.AppendSeparator()
         wxglade_tmp_menu.Append(106, u"选项(&O)"+KeyMenuList[u'选项'], u"程序的设置选项", wx.ITEM_NORMAL)
         wxglade_tmp_menu.AppendSeparator()
         wxglade_tmp_menu.Append(107, u"退出(&X)"+KeyMenuList[u'退出'], u"退出本程序", wx.ITEM_NORMAL)
@@ -3367,7 +3367,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.Bind(wx.EVT_FIND_NEXT, self.OnFind)
         self.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
         self.Bind(wx.EVT_FIND_REPLACE, self.OnReplace)
-        self.Bind(wx.EVT_FIND_REPLACE_ALL, self.OnReplace)        
+        self.Bind(wx.EVT_FIND_REPLACE_ALL, self.OnReplace)
         self.Bind(wx.EVT_CLOSE,self.OnClose)
         self.Bind(wx.EVT_ACTIVATE,self.OnWinActive)
         self.Bind(EVT_UPDATE_STATUSBAR,self.UpdateStatusBar)
@@ -3583,7 +3583,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         mbar.SetLabel(110,u"搜索小说网站(&S)"+KeyMenuList[u'搜索小说网站'])
         mbar.SetLabel(111,u"重新载入插件"+KeyMenuList[u'重新载入插件'])
         mbar.SetLabel(112,u"清空缓存"+KeyMenuList[u'清空缓存'])
-            
+
         mbar.SetLabel(106,u"选项(&O)"+KeyMenuList[u'选项'])
         mbar.SetLabel(107,u"退出(&X)"+KeyMenuList[u'退出'])
         mbar.SetLabel(202,u"拷贝(&C)"+KeyMenuList[u'拷贝'])
@@ -3604,7 +3604,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         mbar.SetLabel(506,u"显示进度条"+KeyMenuList[u'显示进度条'])
         mbar.SetLabel(504,u"智能分段"+KeyMenuList[u'智能分段'])
         mbar.SetLabel(507,u"增大字体"+KeyMenuList[u'增大字体'])
-        mbar.SetLabel(508,u"减小字体"+KeyMenuList[u'减小字体'])        
+        mbar.SetLabel(508,u"减小字体"+KeyMenuList[u'减小字体'])
         mbar.SetLabel(509,u"显示目录"+KeyMenuList[u'显示目录'])
         mbar.SetLabel(301,u"添加到收藏夹(&A)"+KeyMenuList[u'添加到收藏夹'])
         mbar.SetLabel(302,u"整理收藏夹(&M)"+KeyMenuList[u'整理收藏夹'])
@@ -3736,7 +3736,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         #dlg=FileHistoryDialog(self)
         self.FileHistoryDiag.ShowModal()
         self.FileHistoryDiag.Hide()
-        
+
     def Menu112(self,evt):
         dlg=wx.MessageDialog(self,u'此操作将清空目前所有的缓存文件，确认继续吗？',u'清空缓存',wx.NO_DEFAULT|wx.YES_NO|wx.ICON_QUESTION)
         if dlg.ShowModal()==wx.ID_YES:
@@ -3755,8 +3755,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             dlg=wx.MessageDialog(self,mstr,u'清空缓存的结果',wx.ICON_INFORMATION)
             dlg.ShowModal()
             dlg.Destroy()
-    
-        
+
+
     def Menu111(self,event):
         readPlugin()
     def Menu110(self,event):
@@ -3809,7 +3809,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         searchdlg = wx.FindReplaceDialog(self, searchdata, u"替换",wx.FR_REPLACEDIALOG| wx.FR_NOMATCHCASE | wx.FR_NOWHOLEWORD)
         searchdlg.data=searchdata
         searchdlg.Show(True)
-    
+
 
     def Menu301(self, event): # wxGlade: MyFrame.<event_handler>
         global OnScreenFileList,BookMarkList
@@ -3985,7 +3985,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             pos=rlist[c_list[i]]
             self.text_ctrl_1.JumpTo(pos)
         dlg.Destroy()
-    
+
 
     def Menu601(self,event):
         global GlobalConfig
@@ -4186,11 +4186,11 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             ldlg = GMD.GenericMessageDialog(self, u' 正在载入。。。',u"载入中...",wx.ICON_INFORMATION)
             ldlg.Show()
             ldlg.Refresh()
-            ldlg.Update()            
-            
+            ldlg.Update()
+
         else:
             ldlg=GMD.GenericMessageDialog(self, u' 正在载入。。。',u"载入中...",wx.ICON_INFORMATION)
-        
+
         if type=='file':
             if os.path.isfile(filepath[0])==False:
                 ldlg.Destroy()
@@ -4439,7 +4439,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.SetTitle(u'Litebook2 轻巧读书 --- '+filepath[0])
         self.cur_catalog=None
         self.text_ctrl_1.SetFocus()
-        ldlg.Destroy()        
+        ldlg.Destroy()
 
 
 
@@ -4704,8 +4704,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         else:
             buf=buf.replace(fstr,rstr)
             self.text_ctrl_1.SetValue(buf)
-            evt.GetDialog().Destroy()    
-    
+            evt.GetDialog().Destroy()
+
     def OpenLastFile(self, event):
         global OpenedFileList
         id=event.GetId()
@@ -4723,7 +4723,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         if self.IsIconized():
             self.Iconize(False)
         else:
-            self.Iconize()    
+            self.Iconize()
 
     def OnClose(self, event):
         global OnDirectSeenPage,GlobalConfig,writeKeyConfig
@@ -4877,7 +4877,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             if txt_len>field_len:
                 tlist=txt.split('/')
                 m=len(tlist)
-                txt=txt[:6]+u'.../'+tlist[m-2]+u"/"+tlist[m-1]                
+                txt=txt[:6]+u'.../'+tlist[m-2]+u"/"+tlist[m-1]
 
             self.frame_1_statusbar.SetStatusText(txt,0)
             pos=int(self.text_ctrl_1.GetPosPercent())
@@ -6489,7 +6489,7 @@ class DisplayPosThread():
                 try:
                     txt=unicode(percent)+u'% , '+OnScreenFileList[0][0]
                 except:
-                    txt=" "                
+                    txt=" "
                 evt = UpdateStatusBarEvent(FieldNum = 0, Value =txt)
             else:
                 evt = UpdateStatusBarEvent(FieldNum = 0, Value ='')
@@ -8908,7 +8908,7 @@ class FileDrop(wx.FileDropTarget):
 if __name__ == "__main__":
     cache_dir=cur_file_dir()+u"/cache"
     if not os.path.isdir(cache_dir):
-        os.mkdir(cache_dir)    
+        os.mkdir(cache_dir)
     try:
         SqlCon = sqlite3.connect(unicode(os.environ['HOME'],'utf-8')+u"/.litebook.bookdb")
     except:
