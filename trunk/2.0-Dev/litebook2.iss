@@ -7,8 +7,8 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{C271CABE-D1DE-46B3-A92B-2CFD5DE732D5}
 AppName=LiteBook v2
-AppVerName=LiteBook v2.2
-OutputBaseFilename=LiteBook2_v2.2_Win_setup
+AppVerName=LiteBook v2.3 Beta
+OutputBaseFilename=LiteBook2_v2.30_beta_Win_setup
 AppPublisher=Hu Jun
 AppPublisherURL=http://sites.google.com/site/litebooksite/
 AppSupportURL=http://sites.google.com/site/litebooksite/
@@ -45,6 +45,7 @@ Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\UnRAR2\*"; DestDir: "{app
 Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\helpdoc\*"; DestDir: "{app}\helpdoc"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\background\*"; DestDir: "{app}\background"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\plugin\*"; DestDir: "{app}\plugin"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\templates\*"; DestDir: "{app}\templates"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "vcredist_x86.exe"; DestDir: "{tmp}"; Check: NeedInstallVC9SP1
 
 [Icons]

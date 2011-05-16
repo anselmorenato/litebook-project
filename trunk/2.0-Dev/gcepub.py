@@ -11,6 +11,11 @@
 #!/usr/bin/env python
 
 import xml.parsers.expat
+import re
+
+
+
+
 class GCEPUB:
     def __init__(self,instr):
         self.ecount=0
