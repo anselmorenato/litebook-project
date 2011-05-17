@@ -10,6 +10,10 @@ LiteBook是一个运行在windows和Linux下的开源看书软件，具备如下
 － 可以灵活定制的快捷键方案
 － 支持Text/HTML/UMD/JAR/EPUB格式
 － 支持直接读取ZIP和RAR压缩包中的文件
+－ 导出为EPUB文件
+－ 内置WEB服务器以及基于mDNS的自动发现功能
+－ 完美支持IPHONE/IPAD上的看书APP: Stanza
+－ 支持iBooks
 － 支持智能分段
 － 支持自动生成章节列表
 － 在线小说网站搜索并下载（可以通过插件的方式进行扩展）
@@ -77,6 +81,11 @@ WxPython:Robin Dunn,Harri Pasanen
 chardect: Mark Pilgrim
 rarfile: Marko Kreen
 unrar2:Konstantin Yegupov
+python zeroconf:Paul Scott-Murphy
+python wmi: Tim Golden 
+genshi: Edgewall Software
+lxml: http://lxml.de
+python-epub-builder:timtanbin
 fanjian:ne.manman@gmail.com
 本软件的网络搜索功能支持并感谢如下网站：
 易读：www.yilook.com
