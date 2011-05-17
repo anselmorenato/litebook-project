@@ -25,11 +25,10 @@
 #2011-01-25 add drag&drop to open file
 #2011-01-26 add replace and update the find
 import wmi
-import subprocess
 import Zeroconf
 import socket
-import genshi
-import lxml
+##import genshi
+##import lxml
 try:
     from cStringIO import StringIO
 except ImportError:
