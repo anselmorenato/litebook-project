@@ -1,0 +1,132 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+<title>上传至移动设备</title>
+<meta name="GENERATOR" content="WinCHM">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+
+
+
+<link href="template1/winchm_template_style.css" rel="stylesheet" type="text/css">
+<script type="text/javascript">
+function d_onresize(){
+if (window.navigator.userAgent.indexOf("MSIE")>=1){
+document.getElementById('winchm_template_content').style.pixelWidth = document.body.offsetWidth - 3;
+document.getElementById('winchm_template_content').style.pixelHeight = document.body.offsetHeight - document.getElementById('winchm_template_top').offsetHeight - 4;
+}
+document.getElementById('winchm_template_content').style.top = document.getElementById('winchm_template_top').offsetHeight + 'px';
+}
+
+function d_onbeforeprint(){
+document.getElementById('winchm_template_content').style.width = 'auto';
+document.getElementById('winchm_template_content').style.height = 'auto';
+}
+
+function d_onafterprint(){
+d_onresize();
+}
+
+window.onload = d_onresize;
+window.onresize = d_onresize;
+window.onbeforeprint = d_onbeforeprint;
+window.onafterprint = d_onafterprint;
+</script>
+</head>
+
+<body><script language="JavaScript" type="text/JavaScript">
+function syn(){
+if(parent.nav.tree){
+ if(parent.nav.tree.loaded){
+  parent.nav.tree.selectNode(6);
+ }else{
+  setTimeout("syn()",500);
+}
+  }else{
+  setTimeout("syn()",500);
+  }}
+if(parent!=self){
+  setTimeout("syn()",100);
+}else{
+  parent.location.href = "../index.htm#page=iOS_uploading.html";
+}
+originalOnload = window.onload;
+if(originalOnload==null){
+window.onload = function(){parent.contentLoaded = true;};
+}else{
+window.onload = function(){originalOnload();parent.contentLoaded = true;};
+}
+</script> 
+
+
+<div id="winchm_template_top">
+<table width="100%" height="50" bgcolor="#c4d0f4" style="WIDTH: 100%" cellSpacing=0 cellPadding=3 border=0>
+<tr>
+<td>
+<div id="winchm_template_navigation">
+<em>litebook2&nbsp;Help &gt; <A href="features.html">功能介绍</A> &gt; </em> </div>
+<div id="winchm_template_title">
+上传至移动设备</div>
+</td>
+<td align="right" style="WIDTH: 90px">
+<A href="features.html" title="Previous"><img id="winchm_template_prev" src="template1/btn_prev_n.gif" border="0"></a><A href="showmode.html" title="Next"><img id="winchm_template_next" src="template1/btn_next_n.gif" border="0"></a>
+</td>
+</tr>
+</table>
+</div>
+<div id="winchm_template_content">
+<p>
+<P><FONT face=Arial size=2>从ver2.3开始，litebook支持将电脑中的书上传到移动设备，目前支持如下移动看书APP： </FONT></P>
+<UL>
+  <LI><FONT size=2 face=Arial>IPHONE/IPAD上的Stanza</FONT><FONT size=2 
+  face=Arial>
+  <LI><FONT size=2 face=Arial>IPHONE/IPAD上的iBooks</FONT></LI></UL>
+<P>由于Stanza和iBooks都支持EPUB格式的电子书，因此上传书分为以下步骤：</P>
+<OL>
+  <LI>
+<DIV>将图书转化为EPUB格式（如果已经是EPUB格式，那么这步可以跳过）</DIV>
+  <LI>
+<DIV 
+  >将EPUB电子书拷入电脑上的共享目录（或者可以在第一步格式转换将输出目录直接设置为共享目录）</DIV>
+  <LI>
+<DIV>启用litebook内置的WEB服务器</DIV>
+  <LI>
+<DIV>使用Stanza/iBooks下载共享的EPUB图书</DIV></LI></OL>
+<HR>
+<P>Stanza的操作步骤:</P>
+<OL>
+  <LI>
+<DIV>生成EPUB文件，见下图：</DIV></LI></OL>
+<P><IMG alt="" src="pic/litebook_Gen_EPUB.png"></P>
+<P>两种章节划分方式：</P>
+<UL>
+  <LI>
+<DIV>自动：litebook会自动检测并划分章节</DIV>
+  <LI>
+<DIV>安装字数：安装所输入的字数划分章节</DIV></LI></UL>
+<P>注：输出文件的缺省目录就是缺省的共享文件目录，当前文件名会作为新的EPUB文件名。</P>
+<P>2.将EPUB文件拷入共享目录，共享目录可以在选项-控制设置里进行选择。如果在第一步中已经将输出文件放在了共享目录中，那么这步可以跳过。</P>
+<P>3.启用WEB服务器：通过菜单“工具”-》“启用WEB服务器”</P>
+<P>4.打开Stanza程序，在下方的主菜单中选择“Get 
+Books"。缺省情况下Stanza将自动发现litebook的共享源，如下图所示：</P>
+<P><IMG style="WIDTH: 261px; HEIGHT: 396px" alt="" src="pic/Stanza.png" width=374 height=755> 
+</P>
+<P> 
+选择“litebook_shared“，然后下载图书即可。</P>
+<P>如果Stanza无法自动发现litebook的话，也可以按右上方的“+”按钮手动添加源，URL的格式为“http://MY_IP:8000”，其中MY_IP是你电脑的IPv4地址。在windows下可以通过IPCONFIG命令获得，8000是缺省的端口号，你也可以在litebook选项中修改为其他的端口。</P>
+<HR>
+<P>iBooks 
+的操作步骤：</P>
+<P> 
+1，2两步和Stanza相同。</P>
+<P>3. 打开Safari浏览器，访问<A 
+href="http://MY_IP:8000">http://MY_IP:8000</A>”，其中MY_IP是你电脑的IPv4地址。在windows下可以通过IPCONFIG命令获得，8000是缺省的端口号，你也可以在litebook选项中修改为其他的端口。</P>
+<P> 
+4.下载你要的书，下载完毕和选择“用iBooks打开”</P>
+<P>&nbsp;</P></FONT></p>
+<hr><font face="Arial" color="#808080" size="1"> Copyright 2009-2011 Hu 
+Jun</font>      </div>
+
+</body>
+</html>
