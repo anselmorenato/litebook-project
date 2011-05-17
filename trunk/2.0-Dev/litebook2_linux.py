@@ -11,23 +11,22 @@
 #
 #
 
-#
-#update on 2011-03-08 fix a bug of underline color
-#
 
-#
-#update on 2011-03-07 fix a bug when loading file from rar
-#
 
-#
-#update on 2010.12.2
-# fix a bug of resizing not working under linux
-#
-
-#
-#update on 2010.11.27
-# 1st 2.0 beta for linux
-#
+import dbus
+import Zeroconf
+import socket
+import genshi
+import lxml
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from StringIO import StringIO
+import mimetypes
+import SocketServer
+import posixpath
+import BaseHTTPServer
+import ez_epub
 import gcepub
 import ComboDialog
 import liteview
@@ -1322,6 +1321,106 @@ zh_dict={
 
 }
 
+def GetMDNSIP():
+    global GlobalConfig
+    """This function return IPv4 addr of 1st WLAN interface. if there is no WLAN interface, then it will return the v4 address of the main interface """
+    bus = dbus.SystemBus()
+    proxy = bus.get_object("org.freedesktop.NetworkManager",
+    "/org/freedesktop/NetworkManager")
+    manager = dbus.Interface(proxy, "org.freedesktop.NetworkManager")
+    # Get device-specific state
+    devices = manager.GetDevices()
+    for d in devices:
+       dev_proxy = bus.get_object("org.freedesktop.NetworkManager", d)
+       prop_iface = dbus.Interface(dev_proxy, "org.freedesktop.DBus.Properties")
+
+       # Get the device's current state and interface name
+       state = prop_iface.Get("org.freedesktop.NetworkManager.Device", "State")
+       name = prop_iface.Get("org.freedesktop.NetworkManager.Device", "Interface")
+       ifa = "org.freedesktop.NetworkManager.Device"
+       type = prop_iface.Get(ifa, "DeviceType")
+       addr = prop_iface.Get(ifa, "Ip4Address")
+
+       wlan_ip=None
+       candidate_ip=None
+       if state == 8:   # activated
+           addr_dotted = socket.inet_ntoa(struct.pack('<L', addr))
+            if type==2: #if it is a wifi interface
+                wlan_ip=addr
+                break
+            else:
+                if type==1:
+                    candidate_ip=addr
+
+    if wlan_ip == '0.0.0.0' or wlan_ip=='127.0.0.1':
+        return False
+    elif wlan_ip==None:
+        if candidate_ip<>None
+            return candidate_ip
+        else:
+            return False
+    else:
+        return wlan_ip
+
+def cmp_filename(x,y):
+    p=re.compile('\d+')
+    if p.search(x)==None:
+        m=0
+    else:
+        m=int(p.search(x).group())
+
+    if p.search(y)==None:
+        n=0
+    else:
+        n=int(p.search(y).group())
+    return m-n
+
+
+def parseBook(instr,divide_method=0,zishu=10000):
+    """
+    preparation for epub file generation
+    """
+    if not isinstance(instr,unicode):
+        instr=instr.decode('GBK','ignore')
+    rlist,c_list=GenCatalog(instr,divide_method,zishu)
+    sections = []
+    istr=instr
+    last_pos=0
+    i=0
+    for c in c_list:
+        section = ez_epub.Section()
+        #section.css = """.em { font-style: italic; }"""
+        section.title = c
+        x=rlist[c]
+        if i<len(c_list)-1:
+            section.text.append(istr[x:rlist[c_list[i+1]]])
+        else:
+            section.text.append(istr[x:])
+        last_pos=x
+        sections.append(section)
+        i+=1
+    return sections
+
+def txt2epub(instr,outfile,title='',authors=[],divide_method=0,zishu=10000):
+    """
+    infile: path of input text file
+    outfile: path of output text file.(don't add .epub)
+    title: book title
+    authors: list of author names
+    """
+    book = ez_epub.Book()
+    if title=='':
+        book.title=outfile
+    else:
+        book.title = title
+    book.authors = authors
+    book.sections = parseBook(instr,divide_method,zishu)
+    book.make(outfile)
+    try:
+        shutil.rmtree(outfile)
+    except:
+        pass
+
 
 def JtoF(data):
    #简体到繁体
@@ -1366,8 +1465,8 @@ BookMarkList=[]
 ThemeList=[]
 BookDB=[]
 Ticking=True
-Version='2.21 Linux'
-I_Version=2.21 # this is used to check updated version
+Version='2.3 Linux Beta'
+I_Version=2.30 # this is used to check updated version
 lb_hash='3de03ac38cc1c2dc0547ee09f866ee7b'
 
 def cur_file_dir():
@@ -1477,59 +1576,78 @@ def isfull(l):
     else:
         return int((float(n-count)/float(n))*100)
 
-def GenCatalog(instr):
-    max_chapter_len=50 #the chapter len>50 will be skipped,this is used to detect redundant chapter lines
+def GenCatalog(instr,divide_method=0,zishu=10000):
     if not isinstance(instr,unicode):
         instr=instr.decode("gbk")
     rlist={}
     c_list=[]
-    cur_pos=0
-    n=len(instr)
-    hash_len=len(lb_hash)
-    cpos=instr.find(lb_hash)
-    if cpos<>-1:
-        while cur_pos<n:
-            cur_pos=instr.find(lb_hash,cur_pos)
-            if cur_pos==-1: break
-            tstr=instr[cur_pos:cur_pos+100]
-            llist=tstr.splitlines()
-            chapter=llist[0][hash_len:]
+    if divide_method==0:
+    #自动划分章节
+        max_chapter_len=50 #the chapter len>50 will be skipped,this is used to detect redundant chapter lines
+        cur_pos=0
+        n=len(instr)
+        hash_len=len(lb_hash)
+        cpos=instr.find(lb_hash)
+        if cpos<>-1:
+            while cur_pos<n:
+                cur_pos=instr.find(lb_hash,cur_pos)
+                if cur_pos==-1: break
+                tstr=instr[cur_pos:cur_pos+100]
+                llist=tstr.splitlines()
+                chapter=llist[0][hash_len:]
+                rlist[chapter]=cur_pos
+                c_list.append(chapter)
+                cur_pos+=1
+        else:
+            #if there is NO lb_hash string found, try to automatic guess the catalog
+            chnum_str=u'(零|一|二|三|四|五|六|七|八|九|十|百|千|万|0|1|2|3|4|5|6|7|8|9)'
+            ch_ten_str=u'(十|百|千|万)'
+            ch_ten_dict={u'十':u'0',u'百':u'00',u'千':u'000',u'万':u'0000',}
+            ch_dict={u'零':u'0',u'一':u'1',u'二':u'2',u'三':u'3',u'四':u'4',u'五':u'5',u'六':u'6',u'七':u'7',u'八':u'8',u'九':u'9',}
+            p=re.compile(u'第'+chnum_str+u'+(章|节|部|卷)',re.L|re.U)
+            m_list=p.finditer(instr)
+            #last_chapter=None
+            for m in m_list:
+                re_start_pos=m.start()
+                re_end_pos=m.end()
+    ##            if last_chapter==instr[re_start_pos:re_end_pos]:
+    ##                continue
+    ##            else:
+    ##                last_chapter=instr[re_start_pos:re_end_pos]
+                start_pos=re_start_pos
+                ch=instr[start_pos]
+                pos1=start_pos
+                while ch<>'\n':
+                    pos1-=1
+                    ch=instr[pos1]
+                pos1+=1
+                pos2=start_pos
+                ch=instr[start_pos]
+                while ch<>'\n':
+                    pos2+=1
+                    ch=instr[pos2]
+                #pos2-=1
+                if pos2-pos1>50:continue
+                chapter=instr[pos1:pos2]
+                rlist[chapter]=pos1
+                c_list.append(chapter)
+
+    elif divide_method==1:
+        #按字数划分
+        len_str=len(instr)
+        num_ch,left=divmod(len_str,zishu)
+        cur_pos=0
+        i=1
+        while i<=num_ch:
+            cur_pos=(i-1)*zishu
+            chapter=u'第'+unicode(i)+u'章(字数划分)'
+            c_list.append(chapter)
             rlist[chapter]=cur_pos
-            c_list.append(chapter)
-            cur_pos+=1
-    else:
-        #if there is NO lb_hash string found, try to automatic guess the catalog
-        chnum_str=u'(零|一|二|三|四|五|六|七|八|九|十|百|千|万|0|1|2|3|4|5|6|7|8|9)'
-        ch_ten_str=u'(十|百|千|万)'
-        ch_ten_dict={u'十':u'0',u'百':u'00',u'千':u'000',u'万':u'0000',}
-        ch_dict={u'零':u'0',u'一':u'1',u'二':u'2',u'三':u'3',u'四':u'4',u'五':u'5',u'六':u'6',u'七':u'7',u'八':u'8',u'九':u'9',}
-        p=re.compile(u'第'+chnum_str+u'+(章|节|部|卷)',re.L|re.U)
-        m_list=p.finditer(instr)
-        #last_chapter=None
-        for m in m_list:
-            re_start_pos=m.start()
-            re_end_pos=m.end()
-##            if last_chapter==instr[re_start_pos:re_end_pos]:
-##                continue
-##            else:
-##                last_chapter=instr[re_start_pos:re_end_pos]
-            start_pos=re_start_pos
-            ch=instr[start_pos]
-            pos1=start_pos
-            while ch<>'\n':
-                pos1-=1
-                ch=instr[pos1]
-            pos1+=1
-            pos2=start_pos
-            ch=instr[start_pos]
-            while ch<>'\n':
-                pos2+=1
-                ch=instr[pos2]
-            #pos2-=1
-            if pos2-pos1>50:continue
-            chapter=instr[pos1:pos2]
-            rlist[chapter]=pos1
-            c_list.append(chapter)
+            i+=1
+        chapter=u'第'+unicode(i)+u'章(字数划分)'
+        c_list.append(chapter)
+        rlist[chapter]=num_ch*zishu
+    #for c in c_list:print c
     return (rlist,c_list)
 
 
@@ -1689,6 +1807,8 @@ def readKeyConfig():
         kconfig.append((u'减小字体','----+"-"'))
         kconfig.append((u'清空缓存','CA--+"Q"'))
         kconfig.append((u'最小化','----+WXK_ESCAPE'))
+        kconfig.append((u'生成EPUB文件','C---+"E"'))
+        kconfig.append((u'启用WEB服务器','-A--+"W"'))
         KeyConfigList.append(kconfig)
         i=1
         tl=len(kconfig)
@@ -1753,6 +1873,8 @@ def readKeyConfig():
         kconfig.append((u'减小字体','----+"-"'))
         kconfig.append((u'清空缓存','CA--+"Q"'))
         kconfig.append((u'最小化','----+WXK_ESCAPE'))
+        kconfig.append((u'生成EPUB文件','C---+"E"'))
+        kconfig.append((u'启用WEB服务器','-A--+"W"'))
 
         KeyConfigList.append(kconfig)
     else:
@@ -1872,15 +1994,45 @@ def readConfigFile():
         GlobalConfig['linespace']=5
         GlobalConfig['vlinespace']=15
         GlobalConfig['InstallDefaultConfig']=True
-
+        GlobalConfig['ShareRoot']=(unicode(os.environ['HOME'],'utf-8')+u"/litebook/shared"
+        GlobalConfig['RunWebserverAtStartup']=False
+        GlobalConfig['ServerPort']=8000
+        GlobalConfig['mDNS_interface']='AUTO'
 
         return
 
+    try:
+        GlobalConfig['mDNS_interface']=config.get('settings','mDNS_interface')
+    except:
+        GlobalConfig['mDNS_interface']='AUTO'
+
+    try:
+        GlobalConfig['RunWebserverAtStartup']=config.getboolean('settings','RunWebserverAtStartup')
+    except:
+        GlobalConfig['RunWebserverAtStartup']=False
+
+
+    try:
+        GlobalConfig['ServerPort']=config.getint('settings','ServerPort')
+    except:
+        GlobalConfig['ServerPort']=8000
+
+
+    try:
+        GlobalConfig['ShareRoot']=os.path.abspath(config.get('settings','ShareRoot'))
+    except:
+        GlobalConfig['ShareRoot']=(unicode(os.environ['HOME'],'utf-8')+u"/litebook/shared"
+    #if the path is not writeable, restore to default value
+    if not os.access(GlobalConfig['ShareRoot'],os.W_OK | os.R_OK):
+        GlobalConfig['ShareRoot']=(unicode(os.environ['HOME'],'utf-8')+u"/litebook/shared"
 
     try:
         GlobalConfig['InstallDefaultConfig']=config.getboolean('settings','installdefaultconfig')
     except:
         GlobalConfig['InstallDefaultConfig']=True
+
+
+
 
 
     try:
@@ -2201,7 +2353,10 @@ def writeConfigFile(lastpos):
     config.set('settings','numberofthreads',unicode(GlobalConfig['numberofthreads']))
     config.set('settings','lastweb',unicode(GlobalConfig['lastweb']))
     config.set('settings','installdefaultconfig',unicode(GlobalConfig['InstallDefaultConfig']))
-
+    config.set('settings','ShareRoot',unicode(GlobalConfig['ShareRoot']))
+    config.set('settings','RunWebserverAtStartup',unicode(GlobalConfig['RunWebserverAtStartup']))
+    config.set('settings','ServerPort',unicode(GlobalConfig['ServerPort']))
+    config.set('settings','mDNS_interface',unicode(GlobalConfig['mDNS_interface']))
     # save opened files
     config.add_section('LastOpenedFiles')
     i=0
@@ -2428,7 +2583,7 @@ def jarfile_decode(infile):
     if not zipfile.is_zipfile(infile):
         return False
     zfile=zipfile.ZipFile(infile)
-    cache_dir=cur_file_dir()+u"/cache"
+    cache_dir=(unicode(os.environ['HOME'],'utf-8')+u"/litebook/cache"
     fp=open(infile,'r')
     s=fp.read()
     m=hashlib.md5()
@@ -2469,7 +2624,7 @@ def epubfile_decode(infile):
     if not zipfile.is_zipfile(infile):return False
     zfile=zipfile.ZipFile(infile)
 
-    cache_dir=cur_file_dir()+u"/cache"
+    cache_dir=(unicode(os.environ['HOME'],'utf-8')+u"/litebook/cache"
     fp=open(infile,'r')
     s=fp.read()
     m=hashlib.md5()
@@ -2504,13 +2659,13 @@ def epubfile_decode(infile):
     gc=gcepub.GCEPUB(instr)
     gc.parser()
     rlist=gc.GetRList()
-    clist=sorted(clist)
+    clist.sort(cmp=cmp_filename)
     for fname in clist:
         try:
             fp=zfile.open(fname,"r")
         except:break
         txt=fp.read()
-        fname=fname.decode('gbk')
+        if not isinstance(fname,unicode):fname=fname.decode('gbk')
         try:
             chapter=rlist[os.path.basename(fname)]
         except:
@@ -3129,6 +3284,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
     u'减小字体':'self.ChangeFontSize(-1)',
     u'清空缓存':'self.Menu112()',
     u'最小化':'self.OnESC(None)',
+    u'生成EPUB文件':'self.Menu704()',
+    u'启用WEB服务器':'self.Menu705()',
     }
 
     def __init__(self,parent,openfile=None):
@@ -3247,6 +3404,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         wxglade_tmp_menu.Append(701, u"过滤HTML标签"+KeyMenuList[u'过滤HTML标记'], u"过滤HTML标签", wx.ITEM_NORMAL)
         wxglade_tmp_menu.Append(702, u"简体转繁体"+KeyMenuList[u'切换为繁体字'], u"简体转繁体", wx.ITEM_NORMAL)
         wxglade_tmp_menu.Append(703, u"繁体转简体"+KeyMenuList[u'切换为简体字'], u"繁体转简体", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(704, u"生成EPUB文件"+KeyMenuList[u'生成EPUB文件'], u"生成EPUB文件", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(705, u"启用WEB服务器"+KeyMenuList[u'启用WEB服务器'], u"是否启用WEB服务器", wx.ITEM_CHECK)
         self.frame_1_menubar.Append(wxglade_tmp_menu, u"工具(&T)")
 
 
@@ -3335,6 +3494,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.Bind(wx.EVT_MENU, self.Menu601, id=601)
         self.Bind(wx.EVT_MENU, self.Menu602, id=602)
         self.Bind(wx.EVT_MENU, self.Menu603, id=603)
+        self.Bind(wx.EVT_MENU, self.Menu704, id=704)
+        self.Bind(wx.EVT_MENU, self.Menu705, id=705)
         self.Bind(wx.EVT_MENU, self.Tool41, id=701)
         self.Bind(wx.EVT_MENU, self.Tool43, id=702)
         self.Bind(wx.EVT_MENU, self.Tool42, id=703)
@@ -3417,7 +3578,6 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                         else:
                             flist.append(f.split('|')[1])
                             self.LoadFile(flist,'zip',f.split('|')[0].strip(),openmethod='append',startup=True)
-                    self.text_ctrl_1.SetSelection(GlobalConfig['LastPos'],GlobalConfig['LastPos'])
                     self.text_ctrl_1.ShowPosition(GlobalConfig['LastPos'])
 
         self.text_ctrl_1.Bind(wx.EVT_MOUSEWHEEL,self.MyMouseMW)
@@ -3495,6 +3655,37 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             #self.text_ctrl_1.HideNativeCaret()
         self.__set_properties()
         self.__do_layout()
+
+        #starting web server if configured
+
+        self.server = ThreadedLBServer(('', GlobalConfig['ServerPort']), LBHTTPRequestHandler)
+        # Start a thread with the server -- that thread will then start one
+        # more thread for each request
+        self.server_thread = threading.Thread(target=self.server.serve_forever)
+        # Exit the server thread when the main thread terminates
+        self.server_thread.setDaemon(True)
+        if GlobalConfig['RunWebserverAtStartup']:
+            try:
+                self.server_thread.start()
+                mbar=self.GetMenuBar()
+                mbar.Check(705,True)
+            except:
+                dlg = wx.MessageDialog(self, u'启动WEB服务器失败',
+                   u'出错了！',
+                   wx.OK | wx.ICON_ERROR
+                   )
+                dlg.ShowModal()
+                dlg.Destroy()
+
+        #start mDNS ifconfigured
+        self.mDNS=None
+        if GlobalConfig['RunWebserverAtStartup']:
+            host_ip=GetMDNSIP()
+            if host_ip:
+                self.mDNS=Zeroconf.Zeroconf(host_ip)
+                self.mDNS_svc=Zeroconf.ServiceInfo("_opds._tcp.local.", "litebook_shared._opds._tcp.local.", socket.inet_aton(host_ip), GlobalConfig['ServerPort'], 0, 0, {'version':'0.10'})
+                self.mDNS.registerService(self.mDNS_svc)
+
         splash_frame.Close()
         #set show mode, this has to be here, otherwise system won't load if showmode is book or vbook
         self.text_ctrl_1.SetShowMode(GlobalConfig['showmode'])
@@ -3616,6 +3807,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         mbar.SetLabel(701,u"过滤HTML标签"+KeyMenuList[u'过滤HTML标记'])
         mbar.SetLabel(702,u"简体转繁体"+KeyMenuList[u'切换为繁体字'])
         mbar.SetLabel(703,u"繁体转简体"+KeyMenuList[u'切换为简体字'])
+        mbar.SetLabel(704,u"生成EPUB文件"+KeyMenuList[u'生成EPUB文件'])
+        mbar.SetLabel(705,u"启用WEB服务器"+KeyMenuList[u'启用WEB服务器'])
 
         mbar.SetLabel(401,u"简明帮助(&B)"+KeyMenuList[u'简明帮助'])
         mbar.SetLabel(404,u"版本更新内容"+KeyMenuList[u'版本更新内容'])
@@ -3745,7 +3938,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
     def Menu112(self,evt):
         dlg=wx.MessageDialog(self,u'此操作将清空目前所有的缓存文件，确认继续吗？',u'清空缓存',wx.NO_DEFAULT|wx.YES_NO|wx.ICON_QUESTION)
         if dlg.ShowModal()==wx.ID_YES:
-            flist=glob.glob(cur_file_dir()+u"/cache/*")
+            flist=glob.glob((unicode(os.environ['HOME'],'utf-8')+u"/litebook/cache/*")
             suc=True
             for f in flist:
                 try:
@@ -4015,6 +4208,62 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.ViewMenu.Check(603,True)
         self.frame_1_toolbar.ToggleTool(63,True)
         GlobalConfig['showmode']='vbook'
+
+    def Menu704(self,evt):
+        global OnScreenFileList
+        if self.text_ctrl_1.GetValue()=="":
+            return
+        nlist=OnScreenFileList[0][0].split("|")
+        if len(nlist)>1:
+            curfile=nlist[1]
+        else:
+            curfile=nlist[0]
+        curfile=os.path.basename(curfile)
+        curfile=os.path.splitext(curfile)[0]
+        dlg=Convert_EPUB_Dialog(self,curfile,curfile,'')
+        dlg.ShowModal()
+        if dlg.id=='OK':
+            ldlg = GMD.GenericMessageDialog(self, u' 正在生成EPUB文件。。。',u"生成中...",wx.ICON_INFORMATION)
+            ldlg.Show()
+            ldlg.Update()
+            txt2epub(self.text_ctrl_1.GetValue(),dlg.outfile,dlg.title,[dlg.author,],dlg.divide_method,dlg.zishu)
+            ldlg.Destroy()
+
+
+        dlg.Destroy()
+
+
+    def Menu705(self,evt):
+        mbar=self.GetMenuBar()
+        if not mbar.IsChecked(705):
+            self.server.shutdown()
+            if self.mDNS<>None:
+                self.mDNS.unregisterService(self.mDNS_svc)
+#            self.mDNS.close()
+
+        else:
+            #self.server = ThreadedLBServer((GlobalConfig['ServerAddr'], GlobalConfig['ServerPort']), LBHTTPRequestHandler)
+            try:
+                self.server_thread = threading.Thread(target=self.server.serve_forever)
+                self.server_thread.setDaemon(True)
+                self.server_thread.start()
+            except Exception as inst:
+                dlg = wx.MessageDialog(self, u'WEB服务器启动错误!\n'+str(inst),u"错误！",wx.OK|wx.ICON_ERROR)
+                dlg.ShowModal()
+                dlg.Destroy()
+                mbar.Check(705,False)
+            try:
+                host_ip=GetMDNSIP()
+                if host_ip:
+                    self.mDNS=Zeroconf.Zeroconf(host_ip)
+            ##        print host_ip
+                    self.mDNS_svc=Zeroconf.ServiceInfo("_opds._tcp.local.", "litebook_shared._opds._tcp.local.", socket.inet_aton(host_ip), GlobalConfig['ServerPort'], 0, 0, {'version':'0.10'})
+                    self.mDNS.registerService(self.mDNS_svc)
+            except Exception as inst:
+                dlg = wx.MessageDialog(self, u'mDNS服务启动错误!\n'+str(inst),u"错误！",wx.OK|wx.ICON_ERROR)
+                dlg.ShowModal()
+                dlg.Destroy()
+
 
     def ChangeFontSize(self,delta):
         global GlobalConfig
@@ -4747,6 +4996,11 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             writeConfigFile(GlobalConfig['LastPos'])
         else:
             writeConfigFile(self.GetCurrentPos())
+        mbar=self.GetMenuBar()
+        if mbar.IsChecked(705):
+            self.server.shutdown()
+        if self.mDNS<>None:
+            self.mDNS.close()
         writeKeyConfig()
         event.Skip()
 
@@ -4799,7 +5053,6 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                 else:
                     flist.append(f.split('|')[1])
                     self.LoadFile(flist,'zip',f.split('|')[0].strip(),openmethod='append')
-            self.text_ctrl_1.SetSelection(tpos,tpos)
             self.text_ctrl_1.ShowPosition(tpos)
 
 
@@ -5294,7 +5547,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                             err_dlg.ShowModal()
                             err_dlg.Destroy()
                             return False
-                dlg.Destroy()
+        dlg.Destroy()
+        self.text_ctrl_1.SetFocus()
     def SearchSidebar(self,evt):
         self.UpdateSearchSidebar(evt.GetString().strip())
 
@@ -7140,6 +7394,7 @@ class NewOptionDialog(wx.Dialog):
         self.sizer_2_staticbox = wx.StaticBox(self.notebook_1_pane_2, -1, u"启动设置")
         self.sizer_8_staticbox = wx.StaticBox(self.notebook_1_pane_2, -1, u"时间间隔")
         self.sizer_25_staticbox = wx.StaticBox(self.notebook_1_pane_2, -1, u"其他")
+        self.sizer_weball_staticbox = wx.StaticBox(self.notebook_1_pane_2, -1, u"Web服务器")
         self.sizer_32_staticbox = wx.StaticBox(self.notebook_1_pane_3, -1, u"下载")
         self.sizer_36_staticbox = wx.StaticBox(self.notebook_1_pane_3, -1, u"代理服务器")
         self.sizer_15_staticbox = wx.StaticBox(self.notebook_1_pane_1, -1, u"显示效果预览")
@@ -7189,6 +7444,15 @@ class NewOptionDialog(wx.Dialog):
         self.checkbox_5 = wx.CheckBox(self.notebook_1_pane_2, -1, u"是否只在文件选择侧边栏中只显示支持的文件类型")
         self.label_15 = wx.StaticText(self.notebook_1_pane_2, -1, u"最大曾经打开文件菜单数：")
         self.spin_ctrl_10 = wx.SpinCtrl(self.notebook_1_pane_2, -1, "", min=0, max=100)
+        self.checkbox_webserver = wx.CheckBox(self.notebook_1_pane_2, -1, u"启动时运行Web服务器")
+        self.label_webport = wx.StaticText(self.notebook_1_pane_2, -1, u"Web服务器端口：")
+        self.spin_ctrl_webport = wx.SpinCtrl(self.notebook_1_pane_2, -1, "8000", min=1, max=65535)
+        self.label_webroot = wx.StaticText(self.notebook_1_pane_2, -1, u"共享根目录：")
+        self.text_ctrl_webroot = wx.TextCtrl(self.notebook_1_pane_2, -1, "", style=wx.TE_READONLY)
+        self.button_webroot = wx.Button(self.notebook_1_pane_2, -1, u"选择")
+        self.label_MDNS = wx.StaticText(self.notebook_1_pane_2, -1, u"绑定的网络接口：")
+        self.combo_box_MDNS = wx.ComboBox(self.notebook_1_pane_2, -1, choices=[], style=wx.CB_DROPDOWN | wx.CB_READONLY)
+
         self.label_16 = wx.StaticText(self.notebook_1_pane_3, -1, u"下载完毕后的缺省动作：")
         self.combo_box_6 = wx.ComboBox(self.notebook_1_pane_3, -1, choices=[u"直接阅读", u"另存为文件", u"直接保存在缺省目录下"], style=wx.CB_DROPDOWN|wx.CB_DROPDOWN|wx.CB_READONLY)
         self.label_17 = wx.StaticText(self.notebook_1_pane_3, -1, u"保存的缺省目录：")
@@ -7225,6 +7489,7 @@ class NewOptionDialog(wx.Dialog):
         self.Bind(wx.EVT_COMBOBOX,self.OnBGlayoutSelect,self.combo_box_3)
         self.Bind(wx.EVT_COMBOBOX,self.OnBGSet,self.combo_box_4)
         self.Bind(wx.EVT_COMBOBOX,self.OnSelULS,self.combo_box_5)
+        self.Bind(wx.EVT_BUTTON,self.OnChoseWebRoot,self.button_webroot)
         self.Bind(wx.EVT_BUTTON,self.OnCancell,self.button_11)
         self.Bind(wx.EVT_BUTTON,self.OnDelTheme,self.button_2)
         self.Bind(wx.EVT_BUTTON,self.OnSaveTheme,self.button_1)
@@ -7256,6 +7521,7 @@ class NewOptionDialog(wx.Dialog):
         # end wxGlade
 
     def __set_properties(self):
+        global GlobalConfig
         # begin wxGlade: NewOptionDialog.__set_properties
         self.SetTitle(u"选项对话框")
         self.SetSize((600, 500))
@@ -7270,6 +7536,9 @@ class NewOptionDialog(wx.Dialog):
         self.text_ctrl_1.SetMinSize((150, -1))
         self.text_ctrl_4.SetMinSize((200, -1))
         self.spin_ctrl_11.SetMinSize((100,-1))
+        self.text_ctrl_webroot.SetMinSize((200, -1))
+        self.label_MDNS.SetToolTipString(u"选择WEB服务器及mDNS所绑定的网络接口，缺省情况下系统会自动选择WLAN接口")
+
         #set preview area to current setting
         self.text_ctrl_3.SetShowMode(GlobalConfig['showmode'])
         if GlobalConfig['backgroundimg']<>'' and GlobalConfig['backgroundimg']<>None:
@@ -7352,6 +7621,33 @@ class NewOptionDialog(wx.Dialog):
         self.combo_box_7.Select(0)
         self.grid_1.Load(KeyConfigList[0])
 
+        #set the initial value for web server
+        self.checkbox_webserver.SetValue(GlobalConfig['RunWebserverAtStartup'])
+        self.spin_ctrl_webport.SetValue(int(GlobalConfig['ServerPort']))
+        self.text_ctrl_webroot.SetValue(GlobalConfig['ShareRoot'])
+        #set the inital value for mDNS interface
+        all_int_list={}
+        for nic in wmi.WMI().Win32_NetworkAdapter():
+            all_int_list[nic.Caption]=nic.NetConnectionID
+        ip_int_list=[]
+        ip_int_name_list=[]
+        wlan_int_id=None
+        i=0
+        ip_list={}
+        for nic in wmi.WMI ().Win32_NetworkAdapterConfiguration (IPEnabled=1):
+            ip_int_name_list.append(nic.Caption)
+            ip_list[nic.IPAddress[0]]=nic.Caption
+            ip_int_list.append([nic.Caption,all_int_list[nic.Caption]])
+            if all_int_list[nic.Caption]=="Wireless Network Connection":
+                wlan_int_name=nic.Caption
+            i+=1
+        self.combo_box_MDNS.Append(u"自动检测")
+        self.combo_box_MDNS.AppendItems(ip_int_name_list)
+        if GlobalConfig['mDNS_interface']=='AUTO':
+            self.combo_box_MDNS.SetStringSelection(u'自动检测')
+        else:
+            self.combo_box_MDNS.SetStringSelection(GlobalConfig['mDNS_interface'])
+
         # end wxGlade
 
     def __do_layout(self):
@@ -7372,6 +7668,11 @@ class NewOptionDialog(wx.Dialog):
         sizer_34 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_33 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
+        sizer_weball = wx.StaticBoxSizer(self.sizer_weball_staticbox, wx.VERTICAL)
+        sizer_web3 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_web2 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_MDNS = wx.BoxSizer(wx.HORIZONTAL)
+
         sizer_25 = wx.StaticBoxSizer(self.sizer_25_staticbox, wx.VERTICAL)
         sizer_29 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_8 = wx.StaticBoxSizer(self.sizer_8_staticbox, wx.VERTICAL)
@@ -7462,6 +7763,19 @@ class NewOptionDialog(wx.Dialog):
         sizer_29.Add(self.spin_ctrl_10, 0, 0, 0)
         sizer_25.Add(sizer_29, 1, wx.EXPAND, 0)
         sizer_1.Add(sizer_25, 0, wx.EXPAND, 0)
+        sizer_weball.Add(self.checkbox_webserver, 0, 0, 0)
+        sizer_web2.Add(self.label_webport, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_web2.Add(self.spin_ctrl_webport, 0, 0, 0)
+        sizer_weball.Add(sizer_web2, 0, wx.EXPAND, 0)
+        sizer_web3.Add(self.label_webroot, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_web3.Add(self.text_ctrl_webroot, 0, 0, 0)
+        sizer_web3.Add(self.button_webroot, 0, 0, 0)
+        sizer_weball.Add(sizer_web3, 0, wx.EXPAND, 0)
+        sizer_MDNS.Add(self.label_MDNS, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_MDNS.Add(self.combo_box_MDNS, 0, 0, 0)
+        sizer_weball.Add(sizer_MDNS, 0, wx.EXPAND, 0)
+        sizer_1.Add(sizer_weball, 0, wx.EXPAND, 0)
+
         self.notebook_1_pane_2.SetSizer(sizer_1)
         sizer_33.Add(self.label_16, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         sizer_33.Add(self.combo_box_6, 0, 0, 0)
@@ -7515,6 +7829,20 @@ class NewOptionDialog(wx.Dialog):
         self.SetSizer(sizer_3)
         self.Layout()
         # end wxGlade
+
+    def OnChoseWebRoot(self,evt):
+        global GlobalConfig
+        fdlg=wx.DirDialog(self,u"请选择共享目录：",GlobalConfig['ShareRoot'])
+        if fdlg.ShowModal()==wx.ID_OK:
+            rdir=fdlg.GetPath()
+            if os.path.isdir(rdir):
+                self.text_ctrl_webroot.SetValue(rdir)
+            else:
+                dlg = wx.MessageDialog(None, rdir+u' 不是一个合法的目录',u"错误！",wx.OK|wx.ICON_ERROR)
+                dlg.ShowModal()
+                dlg.Destroy()
+        fdlg.Destroy()
+
 
     def OnCancell(self,event):
         self.Destroy()
@@ -7621,6 +7949,16 @@ class NewOptionDialog(wx.Dialog):
         while i<tl:
             KeyMenuList[kconfig[i][0]]=keygrid.str2menu(kconfig[i][1])
             i+=1
+
+        #save web server related config
+        GlobalConfig['ShareRoot']=self.text_ctrl_webroot.GetValue()
+        GlobalConfig['ServerPort']=int(self.spin_ctrl_webport.GetValue())
+        GlobalConfig['RunWebserverAtStartup']=self.checkbox_webserver.GetValue()
+        m_int=self.combo_box_MDNS.GetValue()
+        if m_int==u'自动检测':
+            GlobalConfig['mDNS_interface']="AUTO"
+        else:
+            GlobalConfig['mDNS_interface']=m_int
 
         self.Destroy()
 
@@ -8888,6 +9226,153 @@ class cnsort:
                rstr+=self.searchdict(self.dic_py,ichr)[:-1]
         return rstr
 
+class Convert_EPUB_Dialog(wx.Dialog):
+    def __init__(self, parent,outfile,title,author):
+        # begin wxGlade: Search_Web_Dialog.__init__
+        wx.Dialog.__init__(self, parent=parent)
+        self.outfile=outfile
+        self.title=title
+        self.author=author
+        self.sizer_3_staticbox = wx.StaticBox(self, -1, u"输出")
+        self.sizer_1_staticbox = wx.StaticBox(self, -1, u"转换为EPUB文件")
+        self.sizer_2_staticbox = wx.StaticBox(self, -1, "")
+        self.radio_box_1 = wx.RadioBox(self, -1, u"章节划分方式：", choices=[u"自动", u"按照字数"], majorDimension=2, style=wx.RA_SPECIFY_COLS)
+        self.label_zishu = wx.StaticText(self, -1, u"字数：")
+        self.text_ctrl_zishu = wx.TextCtrl(self, -1, "")
+        self.label_13 = wx.StaticText(self, -1, u"书名：")
+        self.text_ctrl_2 = wx.TextCtrl(self, -1, "")
+        self.label_author = wx.StaticText(self, -1, u"作者：")
+        self.text_ctrl_author = wx.TextCtrl(self, -1, "")
+        self.label_author_copy = wx.StaticText(self, -1, u"输出文件：")
+        self.text_ctrl_3 = wx.TextCtrl(self, -1, "")
+        self.button_1 = wx.Button(self, -1, u"另存为")
+        self.button_3 = wx.Button(self, -1, u" 确定 ")
+        self.button_4 = wx.Button(self, -1, u" 取消 ")
+
+        self.__set_properties()
+        self.__do_layout()
+
+        self.Bind(wx.EVT_RADIOBOX, self.OnChose, self.radio_box_1)
+        self.Bind(wx.EVT_BUTTON, self.OnSaveas, self.button_1)
+        self.Bind(wx.EVT_BUTTON, self.OnOK, self.button_3)
+        self.Bind(wx.EVT_BUTTON, self.OnCancell, self.button_4)
+        # end wxGlade
+
+    def __set_properties(self):
+        # begin wxGlade: Search_Web_Dialog.__set_properties
+        self.SetTitle(u"文件转换")
+        self.radio_box_1.SetSelection(0)
+        self.text_ctrl_zishu.SetValue('10000')
+        self.text_ctrl_zishu.Enable(False)
+        self.text_ctrl_3.SetMinSize((200, -1))
+        # end wxGlade
+        self.text_ctrl_author.SetValue(self.author)
+        self.text_ctrl_2.SetValue(self.title)
+        self.text_ctrl_3.SetValue(os.path.abspath(GlobalConfig['ShareRoot']+os.sep+self.outfile+u".epub"))
+
+
+    def __do_layout(self):
+        # begin wxGlade: Search_Web_Dialog.__do_layout
+        sizer_1 = wx.StaticBoxSizer(self.sizer_1_staticbox, wx.VERTICAL)
+        sizer_4 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_3 = wx.StaticBoxSizer(self.sizer_3_staticbox, wx.VERTICAL)
+        sizer_author = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_23 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_2 = wx.StaticBoxSizer(self.sizer_2_staticbox, wx.VERTICAL)
+        sizer_zishu = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_2.Add(self.radio_box_1, 0, 0, 0)
+        sizer_zishu.Add(self.label_zishu, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_zishu.Add(self.text_ctrl_zishu, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_2.Add(sizer_zishu, 0, wx.EXPAND, 0)
+        sizer_1.Add(sizer_2, 0, wx.EXPAND, 0)
+        sizer_23.Add(self.label_13, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_23.Add(self.text_ctrl_2, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_1.Add(sizer_23, 0, wx.EXPAND, 0)
+        sizer_author.Add(self.label_author, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_author.Add(self.text_ctrl_author, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_1.Add(sizer_author, 0, wx.EXPAND, 0)
+        sizer_3.Add(self.label_author_copy, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_3.Add(self.text_ctrl_3, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_3.Add(self.button_1, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_1.Add(sizer_3, 0, wx.EXPAND, 0)
+        sizer_4.Add(self.button_3, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_4.Add(self.button_4, 0, wx.ALL|wx.ALIGN_RIGHT|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 5)
+        sizer_1.Add(sizer_4, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 0)
+        self.SetSizer(sizer_1)
+        sizer_1.Fit(self)
+        self.Layout()
+        # end wxGlade
+
+    def OnChose(self, event): # wxGlade: Search_Web_Dialog.<event_handler>
+        if event.GetInt()==1:
+            if event.IsChecked():
+                self.text_ctrl_zishu.Enable()
+        else:
+            self.text_ctrl_zishu.Disable()
+            event.Skip()
+
+    def OnSaveas(self, event): # wxGlade: Search_Web_Dialog.<event_handler>
+        wildcard = u"EPUB 电子书 (*.epub)|*.epub|"        \
+                   "All files (*.*)|*.*"
+        dlg = wx.FileDialog(
+            self, message=u"另存为", defaultDir=GlobalConfig['ShareRoot'],
+            defaultFile=self.title, wildcard=wildcard, style=wx.SAVE
+            )
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+            self.text_ctrl_3.SetValue(path)
+
+
+    def OnOK(self, event): # wxGlade: Search_Web_Dialog.<event_handler>
+        good=True
+        self.divide_method=self.radio_box_1.GetSelection()
+        if self.divide_method==1:
+            try:
+                self.zishu=int(self.text_ctrl_zishu.GetValue())
+            except:
+                good=False
+            if good:
+                if self.zishu<10000:good=False
+            if not good:
+                dlg = wx.MessageDialog(self, u'字数必须大于等于10000!',
+                   u'出错了！',
+                   wx.OK | wx.ICON_ERROR
+                   )
+                dlg.ShowModal()
+                dlg.Destroy()
+                return
+        elif self.divide_method==0: self.zishu=10000
+        outfile=self.text_ctrl_3.GetValue()
+        if os.path.isdir(os.path.dirname(outfile)) and outfile[-5:].lower()=='.epub' and os.access(os.path.dirname(outfile),os.W_OK|os.R_OK):
+            if os.path.exists(outfile):
+                dlg = wx.MessageDialog(self, u'已经有叫这个名字的文件，你确定要覆盖原有文件吗？',u"提示！",wx.YES_NO|wx.ICON_QUESTION)
+                if dlg.ShowModal()==wx.ID_NO:
+                    dlg.Destroy()
+                    return
+            if outfile[-5:].lower()=='.epub':
+                outfile=outfile[:-5]
+            self.outfile=outfile
+
+        else:
+            dlg = wx.MessageDialog(self, u'输出的文件名或路径非法！',
+                   u'出错了！',
+                   wx.OK | wx.ICON_ERROR
+                   )
+            dlg.ShowModal()
+            dlg.Destroy()
+            return
+
+        self.title=self.text_ctrl_2.GetValue()
+        self.author=self.text_ctrl_author.GetValue()
+        self.id='OK'
+        self.Close()
+
+
+    def OnCancell(self, event):
+        self.id=''
+        self.Destroy()
+
+
 class FileDrop(wx.FileDropTarget):
     def __init__(self, window):
         wx.FileDropTarget.__init__(self)
@@ -8909,11 +9394,257 @@ class FileDrop(wx.FileDropTarget):
                 self.window.LoadFile(filenames,openmethod='append')
 
 
+class LBHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+
+
+    """Simple HTTP request handler with GET and HEAD commands.
+
+    This serves files from the current directory and any of its
+    subdirectories.  The MIME type for files is determined by
+    calling the .guess_type() method.
+
+    The GET and HEAD requests are identical except that the HEAD
+    request omits the actual contents of the file.
+
+    """
+    __version__ = "0.1"
+    __all__ = ["LBHTTPRequestHandler"]
+    server_version = "SimpleHTTP/" +__version__
+    prefixpath=None
+
+
+    def log_request(self,code=1,size=0):
+        pass
+
+    def log_error(self,*args, **kwds):
+        pass
+
+    def setup(self):
+        global GlobalConfig
+        BaseHTTPServer.BaseHTTPRequestHandler.setup(self)
+        self.prefixpath=GlobalConfig['ShareRoot']
+
+
+    def do_GET(self):
+        """Serve a GET request."""
+        f = self.send_head()
+        if f:
+            self.copyfile(f, self.wfile)
+            f.close()
+
+    def do_HEAD(self):
+        """Serve a HEAD request."""
+        f = self.send_head()
+        if f:
+            f.close()
+
+    def send_head(self):
+        """Common code for GET and HEAD commands.
+
+        This sends the response code and MIME headers.
+
+        Return value is either a file object (which has to be copied
+        to the outputfile by the caller unless the command was HEAD,
+        and must be closed by the caller under all circumstances), or
+        None, in which case the caller has nothing further to do.
+
+        """
+        path = self.translate_path(self.path)
+        f = None
+        if os.path.isdir(path):
+            if not self.path.endswith('/'):
+                # redirect browser - doing basically what apache does
+                self.send_response(301)
+                self.send_header("Location", self.path + "/")
+                self.end_headers()
+                return None
+            for index in "index.html", "index.htm":
+                index = os.path.join(path, index)
+                if os.path.exists(index):
+                    path = index
+                    break
+            else:
+                return self.list_directory(path)
+        ctype = self.guess_type(path)
+        try:
+            # Always read in binary mode. Opening files in text mode may cause
+            # newline translations, making the actual size of the content
+            # transmitted *less* than the content-length!
+            f = open(path, 'rb')
+        except IOError:
+            self.send_error(404,"File not found")
+            return None
+        self.send_response(200)
+        self.send_header("Content-type", ctype)
+        fs = os.fstat(f.fileno())
+        self.send_header("Content-Length", str(fs[6]))
+        self.send_header("Last-Modified", self.date_time_string(fs.st_mtime))
+        self.end_headers()
+        return f
+
+    def list_directory(self, path):
+        try:
+            browser=unicode(self.headers['user-agent'])
+        except:
+            browser=u'unknown'
+        f = StringIO()
+        if browser.find(u'Stanza')<>-1:
+            #if the browser is Stanza
+            flist=glob.glob(self.prefixpath+os.sep+"*.epub")
+##        fp=open('test.xml','r')
+##        buf=fp.read()
+            xml_header=u"""<?xml version='1.0' encoding='utf-8'?>
+    <feed xmlns:dc="http://purl.org/dc/terms/" xmlns:opds="http://opds-spec.org/2010/catalog" xmlns="http://www.w3.org/2005/Atom">
+      <title>LiteBook书库</title>
+      <author>
+        <name>LiteBook.Author</name>
+        <uri>http://code.google.com/p/litebook-project/</uri>
+      </author>
+      """
+            xml_header=xml_header.encode('utf-8')
+            f.write(xml_header)
+            for fname in flist:
+    ##            if not isinstance(fname,unicode):
+    ##                fname=fname.decode('gbk')
+                f.write("  <entry>\n")
+                if not isinstance(fname,unicode): fname=fname.decode('gbk')
+                fname=fname.encode('utf-8')
+                bname=os.path.basename(fname)
+                f.write("<title>"+bname[:-4]+'</title>\n')
+                f.write('<author>\n<name>unknown</name></author>\n')
+                cont=u'<content type="xhtml"><div xmlns="http://www.w3.org/1999/xhtml">标签：General Fiction<br/></div></content>'
+                cont=cont.encode('utf-8')
+                f.write(cont+'\n')
+                burl="<link href='/"+bname+"' type='application/epub+zip'/>\n"
+                burl=urllib.quote('/'+bname)
+                f.write("<link href='"+burl+"' type='application/epub+zip'/>\n")
+                f.write("  </entry>\n")
+            f.write('</feed>')
+            length = f.tell()
+            f.seek(0)
+            self.send_response(200)
+            self.send_header("Content-type", "application/atom+xml")
+            self.send_header("Content-Length", str(length))
+            self.end_headers()
+        else:
+            msg=u"""<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+  <title>LItebook共享书库</title>
+</head>
+<body>
+<h2>LiteBook 共享图书列表：</h2>
+<ul>"""
+            msg=msg.encode('utf-8')
+            f.write(msg)
+            flist=glob.glob(self.prefixpath+os.sep+"*.*")
+            for fname in flist:
+                if not isinstance(fname,unicode): fname=fname.decode('gbk')
+                fname=fname.encode('utf-8')
+                bname=os.path.basename(fname)
+                burl=urllib.quote('/'+bname)
+                f.write("<li><a href='"+burl+"'>"+bname+"</a></li>\n")
+            d=datetime(2000,1,1)
+            ds=unicode(d.now())
+            end=u"</ul>注：本列表由litebook自动生成于"+ds+"</body></html>"
+            end=end.encode('utf-8')
+            f.write(end)
+            length=f.tell()
+            f.seek(0)
+            self.send_response(200)
+            self.send_header("Content-type", "text/html")
+            self.send_header("Content-Length", str(length))
+            self.end_headers()
+        return f
+
+
+
+
+
+
+    def translate_path(self, path):
+        """Translate a /-separated PATH to the local filename syntax.
+
+        Components that mean special things to the local file system
+        (e.g. drive or directory names) are ignored.  (XXX They should
+        probably be diagnosed.)
+        - add prefix_path support; added by Hu Jun 2011-03-13
+        """
+        # abandon query parameters
+        path = path.split('?',1)[0]
+        path = path.split('#',1)[0]
+        path = posixpath.normpath(urllib.unquote(path))
+        path=path.decode('utf-8')
+        words = path.split('/')
+        words = filter(None, words)
+        path=self.prefixpath
+        for word in words:
+            drive, word = os.path.splitdrive(word)
+            head, word = os.path.split(word)
+            if word in (os.curdir, os.pardir): continue
+            path = os.path.join(path, word)
+        return path
+
+    def copyfile(self, source, outputfile):
+        """Copy all data between two file objects.
+
+        The SOURCE argument is a file object open for reading
+        (or anything with a read() method) and the DESTINATION
+        argument is a file object open for writing (or
+        anything with a write() method).
+
+        The only reason for overriding this would be to change
+        the block size or perhaps to replace newlines by CRLF
+        -- note however that this the default server uses this
+        to copy binary data as well.
+
+        """
+        shutil.copyfileobj(source, outputfile)
+
+    def guess_type(self, path):
+        """Guess the type of a file.
+
+        Argument is a PATH (a filename).
+
+        Return value is a string of the form type/subtype,
+        usable for a MIME Content-type header.
+
+        The default implementation looks the file's extension
+        up in the table self.extensions_map, using application/octet-stream
+        as a default; however it would be permissible (if
+        slow) to look inside the data to make a better guess.
+
+        """
+
+        base, ext = posixpath.splitext(path)
+        if ext in self.extensions_map:
+            return self.extensions_map[ext]
+        ext = ext.lower()
+        if ext in self.extensions_map:
+            return self.extensions_map[ext]
+        else:
+            return self.extensions_map['']
+
+    if not mimetypes.inited:
+        mimetypes.init() # try to read system mime.types
+    extensions_map = mimetypes.types_map.copy()
+    extensions_map.update({
+        '': 'application/octet-stream', # Default
+        '.py': 'text/plain',
+        '.c': 'text/plain',
+        '.h': 'text/plain',
+        '.epub': 'application/epub+zip'
+        })
+
+class ThreadedLBServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
+    pass
+
+
 
 if __name__ == "__main__":
-    cache_dir=cur_file_dir()+u"/cache"
+    cache_dir=(unicode(os.environ['HOME'],'utf-8')+u"/litebook/cache"
     if not os.path.isdir(cache_dir):
-        os.mkdir(cache_dir)
+        os.makedirs(cache_dir)
     try:
         SqlCon = sqlite3.connect(unicode(os.environ['HOME'],'utf-8')+u"/.litebook.bookdb")
     except:
@@ -8950,6 +9681,9 @@ if __name__ == "__main__":
                 print fname,u'不存在!'
                 sys.exit()
     readConfigFile()
+    #create share_root if it doesn't exist
+    if not os.path.isdir(GlobalConfig['ShareRoot']):
+        os.makedirs(GlobalConfig['ShareRoot'])
     readKeyConfig()
     readPlugin()
     if GlobalConfig['InstallDefaultConfig']:InstallDefaultConfig()
