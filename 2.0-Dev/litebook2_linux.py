@@ -16,8 +16,6 @@
 import dbus
 import Zeroconf
 import socket
-import genshi
-import lxml
 try:
     from cStringIO import StringIO
 except ImportError:
@@ -1343,19 +1341,21 @@ def GetMDNSIP():
 
        wlan_ip=None
        candidate_ip=None
+
        if state == 8:   # activated
            addr_dotted = socket.inet_ntoa(struct.pack('<L', addr))
-            if type==2: #if it is a wifi interface
-                wlan_ip=addr
-                break
-            else:
-                if type==1:
-                    candidate_ip=addr
+           str_addr=str(addr_dotted)
+           if type==2: #if it is a wifi interface
+               wlan_ip=str_addr
+               break
+           else:
+               if type==1:
+                   candidate_ip=str_addr
 
     if wlan_ip == '0.0.0.0' or wlan_ip=='127.0.0.1':
         return False
     elif wlan_ip==None:
-        if candidate_ip<>None
+        if candidate_ip<>None:
             return candidate_ip
         else:
             return False
@@ -1994,7 +1994,7 @@ def readConfigFile():
         GlobalConfig['linespace']=5
         GlobalConfig['vlinespace']=15
         GlobalConfig['InstallDefaultConfig']=True
-        GlobalConfig['ShareRoot']=(unicode(os.environ['HOME'],'utf-8')+u"/litebook/shared"
+        GlobalConfig['ShareRoot']=unicode(os.environ['HOME'],'utf-8')+u"/litebook/shared"
         GlobalConfig['RunWebserverAtStartup']=False
         GlobalConfig['ServerPort']=8000
         GlobalConfig['mDNS_interface']='AUTO'
@@ -2021,10 +2021,10 @@ def readConfigFile():
     try:
         GlobalConfig['ShareRoot']=os.path.abspath(config.get('settings','ShareRoot'))
     except:
-        GlobalConfig['ShareRoot']=(unicode(os.environ['HOME'],'utf-8')+u"/litebook/shared"
+        GlobalConfig['ShareRoot']=unicode(os.environ['HOME'],'utf-8')+u"/litebook/shared"
     #if the path is not writeable, restore to default value
     if not os.access(GlobalConfig['ShareRoot'],os.W_OK | os.R_OK):
-        GlobalConfig['ShareRoot']=(unicode(os.environ['HOME'],'utf-8')+u"/litebook/shared"
+        GlobalConfig['ShareRoot']=unicode(os.environ['HOME'],'utf-8')+u"/litebook/shared"
 
     try:
         GlobalConfig['InstallDefaultConfig']=config.getboolean('settings','installdefaultconfig')
@@ -2583,7 +2583,7 @@ def jarfile_decode(infile):
     if not zipfile.is_zipfile(infile):
         return False
     zfile=zipfile.ZipFile(infile)
-    cache_dir=(unicode(os.environ['HOME'],'utf-8')+u"/litebook/cache"
+    cache_dir=unicode(os.environ['HOME'],'utf-8')+u"/litebook/cache"
     fp=open(infile,'r')
     s=fp.read()
     m=hashlib.md5()
@@ -2624,7 +2624,7 @@ def epubfile_decode(infile):
     if not zipfile.is_zipfile(infile):return False
     zfile=zipfile.ZipFile(infile)
 
-    cache_dir=(unicode(os.environ['HOME'],'utf-8')+u"/litebook/cache"
+    cache_dir=unicode(os.environ['HOME'],'utf-8')+u"/litebook/cache"
     fp=open(infile,'r')
     s=fp.read()
     m=hashlib.md5()
@@ -3938,7 +3938,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
     def Menu112(self,evt):
         dlg=wx.MessageDialog(self,u'此操作将清空目前所有的缓存文件，确认继续吗？',u'清空缓存',wx.NO_DEFAULT|wx.YES_NO|wx.ICON_QUESTION)
         if dlg.ShowModal()==wx.ID_YES:
-            flist=glob.glob((unicode(os.environ['HOME'],'utf-8')+u"/litebook/cache/*")
+            flist=glob.glob(unicode(os.environ['HOME'],'utf-8')+u"/litebook/cache/*")
             suc=True
             for f in flist:
                 try:
@@ -7626,21 +7626,23 @@ class NewOptionDialog(wx.Dialog):
         self.spin_ctrl_webport.SetValue(int(GlobalConfig['ServerPort']))
         self.text_ctrl_webroot.SetValue(GlobalConfig['ShareRoot'])
         #set the inital value for mDNS interface
-        all_int_list={}
-        for nic in wmi.WMI().Win32_NetworkAdapter():
-            all_int_list[nic.Caption]=nic.NetConnectionID
-        ip_int_list=[]
+
+        bus = dbus.SystemBus()
+        proxy = bus.get_object("org.freedesktop.NetworkManager",
+        "/org/freedesktop/NetworkManager")
+        manager = dbus.Interface(proxy, "org.freedesktop.NetworkManager")
+        # Get device-specific state
+        devices = manager.GetDevices()
         ip_int_name_list=[]
-        wlan_int_id=None
-        i=0
-        ip_list={}
-        for nic in wmi.WMI ().Win32_NetworkAdapterConfiguration (IPEnabled=1):
-            ip_int_name_list.append(nic.Caption)
-            ip_list[nic.IPAddress[0]]=nic.Caption
-            ip_int_list.append([nic.Caption,all_int_list[nic.Caption]])
-            if all_int_list[nic.Caption]=="Wireless Network Connection":
-                wlan_int_name=nic.Caption
-            i+=1
+        for d in devices:
+           dev_proxy = bus.get_object("org.freedesktop.NetworkManager", d)
+           prop_iface = dbus.Interface(dev_proxy, "org.freedesktop.DBus.Properties")
+
+           # Get the device's current state and interface name
+           state = prop_iface.Get("org.freedesktop.NetworkManager.Device", "State")
+           name = prop_iface.Get("org.freedesktop.NetworkManager.Device", "Interface")
+           ip_int_name_list.append(name)
+        
         self.combo_box_MDNS.Append(u"自动检测")
         self.combo_box_MDNS.AppendItems(ip_int_name_list)
         if GlobalConfig['mDNS_interface']=='AUTO':
@@ -9642,7 +9644,7 @@ class ThreadedLBServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 
 
 if __name__ == "__main__":
-    cache_dir=(unicode(os.environ['HOME'],'utf-8')+u"/litebook/cache"
+    cache_dir=unicode(os.environ['HOME'],'utf-8')+u"/litebook/cache"
     if not os.path.isdir(cache_dir):
         os.makedirs(cache_dir)
     try:

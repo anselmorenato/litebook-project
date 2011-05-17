@@ -27,8 +27,8 @@
 import wmi
 import Zeroconf
 import socket
-##import genshi
-##import lxml
+import genshi
+import lxml
 try:
     from cStringIO import StringIO
 except ImportError:
@@ -8205,43 +8205,14 @@ class NewOptionDialog(wx.Dialog):
 
         #set the initial value for web server
         self.checkbox_webserver.SetValue(GlobalConfig['RunWebserverAtStartup'])
-##        if GlobalConfig['ServerAddr']=='':
-##            self.text_ctrl_7.SetValue('*')
-##        else:
-##            self.text_ctrl_7.SetValue(GlobalConfig['ServerAddr'])
-
         self.spin_ctrl_webport.SetValue(int(GlobalConfig['ServerPort']))
         self.text_ctrl_webroot.SetValue(GlobalConfig['ShareRoot'])
         #set the inital value for mDNS interface
-        all_int_list={}
-        for nic in wmi.WMI().Win32_NetworkAdapter():
-            all_int_list[nic.Caption]=nic.NetConnectionID
-        ip_int_list=[]
         ip_int_name_list=[]
-        wlan_int_id=None
-        i=0
-        ip_list={}
         for nic in wmi.WMI ().Win32_NetworkAdapterConfiguration (IPEnabled=1):
             ip_int_name_list.append(nic.Caption)
-            ip_list[nic.IPAddress[0]]=nic.Caption
-            ip_int_list.append([nic.Caption,all_int_list[nic.Caption]])
-            if all_int_list[nic.Caption]=="Wireless Network Connection":
-                wlan_int_name=nic.Caption
-            i+=1
         self.combo_box_MDNS.Append(u"自动检测")
         self.combo_box_MDNS.AppendItems(ip_int_name_list)
-##        if wlan_int_id<>None:
-##            self.auto_int=wlan_int_name
-##        else:
-##            ar=socket.getaddrinfo(socket.gethostname(), 80, 0, 0, socket.SOL_TCP)
-##            if socket.has_ipv6:
-##                if len(ar)>1:
-##                    sel_ip=ar[1][4][0]
-##                else:
-##                    sel_ip=ar[0][4][0]
-##            else:
-##                sel_ip=ar[0][4][0]
-##            self.auto_int=ip_list[sel_ip]
         if GlobalConfig['mDNS_interface']=='AUTO':
             self.combo_box_MDNS.SetStringSelection(u'自动检测')
         else:
