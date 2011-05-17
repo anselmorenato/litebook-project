@@ -27,25 +27,25 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\litebook2.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\python27.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\unrar.dll"; DestDir: "{app}"; Flags: ignoreversion
-;Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\l2_splash.gif"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\w9xpopen.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\litebook2.exe.manifest"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\litebook.ico"; DestDir: "{app}"; Flags: ignoreversion
-;Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\LiteBook_Readme.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\defaultconfig.ini"; DestDir: "{app}"; Flags: ignoreversion
-;Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\LiteBook_WhatsNew.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\py.dat"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\bh.dat"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\icon\*"; DestDir: "{app}\icon"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\lib\*"; DestDir: "{app}\lib"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\UnRAR2\*"; DestDir: "{app}\UnRAR2"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\helpdoc\*"; DestDir: "{app}\helpdoc"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\background\*"; DestDir: "{app}\background"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\plugin\*"; DestDir: "{app}\plugin"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\dist\templates\*"; DestDir: "{app}\templates"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\windows\dist\litebook2.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\windows\dist\python27.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\windows\dist\unrar.dll"; DestDir: "{app}"; Flags: ignoreversion
+;Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\windows\dist\l2_splash.gif"; DestDir: "{app}"; Flags: ignoreversion
+Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\windows\dist\w9xpopen.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\windows\dist\litebook2.exe.manifest"; DestDir: "{app}"; Flags: ignoreversion
+Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\windows\dist\litebook.ico"; DestDir: "{app}"; Flags: ignoreversion
+;Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\windows\dist\LiteBook_Readme.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\windows\dist\defaultconfig.ini"; DestDir: "{app}"; Flags: ignoreversion
+;Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\windows\dist\LiteBook_WhatsNew.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\windows\dist\py.dat"; DestDir: "{app}"; Flags: ignoreversion
+Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\windows\dist\bh.dat"; DestDir: "{app}"; Flags: ignoreversion
+Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\windows\dist\icon\*"; DestDir: "{app}\icon"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\windows\dist\lib\*"; DestDir: "{app}\lib"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\windows\dist\UnRAR2\*"; DestDir: "{app}\UnRAR2"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\windows\dist\helpdoc\*"; DestDir: "{app}\helpdoc"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\windows\dist\background\*"; DestDir: "{app}\background"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\windows\dist\plugin\*"; DestDir: "{app}\plugin"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "E:\HuJun\litebook\tobuild\LB_SVN\2.0-Dev\windows\dist\templates\*"; DestDir: "{app}\templates"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "vcredist_x86.exe"; DestDir: "{tmp}"; Check: NeedInstallVC9SP1
 
 [Icons]
