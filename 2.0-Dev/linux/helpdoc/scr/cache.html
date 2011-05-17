@@ -1,0 +1,97 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+<title>缓存</title>
+<meta name="GENERATOR" content="WinCHM">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+
+
+
+<link href="template1/winchm_template_style.css" rel="stylesheet" type="text/css">
+<script type="text/javascript">
+function d_onresize(){
+if (window.navigator.userAgent.indexOf("MSIE")>=1){
+document.getElementById('winchm_template_content').style.pixelWidth = document.body.offsetWidth - 3;
+document.getElementById('winchm_template_content').style.pixelHeight = document.body.offsetHeight - document.getElementById('winchm_template_top').offsetHeight - 4;
+}
+document.getElementById('winchm_template_content').style.top = document.getElementById('winchm_template_top').offsetHeight + 'px';
+}
+
+function d_onbeforeprint(){
+document.getElementById('winchm_template_content').style.width = 'auto';
+document.getElementById('winchm_template_content').style.height = 'auto';
+}
+
+function d_onafterprint(){
+d_onresize();
+}
+
+window.onload = d_onresize;
+window.onresize = d_onresize;
+window.onbeforeprint = d_onbeforeprint;
+window.onafterprint = d_onafterprint;
+</script>
+</head>
+
+<body><script language="JavaScript" type="text/JavaScript">
+function syn(){
+if(parent.nav.tree){
+ if(parent.nav.tree.loaded){
+  parent.nav.tree.selectNode(19);
+ }else{
+  setTimeout("syn()",500);
+}
+  }else{
+  setTimeout("syn()",500);
+  }}
+if(parent!=self){
+  setTimeout("syn()",100);
+}else{
+  parent.location.href = "../index.htm#page=cache.html";
+}
+originalOnload = window.onload;
+if(originalOnload==null){
+window.onload = function(){parent.contentLoaded = true;};
+}else{
+window.onload = function(){originalOnload();parent.contentLoaded = true;};
+}
+</script> 
+
+
+<div id="winchm_template_top">
+<table width="100%" height="50" bgcolor="#c4d0f4" style="WIDTH: 100%" cellSpacing=0 cellPadding=3 border=0>
+<tr>
+<td>
+<div id="winchm_template_navigation">
+<em>litebook2&nbsp;Help &gt; <A href="features.html">功能介绍</A> &gt; </em> </div>
+<div id="winchm_template_title">
+缓存</div>
+</td>
+<td align="right" style="WIDTH: 90px">
+<A href="commandline.html" title="Previous"><img id="winchm_template_prev" src="template1/btn_prev_n.gif" border="0"></a><A href="catalog.htm" title="Next"><img id="winchm_template_next" src="template1/btn_next_n.gif" border="0"></a>
+</td>
+</tr>
+</table>
+</div>
+<div id="winchm_template_content">
+<p>
+<P><FONT face=Arial >Litebook从ver2.2起开始支持缓存功能，此功能的目的主要是为了加快epub和jar文件的载入速度。由于epub和jar文件都是ZIP压缩格式，因此如果其中包含的章节很多的话，每次载入的时候所花费的时间就很长了，为了缩短这个时间，litebook会把第一次打开之后文本另存为一个文本文件存在cache子目录下，这样以后再次打开的时候就直接打开这个文本文件了。 </FONT></P>
+<P><FONT face=Arial>注：从ver2.3开始cache子目录位置修改为：</FONT></P>
+<UL>
+  <LI>
+<DIV><FONT face=Arial>Windows: C:\Documents and 
+  Settings\[用户名]\litebook\cache</FONT></DIV></LI>
+  <LI>
+<DIV><FONT face=Arial>Linux: 
+  ~/litebook/cache</FONT></DIV></LI></UL>
+<P><FONT face=Arial 
+>这个特性的代价是会消耗一些硬盘空间，不过就目前普遍上百G的硬盘来讲，问题也不大，当然如果你希望清空这些文件的话，可以用菜单“文件”-》“清空缓存”。</FONT></P>
+<P><FONT face=Arial></FONT>&nbsp;</P>
+<P><FONT face=Arial></FONT>&nbsp;</P></p>
+<hr><font face="Arial" color="#808080" size="1"> Copyright 2009-2011 Hu 
+Jun</font>      </div>
+
+</body>
+</html>
