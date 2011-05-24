@@ -11,6 +11,9 @@
 #
 #
 
+#
+#2011-5-24 fix a bug of loading correct etree.so in 64bit system
+#
 
 
 import dbus
@@ -1465,8 +1468,8 @@ BookMarkList=[]
 ThemeList=[]
 BookDB=[]
 Ticking=True
-Version='2.3 Linux Beta'
-I_Version=2.30 # this is used to check updated version
+Version='2.3 Linux Beta2'
+I_Version=2.31 # this is used to check updated version
 lb_hash='3de03ac38cc1c2dc0547ee09f866ee7b'
 
 def cur_file_dir():
@@ -7642,7 +7645,7 @@ class NewOptionDialog(wx.Dialog):
            state = prop_iface.Get("org.freedesktop.NetworkManager.Device", "State")
            name = prop_iface.Get("org.freedesktop.NetworkManager.Device", "Interface")
            ip_int_name_list.append(name)
-        
+
         self.combo_box_MDNS.Append(u"自动检测")
         self.combo_box_MDNS.AppendItems(ip_int_name_list)
         if GlobalConfig['mDNS_interface']=='AUTO':
