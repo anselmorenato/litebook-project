@@ -7,7 +7,32 @@ import shutil
 import subprocess
 import uuid
 import zipfile
+import shutil
 from genshi.template import TemplateLoader
+import platform
+import sys
+
+def cur_file_dir():
+    #获取脚本路径
+    path = sys.path[0]
+    if isinstance(path,str):
+        path=path.decode('utf-8')
+
+    #判断为脚本文件还是py2exe编译后的文件，如果是脚本文件，则返回的是脚本的目录，如果是编译后的文件，则返回的是编译后的文件路径
+    if os.path.isdir(path):
+        return path
+    elif os.path.isfile(path):
+        return os.path.dirname(path)
+
+myos=platform.architecture()
+cdir=cur_file_dir()
+if myos[1]=='ELF':
+    if myos[0]=='64bit':
+        shutil.copyfile(cdir+'/lxml/etree_64b.so',cdir+'/lxml/etree.so')
+        shutil.copyfile(cdir+'/lxml/objectify_64b.so',cdir+'/lxml/objectify.so')
+    elif myos[0]=='32bit':
+        shutil.copyfile(cdir+'/lxml/etree_32b.so',cdir+'/lxml/etree.so')
+        shutil.copyfile(cdir+'/lxml/objectify_32b.so',cdir+'/lxml/objectify.so')
 from lxml import etree
 
 class TocMapNode:
@@ -351,6 +376,8 @@ def test():
     book.createBook(rootDir)
     EpubBook.createArchive(rootDir, rootDir + '.epub')
     #EpubBook.checkEpub('epubcheck-1.0.5.jar', rootDir + '.epub')
+
+
 
 if __name__ == '__main__':
     test()
