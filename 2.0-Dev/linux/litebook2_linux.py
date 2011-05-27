@@ -1468,8 +1468,8 @@ BookMarkList=[]
 ThemeList=[]
 BookDB=[]
 Ticking=True
-Version='2.3 Linux Beta2'
-I_Version=2.31 # this is used to check updated version
+Version='2.3 Linux'
+I_Version=2.32 # this is used to check updated version
 lb_hash='3de03ac38cc1c2dc0547ee09f866ee7b'
 
 def cur_file_dir():
