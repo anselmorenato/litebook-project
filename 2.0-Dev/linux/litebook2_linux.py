@@ -3772,7 +3772,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
     def ResetTool(self,newsize=(32,32)):
         self.frame_1_toolbar.ClearTools()
         self.frame_1_toolbar.SetToolBitmapSize(newsize)
-        bmp=wx.Bitmap(GlobalConfig['IconDir']+os.sep+u"network-32x32.png", wx.BITMAP_TYPE_ANY)
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+os.sep+u"Network-32x32.png", wx.BITMAP_TYPE_ANY)
         bmp=bmp.ConvertToImage().Rescale(newsize[0],newsize[1],wx.IMAGE_QUALITY_HIGH).ConvertToBitmap()
         self.frame_1_toolbar.AddLabelTool(110, u"搜索并下载", bmp, wx.NullBitmap, wx.ITEM_NORMAL, u"搜索并下载", u"搜索并下载")
         bmp=wx.Bitmap(GlobalConfig['IconDir']+os.sep+u"DirSideBar.png", wx.BITMAP_TYPE_ANY)
