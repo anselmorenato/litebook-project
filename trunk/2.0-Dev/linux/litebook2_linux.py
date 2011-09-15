@@ -3768,8 +3768,11 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         return
 
     def ResetTool(self,newsize=(32,32)):
-        self.frame_1_toolbar.ClearTools()
-        self.frame_1_toolbar.Destroy()
+        try:
+            self.frame_1_toolbar.ClearTools()
+            self.frame_1_toolbar.Destroy()
+        except:
+            pass
 
         self.frame_1_toolbar = wx.ToolBar(self, -1, style=wx.TB_HORIZONTAL|wx.TB_FLAT|wx.TB_3DBUTTONS)
         self.SetToolBar(self.frame_1_toolbar)
