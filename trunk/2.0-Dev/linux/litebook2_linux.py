@@ -61,6 +61,7 @@ import encodings.utf_8
 import encodings.big5
 import encodings.utf_16
 from chardet.universaldetector import UniversalDetector
+import chardet
 #import UnRAR2
 import subprocess
 import thread
@@ -3557,7 +3558,9 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.SetTitle(u'Litebook2 轻巧读书')
         # load last opened file
         if openfile<>None:
-            openfile=openfile.decode('GBK')
+            if isinstance(openfile,str):
+                enc=chardet.detect(openfile)['encoding']
+                openfile=openfile.decode(enc)
             self.LoadFile([openfile],startup=True)
         else:
             if GlobalConfig['LoadLastFile']==True:
@@ -4991,6 +4994,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                     self.window_1.Unsplit(self.window_1_pane_mulu)
                 elif self.window_1_pane_1.IsShown():
                     self.window_1.Unsplit(self.window_1_pane_1)
+                self.text_ctrl_1.SetFocus()
             else:
                 event.Skip()
 
@@ -9560,6 +9564,7 @@ if __name__ == "__main__":
         else:
             fname=sys.argv[1]
             fname=os.path.abspath(fname)
+
             if not os.path.exists(fname):
                 print fname,u'不存在!'
                 sys.exit()
