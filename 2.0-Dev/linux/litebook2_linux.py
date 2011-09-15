@@ -3845,6 +3845,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.sliderControl.Bind(wx.EVT_SCROLL,self.OnSScroll)
         self.frame_1_toolbar.SetToolSeparation(5)
         self.frame_1_toolbar.Realize()
+        self.frame_1_toolbar.Hide()
+        self.frame_1_toolbar.Show()
 
 
     def ResetMenu(self):
