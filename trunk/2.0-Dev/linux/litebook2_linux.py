@@ -3448,8 +3448,6 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.frame_1_statusbar = self.CreateStatusBar(4, 0)
 
         # Tool Bar
-        self.frame_1_toolbar = wx.ToolBar(self, -1, style=wx.TB_HORIZONTAL|wx.TB_FLAT|wx.TB_3DBUTTONS)
-        self.SetToolBar(self.frame_1_toolbar)
         self.ResetTool((GlobalConfig['ToolSize'],GlobalConfig['ToolSize']))
 
         # Tool Bar end
@@ -3777,7 +3775,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.SetToolBar(self.frame_1_toolbar)
 
         self.frame_1_toolbar.SetToolBitmapSize(newsize)
-        self.frame_1_toolbar.SetMargins((1,1))
+        self.frame_1_toolbar.SetMargins((0,0))
         bmp=wx.Bitmap(GlobalConfig['IconDir']+os.sep+u"Network-32x32.png", wx.BITMAP_TYPE_ANY)
         bmp=bmp.ConvertToImage().Rescale(newsize[0],newsize[1],wx.IMAGE_QUALITY_HIGH).ConvertToBitmap()
         self.frame_1_toolbar.AddLabelTool(110, u"搜索并下载", bmp, wx.NullBitmap, wx.ITEM_NORMAL, u"搜索并下载", u"搜索并下载")
@@ -3844,7 +3842,9 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         bmp=bmp.ConvertToImage().Rescale(newsize[0],newsize[1],wx.IMAGE_QUALITY_HIGH).ConvertToBitmap()
         self.frame_1_toolbar.AddLabelTool(43, u"切换为繁体字", bmp, wx.NullBitmap, wx.ITEM_NORMAL, u"切换为繁体字", u"切换为繁体字")
         self.frame_1_toolbar.AddSeparator()
-        self.sliderControl=wx.Slider(self.frame_1_toolbar, -1, 0, 0, 100,style=wx.SL_LABELS)
+        if wid<50:wid=50
+        if wid>200:wid=200
+        self.sliderControl=wx.Slider(self.frame_1_toolbar, -1, 0, 0, 100,size=(wid,-1),style=wx.SL_LABELS)
         self.sliderControl.SetSize((-1,newsize[0]))
         self.frame_1_toolbar.AddControl(self.sliderControl)
         self.sliderControl.Bind(wx.EVT_SCROLL,self.OnSScroll)
