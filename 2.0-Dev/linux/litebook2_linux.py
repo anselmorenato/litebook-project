@@ -23,7 +23,6 @@ try:
     from cStringIO import StringIO
 except ImportError:
     from StringIO import StringIO
-import mimetypes
 import SocketServer
 import posixpath
 import BaseHTTPServer
@@ -1468,8 +1467,8 @@ BookMarkList=[]
 ThemeList=[]
 BookDB=[]
 Ticking=True
-Version='2.3 Linux'
-I_Version=2.32 # this is used to check updated version
+Version='2.4 Linux'
+I_Version=2.40 # this is used to check updated version
 lb_hash='3de03ac38cc1c2dc0547ee09f866ee7b'
 
 def cur_file_dir():
@@ -1607,9 +1606,11 @@ def GenCatalog(instr,divide_method=0,zishu=10000):
             ch_ten_str=u'(十|百|千|万)'
             ch_ten_dict={u'十':u'0',u'百':u'00',u'千':u'000',u'万':u'0000',}
             ch_dict={u'零':u'0',u'一':u'1',u'二':u'2',u'三':u'3',u'四':u'4',u'五':u'5',u'六':u'6',u'七':u'7',u'八':u'8',u'九':u'9',}
-            p=re.compile(u'第'+chnum_str+u'+(章|节|部|卷)',re.L|re.U)
+            p=re.compile(u'第'+chnum_str+u'+(章|节|部|卷|回)',re.L|re.U)
             m_list=p.finditer(instr)
             #last_chapter=None
+            c_list.append(u'本书首页>>>>')
+            rlist[u'本书首页>>>>']=0
             for m in m_list:
                 re_start_pos=m.start()
                 re_end_pos=m.end()
@@ -1792,6 +1793,8 @@ def readKeyConfig():
         kconfig.append((u'竖排书本显示模式','-A--+"N"'))
         kconfig.append((u'显示目录','C---+"U"'))
         kconfig.append((u'显示工具栏','C---+"T"'))
+        kconfig.append((u'缩小工具栏','C---+"-"'))
+        kconfig.append((u'放大工具栏','C---+"="'))
         kconfig.append((u'全屏显示','C---+"I"'))
         kconfig.append((u'显示文件侧边栏','-A--+"D"'))
         kconfig.append((u'自动翻页','-A--+"T"'))
@@ -1812,6 +1815,7 @@ def readKeyConfig():
         kconfig.append((u'最小化','----+WXK_ESCAPE'))
         kconfig.append((u'生成EPUB文件','C---+"E"'))
         kconfig.append((u'启用WEB服务器','-A--+"W"'))
+        kconfig.append((u'显示章节侧边栏','-A--+"J"'))
         KeyConfigList.append(kconfig)
         i=1
         tl=len(kconfig)
@@ -1857,6 +1861,8 @@ def readKeyConfig():
         kconfig.append((u'书本显示模式','-A--+"B"'))
         kconfig.append((u'竖排书本显示模式','-A--+"N"'))
         kconfig.append((u'显示工具栏','C---+"T"'))
+        kconfig.append((u'缩小工具栏','C---+"-"'))
+        kconfig.append((u'放大工具栏','C---+"="'))
         kconfig.append((u'显示目录','C---+"U"'))
         kconfig.append((u'全屏显示','C---+"I"'))
         kconfig.append((u'显示文件侧边栏','-A--+"D"'))
@@ -1878,6 +1884,7 @@ def readKeyConfig():
         kconfig.append((u'最小化','----+WXK_ESCAPE'))
         kconfig.append((u'生成EPUB文件','C---+"E"'))
         kconfig.append((u'启用WEB服务器','-A--+"W"'))
+        kconfig.append((u'显示章节侧边栏','-A--+"J"'))
 
         KeyConfigList.append(kconfig)
     else:
@@ -2001,6 +2008,7 @@ def readConfigFile():
         GlobalConfig['RunWebserverAtStartup']=False
         GlobalConfig['ServerPort']=8000
         GlobalConfig['mDNS_interface']='AUTO'
+        GlobalConfig['ToolSize']=32
 
         return
 
@@ -2020,6 +2028,10 @@ def readConfigFile():
     except:
         GlobalConfig['ServerPort']=8000
 
+    try:
+        GlobalConfig['ToolSize']=config.getint('settings','toolsize')
+    except:
+        GlobalConfig['ToolSize']=32
 
     try:
         GlobalConfig['ShareRoot']=os.path.abspath(config.get('settings','ShareRoot'))
@@ -2360,6 +2372,7 @@ def writeConfigFile(lastpos):
     config.set('settings','RunWebserverAtStartup',unicode(GlobalConfig['RunWebserverAtStartup']))
     config.set('settings','ServerPort',unicode(GlobalConfig['ServerPort']))
     config.set('settings','mDNS_interface',unicode(GlobalConfig['mDNS_interface']))
+    config.set('settings','toolsize',unicode(GlobalConfig['ToolSize']))
     # save opened files
     config.add_section('LastOpenedFiles')
     i=0
@@ -2651,9 +2664,9 @@ def epubfile_decode(infile):
     content=u''
     clist=[]
     for fname in zfile.namelist():
-        if os.path.basename(fname).lower()=='toc.ncx':
-            dirfile=fname
         fext=os.path.splitext(fname)[1].lower()
+        if fext=='.ncx':
+            dirfile=fname
         if fext==".xml" or fext==".html" or fext==".htm":
             if fname<>'META-INF/container.xml':
                 clist.append(fname)
@@ -3268,6 +3281,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
     u'书本显示模式':'self.Menu602(None)',
     u'竖排书本显示模式':'self.Menu603(None)',
     u'显示工具栏':'self.Menu501(None)',
+    u'放大工具栏':'self.Menu512(None)',
+    u'缩小工具栏':'self.Menu511(None)',
     u'显示目录':'self.Menu509(None)',
     u'全屏显示':'self.Menu503(None)',
     u'显示文件侧边栏':'self.Menu502(None)',
@@ -3289,6 +3304,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
     u'最小化':'self.OnESC(None)',
     u'生成EPUB文件':'self.Menu704()',
     u'启用WEB服务器':'self.Menu705()',
+    u'显示章节侧边栏':'self.Menu510(None)',
     }
 
     def __init__(self,parent,openfile=None):
@@ -3311,8 +3327,13 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.window_1 = wx.SplitterWindow(self, -1, style=wx.SP_3D|wx.SP_BORDER)
         self.window_1_pane_2 = wx.Panel(self.window_1, -1)
         self.window_1_pane_1 = wx.Panel(self.window_1, -1)
+        self.window_1_pane_mulu = wx.Panel(self.window_1, -1)
         self.list_ctrl_1 = wx.ListCtrl(self.window_1_pane_1, -1, style=wx.LC_REPORT)
+        self.list_ctrl_mulu = wx.ListCtrl(self.window_1_pane_mulu, -1, style=wx.LC_REPORT)
+        self.list_ctrl_mulu.InsertColumn(0,u"章节名称",width=-1)
         self.text_ctrl_1 = liteview.LiteView(self.window_1_pane_2)
+        self.window_1_pane_mulu.Hide()
+        self.window_1_pane_1.Hide()
 
         #set droptarget
         dt = FileDrop(self)
@@ -3382,13 +3403,17 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         wxglade_tmp_menu.AppendSeparator()
         wxglade_tmp_menu.Append(507, u"增大字体"+KeyMenuList[u'增大字体'], u"增大字体", wx.ITEM_NORMAL)
         wxglade_tmp_menu.Append(508, u"减小字体"+KeyMenuList[u'减小字体'], u"减小字体", wx.ITEM_NORMAL)
-
+        wxglade_tmp_menu.AppendSeparator()
         wxglade_tmp_menu.Append(501, u"显示工具栏"+KeyMenuList[u'显示工具栏'], u"是否显示工具栏", wx.ITEM_CHECK)
+        wxglade_tmp_menu.Append(511, u"缩小工具栏"+KeyMenuList[u'缩小工具栏'], u"缩小工具栏", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(512, u"放大工具栏"+KeyMenuList[u'放大工具栏'], u"放大工具栏", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.AppendSeparator()
         wxglade_tmp_menu.Append(503, u"全屏显示"+KeyMenuList[u'全屏显示'], u"全屏显示", wx.ITEM_CHECK)
         wxglade_tmp_menu.Append(502, u"显示文件侧边栏"+KeyMenuList[u'显示文件侧边栏'], u"是否显示文件侧边栏", wx.ITEM_CHECK)
+        wxglade_tmp_menu.Append(510, u"显示章节侧边栏"+KeyMenuList[u'显示章节侧边栏'], u"是否显示章节侧边栏", wx.ITEM_CHECK)
         wxglade_tmp_menu.Append(505, u"自动翻页"+KeyMenuList[u'自动翻页'], u"是否自动翻页", wx.ITEM_CHECK)
         wxglade_tmp_menu.Append(506, u"显示进度条"+KeyMenuList[u'显示进度条'], u"显示进度条", wx.ITEM_NORMAL)
-        wxglade_tmp_menu.Append(509, u"显示目录"+KeyMenuList[u'显示目录'], u"显示目录", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(509, u"显示章节"+KeyMenuList[u'显示目录'], u"显示章节", wx.ITEM_NORMAL)
         if not GlobalConfig['HideToolbar']:
             self.toolbar_visable=True
             wxglade_tmp_menu.Check(501,True)
@@ -3425,39 +3450,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         # Tool Bar
         self.frame_1_toolbar = wx.ToolBar(self, -1, style=wx.TB_HORIZONTAL|wx.TB_FLAT|wx.TB_3DBUTTONS)
         self.SetToolBar(self.frame_1_toolbar)
-        self.frame_1_toolbar.AddLabelTool(110, u"搜索并下载", wx.Bitmap(GlobalConfig['IconDir']+u"/Network-32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"搜索并下载", u"搜索并下载")
-        self.frame_1_toolbar.AddCheckLabelTool(52, u"打开文件侧边栏",wx.Bitmap(GlobalConfig['IconDir']+u"/DirSideBar.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, u"打开文件侧边栏", u"打开文件侧边栏")
-        self.frame_1_toolbar.AddLabelTool(11, u"打开", wx.Bitmap(GlobalConfig['IconDir']+u"/file-open-32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"打开文件", u"打开文件列表")
-        self.frame_1_toolbar.AddLabelTool(13, u"关闭", wx.Bitmap(GlobalConfig['IconDir']+u"/file-close-32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"关闭文件", u"关闭文件")
-        self.frame_1_toolbar.AddLabelTool(18, u"另存为", wx.Bitmap(GlobalConfig['IconDir']+u"/savefile-32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"另存为", u"另存为")
-        self.frame_1_toolbar.AddLabelTool(16, u"选项", wx.Bitmap(GlobalConfig['IconDir']+u"/option-32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"选项", u"选项")
-        self.frame_1_toolbar.AddSeparator()
-        self.frame_1_toolbar.AddLabelTool(15, u"下一个", wx.Bitmap(GlobalConfig['IconDir']+u"/next-32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"下一个文件", u"下一个文件")
-        self.frame_1_toolbar.AddLabelTool(14, u"上一个", wx.Bitmap(GlobalConfig['IconDir']+u"/previous-32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"上一个文件", u"上一个文件")
-        self.frame_1_toolbar.AddSeparator()
-        self.frame_1_toolbar.AddRadioLabelTool(61,u'纸张显示模式',wx.Bitmap(GlobalConfig['IconDir']+u"/paper.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap,u'纸张显示模式',u'纸张显示模式')
-        self.frame_1_toolbar.AddRadioLabelTool(62,u'书本显示模式',wx.Bitmap(GlobalConfig['IconDir']+u"/openbook.jpg", wx.BITMAP_TYPE_ANY), wx.NullBitmap,u'书本显示模式',u'书本显示模式')
-        self.frame_1_toolbar.AddRadioLabelTool(63,u'竖排书本显示模式',wx.Bitmap(GlobalConfig['IconDir']+u"/vbook.jpg", wx.BITMAP_TYPE_ANY), wx.NullBitmap,u'竖排书本显示模式',u'竖排书本显示模式')
-        self.frame_1_toolbar.AddSeparator()
-
-        self.frame_1_toolbar.AddLabelTool(23, u"查找", wx.Bitmap(GlobalConfig['IconDir']+u"/search-32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"搜索", u"搜索")
-        self.frame_1_toolbar.AddLabelTool(24, u"查找下一个", wx.Bitmap(GlobalConfig['IconDir']+u"/search-next-32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"搜索下一个", u"搜索下一个")
-        self.frame_1_toolbar.AddLabelTool(25, u"查找上一个", wx.Bitmap(GlobalConfig['IconDir']+u"/search-previous-32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"搜索上一个", u"搜索上一个")
-        self.frame_1_toolbar.AddSeparator()
-        self.frame_1_toolbar.AddLabelTool(31, u"加入收藏夹", wx.Bitmap(GlobalConfig['IconDir']+u"/bookmark-add-32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"将当前阅读位置加入收藏夹", u"将当前阅读位置加入收藏夹")
-        self.frame_1_toolbar.AddLabelTool(32, u"收藏夹", wx.Bitmap(GlobalConfig['IconDir']+u"/bookmark-32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"打开收藏夹", u"打开收藏夹")
-        self.frame_1_toolbar.AddSeparator()
-        self.FormatTool=self.frame_1_toolbar.AddCheckLabelTool(44, u"智能分段", wx.Bitmap(GlobalConfig['IconDir']+u"/format-32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, u"智能分段", u"智能分段")
-        self.frame_1_toolbar.AddLabelTool(41, "HTML", wx.Bitmap(GlobalConfig['IconDir']+u"/html--32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"过滤HTML标记", u"过滤HTML标记")
-        self.frame_1_toolbar.AddLabelTool(42, u"切换为简体字", wx.Bitmap(GlobalConfig['IconDir']+u"/jian.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"切换为简体字", u"切换为简体字")
-        self.frame_1_toolbar.AddLabelTool(43, u"切换为繁体字", wx.Bitmap(GlobalConfig['IconDir']+u"/fan.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"切换为繁体字", u"切换为繁体字")
-        self.frame_1_toolbar.AddSeparator()
-        wid=wx.ScreenDC().GetSize()[0]-1024+50
-        if wid<50:wid=50
-        if wid>200:wid=200
-        self.sliderControl=wx.Slider(self.frame_1_toolbar, -1, 0, 0, 100,size=(wid,-1),style=wx.SL_LABELS)
-        self.frame_1_toolbar.AddControl(self.sliderControl)
-        self.sliderControl.Bind(wx.EVT_SCROLL,self.OnSScroll)
+        self.ResetTool((GlobalConfig['ToolSize'],GlobalConfig['ToolSize']))
 
         # Tool Bar end
         #self.text_ctrl_1 = wx.TextCtrl(self, -1, "", style=wx.TE_MULTILINE|wx.TE_READONLY|wx.TE_RICH2)
@@ -3494,6 +3487,9 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.Bind(wx.EVT_MENU, self.Menu507, id=507)
         self.Bind(wx.EVT_MENU, self.Menu508, id=508)
         self.Bind(wx.EVT_MENU, self.Menu509, id=509)
+        self.Bind(wx.EVT_MENU, self.Menu510, id=510)
+        self.Bind(wx.EVT_MENU, self.Menu511, id=511)
+        self.Bind(wx.EVT_MENU, self.Menu512, id=512)
         self.Bind(wx.EVT_MENU, self.Menu601, id=601)
         self.Bind(wx.EVT_MENU, self.Menu602, id=602)
         self.Bind(wx.EVT_MENU, self.Menu603, id=603)
@@ -3526,10 +3522,12 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.Bind(wx.EVT_TOOL, self.Menu603, id=63)
 
         #self.text_ctrl_1.Bind(wx.EVT_MOUSEWHEEL,self.MyMouseMW) end wxGlade
+        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED,self.OnActMulu,self.list_ctrl_mulu)
         self.Bind(wx.EVT_TOOL, self.Menu502, id=52)
         self.text_ctrl_1.Bind(wx.EVT_CHAR,self.OnChar)
         self.text_ctrl_2.Bind(wx.EVT_CHAR,self.OnChar3)
         self.list_ctrl_1.Bind(wx.EVT_CHAR,self.OnChar2)
+        self.list_ctrl_mulu.Bind(wx.EVT_CHAR,self.OnChar2)
         #self.list_ctrl_1.Bind(wx.EVT_KEY_UP,self.OnCloseSiderbar)
         #self.text_ctrl_2.Bind(wx.EVT_KEY_UP,self.OnCloseSiderbar)
         self.Bind(wx.EVT_FIND, self.OnFind)
@@ -3721,9 +3719,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         frame_1_statusbar_fields = ["ready."]
         for i in range(len(frame_1_statusbar_fields)):
             self.frame_1_statusbar.SetStatusText(frame_1_statusbar_fields[i], i)
-        self.frame_1_toolbar.SetToolBitmapSize((32, 32))
-        self.frame_1_toolbar.SetToolSeparation(5)
-        self.frame_1_toolbar.Realize()
+
 
         # end wxGlade
 
@@ -3744,9 +3740,12 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         #Use splitwindow to add dir sidebar
         sizer_3 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_2 = wx.BoxSizer(wx.VERTICAL)
+        sizer_mulu=wx.BoxSizer(wx.VERTICAL)
         sizer_2.Add(self.text_ctrl_2, 0, wx.EXPAND, 0)
         sizer_2.Add(self.list_ctrl_1, 1, wx.EXPAND, 0)
+        sizer_mulu.Add(self.list_ctrl_mulu,1,wx.EXPAND,1)
         self.window_1_pane_1.SetSizer(sizer_2)
+        self.window_1_pane_mulu.SetSizer(sizer_mulu)
         sizer_3.Add(self.text_ctrl_1, 1, wx.EXPAND, 0)
         self.window_1_pane_2.SetSizer(sizer_3)
         #self.window_1.Initialize(self.window_1_pane_2)
@@ -3769,6 +3768,82 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.text_ctrl_1.SetSize(self.GetClientSize())
         event.Skip()
         return
+
+    def ResetTool(self,newsize=(32,32)):
+        self.frame_1_toolbar.ClearTools()
+        self.frame_1_toolbar.SetToolBitmapSize(newsize)
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+os.sep+u"network-32x32.png", wx.BITMAP_TYPE_ANY)
+        bmp=bmp.ConvertToImage().Rescale(newsize[0],newsize[1],wx.IMAGE_QUALITY_HIGH).ConvertToBitmap()
+        self.frame_1_toolbar.AddLabelTool(110, u"搜索并下载", bmp, wx.NullBitmap, wx.ITEM_NORMAL, u"搜索并下载", u"搜索并下载")
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+os.sep+u"DirSideBar.png", wx.BITMAP_TYPE_ANY)
+        bmp=bmp.ConvertToImage().Rescale(newsize[0],newsize[1],wx.IMAGE_QUALITY_HIGH).ConvertToBitmap()
+        self.frame_1_toolbar.AddCheckLabelTool(52, u"打开文件侧边栏",bmp, wx.NullBitmap, u"打开文件侧边栏", u"打开文件侧边栏")
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+os.sep+u"file-open-32x32.png", wx.BITMAP_TYPE_ANY)
+        bmp=bmp.ConvertToImage().Rescale(newsize[0],newsize[1],wx.IMAGE_QUALITY_HIGH).ConvertToBitmap()
+        self.frame_1_toolbar.AddLabelTool(11, u"打开", bmp, wx.NullBitmap, wx.ITEM_NORMAL, u"打开文件", u"打开文件列表")
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+os.sep+u"file-close-32x32.png", wx.BITMAP_TYPE_ANY)
+        bmp=bmp.ConvertToImage().Rescale(newsize[0],newsize[1],wx.IMAGE_QUALITY_HIGH).ConvertToBitmap()
+        self.frame_1_toolbar.AddLabelTool(13, u"关闭", bmp, wx.NullBitmap, wx.ITEM_NORMAL, u"关闭文件", u"关闭文件")
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+os.sep+u"savefile-32x32.png", wx.BITMAP_TYPE_ANY)
+        bmp=bmp.ConvertToImage().Rescale(newsize[0],newsize[1],wx.IMAGE_QUALITY_HIGH).ConvertToBitmap()
+        self.frame_1_toolbar.AddLabelTool(18, u"另存为", bmp, wx.NullBitmap, wx.ITEM_NORMAL, u"另存为", u"另存为")
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+os.sep+u"option-32x32.png", wx.BITMAP_TYPE_ANY)
+        bmp=bmp.ConvertToImage().Rescale(newsize[0],newsize[1],wx.IMAGE_QUALITY_HIGH).ConvertToBitmap()
+        self.frame_1_toolbar.AddLabelTool(16, u"选项", bmp, wx.NullBitmap, wx.ITEM_NORMAL, u"选项", u"选项")
+        self.frame_1_toolbar.AddSeparator()
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+os.sep+u"next-32x32.png", wx.BITMAP_TYPE_ANY)
+        bmp=bmp.ConvertToImage().Rescale(newsize[0],newsize[1],wx.IMAGE_QUALITY_HIGH).ConvertToBitmap()
+        self.frame_1_toolbar.AddLabelTool(15, u"下一个", bmp, wx.NullBitmap, wx.ITEM_NORMAL, u"下一个文件", u"下一个文件")
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+os.sep+u"previous-32x32.png", wx.BITMAP_TYPE_ANY)
+        bmp=bmp.ConvertToImage().Rescale(newsize[0],newsize[1],wx.IMAGE_QUALITY_HIGH).ConvertToBitmap()
+        self.frame_1_toolbar.AddLabelTool(14, u"上一个", bmp, wx.NullBitmap, wx.ITEM_NORMAL, u"上一个文件", u"上一个文件")
+        self.frame_1_toolbar.AddSeparator()
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+os.sep+u"paper.png", wx.BITMAP_TYPE_ANY)
+        bmp=bmp.ConvertToImage().Rescale(newsize[0],newsize[1],wx.IMAGE_QUALITY_HIGH).ConvertToBitmap()
+        self.frame_1_toolbar.AddRadioLabelTool(61,u'纸张显示模式',bmp, wx.NullBitmap,u'纸张显示模式',u'纸张显示模式')
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+os.sep+u"openbook.jpg", wx.BITMAP_TYPE_ANY)
+        bmp=bmp.ConvertToImage().Rescale(newsize[0],newsize[1],wx.IMAGE_QUALITY_HIGH).ConvertToBitmap()
+        self.frame_1_toolbar.AddRadioLabelTool(62,u'书本显示模式',bmp, wx.NullBitmap,u'书本显示模式',u'书本显示模式')
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+os.sep+u"vbook.jpg", wx.BITMAP_TYPE_ANY)
+        bmp=bmp.ConvertToImage().Rescale(newsize[0],newsize[1],wx.IMAGE_QUALITY_HIGH).ConvertToBitmap()
+        self.frame_1_toolbar.AddRadioLabelTool(63,u'竖排书本显示模式',bmp, wx.NullBitmap,u'竖排书本显示模式',u'竖排书本显示模式')
+        self.frame_1_toolbar.AddSeparator()
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+os.sep+u"search-32x32.png", wx.BITMAP_TYPE_ANY)
+        bmp=bmp.ConvertToImage().Rescale(newsize[0],newsize[1],wx.IMAGE_QUALITY_HIGH).ConvertToBitmap()
+        self.frame_1_toolbar.AddLabelTool(23, u"查找", bmp, wx.NullBitmap, wx.ITEM_NORMAL, u"搜索", u"搜索")
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+os.sep+u"search-next-32x32.png", wx.BITMAP_TYPE_ANY)
+        bmp=bmp.ConvertToImage().Rescale(newsize[0],newsize[1],wx.IMAGE_QUALITY_HIGH).ConvertToBitmap()
+        self.frame_1_toolbar.AddLabelTool(24, u"查找下一个", bmp, wx.NullBitmap, wx.ITEM_NORMAL, u"搜索下一个", u"搜索下一个")
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+os.sep+u"search-previous-32x32.png", wx.BITMAP_TYPE_ANY)
+        bmp=bmp.ConvertToImage().Rescale(newsize[0],newsize[1],wx.IMAGE_QUALITY_HIGH).ConvertToBitmap()
+        self.frame_1_toolbar.AddLabelTool(25, u"查找上一个", bmp, wx.NullBitmap, wx.ITEM_NORMAL, u"搜索上一个", u"搜索上一个")
+        self.frame_1_toolbar.AddSeparator()
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+os.sep+u"bookmark-add-32x32.png", wx.BITMAP_TYPE_ANY)
+        bmp=bmp.ConvertToImage().Rescale(newsize[0],newsize[1],wx.IMAGE_QUALITY_HIGH).ConvertToBitmap()
+        self.frame_1_toolbar.AddLabelTool(31, u"加入收藏夹", bmp, wx.NullBitmap, wx.ITEM_NORMAL, u"将当前阅读位置加入收藏夹", u"将当前阅读位置加入收藏夹")
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+os.sep+u"bookmark-32x32.png", wx.BITMAP_TYPE_ANY)
+        bmp=bmp.ConvertToImage().Rescale(newsize[0],newsize[1],wx.IMAGE_QUALITY_HIGH).ConvertToBitmap()
+        self.frame_1_toolbar.AddLabelTool(32, u"收藏夹", bmp, wx.NullBitmap, wx.ITEM_NORMAL, u"打开收藏夹", u"打开收藏夹")
+        self.frame_1_toolbar.AddSeparator()
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+os.sep+u"format-32x32.png", wx.BITMAP_TYPE_ANY)
+        bmp=bmp.ConvertToImage().Rescale(newsize[0],newsize[1],wx.IMAGE_QUALITY_HIGH).ConvertToBitmap()
+        self.FormatTool=self.frame_1_toolbar.AddCheckLabelTool(44, u"智能分段", bmp, wx.NullBitmap, u"智能分段", u"智能分段")
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+os.sep+u"html--32x32.png", wx.BITMAP_TYPE_ANY)
+        bmp=bmp.ConvertToImage().Rescale(newsize[0],newsize[1],wx.IMAGE_QUALITY_HIGH).ConvertToBitmap()
+        self.frame_1_toolbar.AddLabelTool(41, "HTML", bmp, wx.NullBitmap, wx.ITEM_NORMAL, u"过滤HTML标记", u"过滤HTML标记")
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+os.sep+u"jian.png", wx.BITMAP_TYPE_ANY)
+        bmp=bmp.ConvertToImage().Rescale(newsize[0],newsize[1],wx.IMAGE_QUALITY_HIGH).ConvertToBitmap()
+        self.frame_1_toolbar.AddLabelTool(42, u"切换为简体字", bmp, wx.NullBitmap, wx.ITEM_NORMAL, u"切换为简体字", u"切换为简体字")
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+os.sep+u"fan.png", wx.BITMAP_TYPE_ANY)
+        bmp=bmp.ConvertToImage().Rescale(newsize[0],newsize[1],wx.IMAGE_QUALITY_HIGH).ConvertToBitmap()
+        self.frame_1_toolbar.AddLabelTool(43, u"切换为繁体字", bmp, wx.NullBitmap, wx.ITEM_NORMAL, u"切换为繁体字", u"切换为繁体字")
+        self.frame_1_toolbar.AddSeparator()
+        self.sliderControl=wx.Slider(self.frame_1_toolbar, -1, 0, 0, 100,style=wx.SL_LABELS)
+        self.sliderControl.SetSize((-1,newsize[0]))
+        self.frame_1_toolbar.AddControl(self.sliderControl)
+        self.sliderControl.Bind(wx.EVT_SCROLL,self.OnSScroll)
+        self.frame_1_toolbar.SetToolSeparation(5)
+        self.frame_1_toolbar.Realize()
 
 
     def ResetMenu(self):
@@ -3797,6 +3872,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         mbar.SetLabel(508,u"减小字体"+KeyMenuList[u'减小字体'])
 
         mbar.SetLabel(501,u"显示工具栏"+KeyMenuList[u'显示工具栏'])
+        mbar.SetLabel(511,u"缩小工具栏"+KeyMenuList[u'缩小工具栏'])
+        mbar.SetLabel(512,u"放大工具栏"+KeyMenuList[u'放大工具栏'])
         mbar.SetLabel(503, u"全屏显示"+KeyMenuList[u'全屏显示'])
         mbar.SetLabel(502,u"显示文件侧边栏"+KeyMenuList[u'显示文件侧边栏'])
         mbar.SetLabel(505,u"自动翻页"+KeyMenuList[u'自动翻页'])
@@ -3805,6 +3882,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         mbar.SetLabel(507,u"增大字体"+KeyMenuList[u'增大字体'])
         mbar.SetLabel(508,u"减小字体"+KeyMenuList[u'减小字体'])
         mbar.SetLabel(509,u"显示目录"+KeyMenuList[u'显示目录'])
+        mbar.SetLabel(510,u'显示章节侧边栏'+KeyMenuList[u'显示章节侧边栏'])
         mbar.SetLabel(301,u"添加到收藏夹(&A)"+KeyMenuList[u'添加到收藏夹'])
         mbar.SetLabel(302,u"整理收藏夹(&M)"+KeyMenuList[u'整理收藏夹'])
         mbar.SetLabel(701,u"过滤HTML标签"+KeyMenuList[u'过滤HTML标记'])
@@ -4128,21 +4206,76 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 
 
 
-    def Menu502(self, event):
+    def Menu502(self, event=None):
         """Show/Hide the directory sidebar"""
+        mbar=self.GetMenuBar()
         if self.window_1.IsSplit():
-            self.SidebarPos=self.window_1.GetSashPosition()
-            self.PvFrame.Hide()
-            self.window_1.Unsplit(self.window_1_pane_1)
-            self.frame_1_toolbar.ToggleTool(52,False)
-            self.SidebarMenu.Check(502,False)
-            self.text_ctrl_1.SetFocus()
+            if self.window_1_pane_1.IsShown():
+                self.SidebarPos=self.window_1.GetSashPosition()
+                self.PvFrame.Hide()
+                self.window_1.Unsplit(self.window_1_pane_1)
+                self.frame_1_toolbar.ToggleTool(52,False)
+                self.SidebarMenu.Check(502,False)
+                self.text_ctrl_1.SetFocus()
+            else:
+                self.window_1.Unsplit(self.window_1_pane_mulu)
+                mbar.Check(510,False)
+                self.DirSideBarReload()
+                self.window_1.SplitVertically(self.window_1_pane_1, self.window_1_pane_2,self.SidebarPos)
+                self.frame_1_toolbar.ToggleTool(52,True)
+                self.SidebarMenu.Check(502,True)
+                self.list_ctrl_1.SetFocus()
+
         else:
             self.DirSideBarReload()
             self.window_1.SplitVertically(self.window_1_pane_1, self.window_1_pane_2,self.SidebarPos)
             self.frame_1_toolbar.ToggleTool(52,True)
             self.SidebarMenu.Check(502,True)
             self.list_ctrl_1.SetFocus()
+
+    def OnActMulu(self,evt):
+        chp=evt.GetText()
+        if chp<>"" and chp<>None:
+            pos=self.cur_catalog[0][chp]
+            self.text_ctrl_1.JumpTo(pos)
+
+
+
+
+
+
+    def Menu510(self, event=None):
+        """Show/Hide the mulu sidebar"""
+        mbar=self.GetMenuBar()
+        if self.window_1.IsSplit():
+            if self.window_1_pane_mulu.IsShown():
+                self.SidebarPos=self.window_1.GetSashPosition()
+                self.window_1.Unsplit(self.window_1_pane_mulu)
+                mbar.Check(510,False)
+                self.text_ctrl_1.SetFocus()
+            else:
+                self.window_1.Unsplit(self.window_1_pane_1)
+                mbar.Check(502,False)
+                self.reloadMulu()
+                self.window_1.SplitVertically(self.window_1_pane_mulu, self.window_1_pane_2,self.SidebarPos)
+                mbar.Check(510,True)
+                self.list_ctrl_mulu.SetFocus()
+        else:
+            self.reloadMulu()
+            self.window_1.SplitVertically(self.window_1_pane_mulu, self.window_1_pane_2,self.SidebarPos)
+            mbar.Check(510,True)
+            self.list_ctrl_mulu.SetFocus()
+
+    def Menu511(self,evt):
+        global GlobalConfig
+        GlobalConfig['ToolSize']-=1
+        self.ResetTool((GlobalConfig['ToolSize'],GlobalConfig['ToolSize']))
+
+    def Menu512(self,evt):
+        global GlobalConfig
+        GlobalConfig['ToolSize']+=1
+        self.ResetTool((GlobalConfig['ToolSize'],GlobalConfig['ToolSize']))
+
 
     def Menu503(self, event):
         self.showfullscr=not self.showfullscr
@@ -4161,6 +4294,29 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 
     def Menu508(self,evt):
         self.ChangeFontSize(-1)
+
+    def reloadMulu(self):
+        if self.cur_catalog==None:
+            rlist,c_list=GenCatalog(self.text_ctrl_1.GetValue())
+            self.cur_catalog=(rlist,c_list)
+        else:
+            rlist=self.cur_catalog[0]
+            c_list=self.cur_catalog[1]
+        self.list_ctrl_mulu.DeleteAllItems()
+        for c in c_list:
+            self.list_ctrl_mulu.InsertStringItem(sys.maxint,c)
+        c_pos=self.text_ctrl_1.GetStartPos()
+        i=0
+        for cc in c_list:
+            if c_pos<rlist[cc]:
+                break
+            else:
+                i+=1
+        self.list_ctrl_mulu.Select(i-1)
+        self.list_ctrl_mulu.Focus(i-1)
+        self.list_ctrl_mulu.SetColumnWidth(0,-1)
+
+
     def Menu509(self,evt):
         if self.cur_catalog==None:
             rlist,c_list=GenCatalog(self.text_ctrl_1.GetValue())
@@ -4817,10 +4973,14 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
     def OnChar2(self, event):
         key=event.GetKeyCode()
         if key==wx.WXK_TAB:
-            self.text_ctrl_2.SetFocus()
+            if self.window_1_pane_1.IsShown():
+                self.text_ctrl_2.SetFocus()
         else:
             if key==wx.WXK_ESCAPE:
-                self.Menu502(None)
+                if self.window_1_pane_mulu.IsShown():
+                    self.window_1.Unsplit(self.window_1_pane_mulu)
+                elif self.window_1_pane_1.IsShown():
+                    self.window_1.Unsplit(self.window_1_pane_1)
             else:
                 event.Skip()
 
@@ -8435,313 +8595,15 @@ class NewOptionDialog(wx.Dialog):
                         KeyConfigList.__delitem__(kname_list.index(secs[r]))
                 kconfig=[]
                 kconfig.append(tname)
-                try:
-                    cstr=config.get(secs[r],u'向上翻页')
-                    cstr_list=cstr.split('&&')
-                    for cs in cstr_list:
-                        kconfig.append((u'向上翻页',cs))
-                except:
-                    kconfig.append((u'向上翻页',"----+WXK_PAGEUP"))
+                for f,v in keygrid.LB2_func_list.items():
+                    try:
+                        cstr=config.get(secs[r],f)
+                        cstr_list=cstr.split('&&')
+                        for cs in cstr_list:
+                            kconfig.append((f,cs))
+                    except:
 
-                try:
-                    cstr=config.get(secs[r],u'跳到结尾')
-                    cstr_list=cstr.split('&&')
-                    for cs in cstr_list:
-                        kconfig.append((u'跳到结尾',cs))
-                except:
-                    kconfig.append((u'跳到结尾',"----+WXK_END"))
-
-                try:
-                    cstr=config.get(secs[r],u'切换为繁体字')
-                    cstr_list=cstr.split('&&')
-                    for cs in cstr_list:
-                        kconfig.append((u'切换为繁体字',cs))
-                except:
-                    kconfig.append((u'切换为繁体字',"----+WXK_F8"))
-
-                try:
-                    cstr=config.get(secs[r],u'另存为')
-                    cstr_list=cstr.split('&&')
-                    for cs in cstr_list:
-                        kconfig.append((u'另存为',cs))
-                except:
-                    kconfig.append((u'另存为','C---+"S"'))
-
-                try:
-                    cstr=config.get(secs[r],u'向下翻页')
-                    cstr_list=cstr.split('&&')
-                    for cs in cstr_list:
-                        kconfig.append((u'向下翻页',cs))
-                except:
-                    kconfig.append((u'向下翻页','----+WXK_PAGEDOWN'))
-
-                try:
-                    cstr=config.get(secs[r],u'智能分段')
-                    cstr_list=cstr.split('&&')
-                    for cs in cstr_list:
-                        kconfig.append((u'智能分段',cs))
-                except:
-                    kconfig.append((u'智能分段','-A--+"P"'))
-
-                try:
-                    cstr=config.get(secs[r],u'查找')
-                    cstr_list=cstr.split('&&')
-                    for cs in cstr_list:
-                        kconfig.append((u'查找',cs))
-                except:
-                    kconfig.append((u'查找','C---+"F"'))
-
-                try:
-                    cstr=config.get(secs[r],u'关于')
-                    cstr_list=cstr.split('&&')
-                    for cs in cstr_list:
-                        kconfig.append((u'关于',cs))
-                except:
-                    kconfig.append((u'关于','----+WXK_F6'))
-
-                try:
-                    cstr=config.get(secs[r],u'查找下一个')
-                    cstr_list=cstr.split('&&')
-                    for cs in cstr_list:
-                        kconfig.append((u'查找下一个',cs))
-                except:
-                    kconfig.append((u'查找下一个','----+WXK_F3'))
-
-                try:
-                    cstr=config.get(secs[r],u'自动翻页')
-                    cstr_list=cstr.split('&&')
-                    for cs in cstr_list:
-                        kconfig.append((u'自动翻页',cs))
-                except:
-                    kconfig.append((u'自动翻页','----+WXK_RETURN'))
-
-
-                try:
-                    cstr=config.get(secs[r],u'重新载入插件')
-                    cstr_list=cstr.split('&&')
-                    for cs in cstr_list:
-                        kconfig.append((u'重新载入插件',cs))
-                except:
-                    kconfig.append((u'重新载入插件','C---+"R"'))
-
-                try:
-                    cstr=config.get(secs[r],u'选项')
-                    cstr_list=cstr.split('&&')
-                    for cs in cstr_list:
-                        kconfig.append((u'选项',cs))
-                except:
-                    kconfig.append((u'选项','-A--+"O"'))
-
-                try:
-                    cstr=config.get(secs[r],u'简明帮助')
-                    cstr_list=cstr.split('&&')
-                    for cs in cstr_list:
-                        kconfig.append((u'简明帮助',cs))
-                except:
-                    kconfig.append((u'简明帮助','----+WXK_F1'))
-
-                try:
-                    cstr=config.get(secs[r],u'纸张显示模式')
-                    cstr_list=cstr.split('&&')
-                    for cs in cstr_list:
-                        kconfig.append((u'纸张显示模式',cs))
-                except:
-                    kconfig.append((u'纸张显示模式','-A--+"M"'))
-
-                try:
-                    cstr=config.get(secs[r],u'下一个文件')
-                    cstr_list=cstr.split('&&')
-                    for cs in cstr_list:
-                        kconfig.append((u'下一个文件',cs))
-                except:
-                    kconfig.append((u'下一个文件','C---+"]"'))
-
-                try:
-                    cstr=config.get(secs[r],u'添加到收藏夹')
-                    cstr_list=cstr.split('&&')
-                    for cs in cstr_list:
-                        kconfig.append((u'添加到收藏夹',cs))
-                except:
-                    kconfig.append((u'添加到收藏夹','C---+"D"'))
-
-                try:
-                    cstr=config.get(secs[r],u'搜索小说网站')
-                    cstr_list=cstr.split('&&')
-                    for cs in cstr_list:
-                        kconfig.append((u'搜索小说网站',cs))
-                except:
-                    kconfig.append((u'搜索小说网站','-A--+"C"'))
-
-                try:
-                    cstr=config.get(secs[r],u'全屏显示')
-                    cstr_list=cstr.split('&&')
-                    for cs in cstr_list:
-                        kconfig.append((u'全屏显示',cs))
-                except:
-                    kconfig.append((u'全屏显示','C---+"I"'))
-
-                try:
-                    cstr=config.get(secs[r],u'跳到首页')
-                    cstr_list=cstr.split('&&')
-                    for cs in cstr_list:
-                        kconfig.append((u'跳到首页',cs))
-                except:
-                    kconfig.append((u'跳到首页','----+WXK_HOME'))
-
-                try:
-                    cstr=config.get(secs[r],u'拷贝')
-                    cstr_list=cstr.split('&&')
-                    for cs in cstr_list:
-                        kconfig.append((u'拷贝',cs))
-                except:
-                    kconfig.append((u'拷贝','C---+"C"'))
-
-                try:
-                    cstr=config.get(secs[r],u'竖排书本显示模式')
-                    cstr_list=cstr.split('&&')
-                    for cs in cstr_list:
-                        kconfig.append((u'竖排书本显示模式',cs))
-                except:
-                    kconfig.append((u'竖排书本显示模式','-A--+"N"'))
-
-                try:
-                    cstr=config.get(secs[r],u'显示工具栏')
-                    cstr_list=cstr.split('&&')
-                    for cs in cstr_list:
-                        kconfig.append((u'显示工具栏',cs))
-                except:
-                    kconfig.append((u'显示工具栏','C---+"T"'))
-
-                try:
-                    cstr=config.get(secs[r],u'打开文件')
-                    cstr_list=cstr.split('&&')
-                    for cs in cstr_list:
-                        kconfig.append((u'打开文件',cs))
-                except:
-                    kconfig.append((u'打开文件','C---+"P"'))
-
-                try:
-                    cstr=config.get(secs[r],u'整理收藏夹')
-                    cstr_list=cstr.split('&&')
-                    for cs in cstr_list:
-                        kconfig.append((u'整理收藏夹',cs))
-                except:
-                    kconfig.append((u'整理收藏夹','C---+"M"'))
-
-                try:
-                    cstr=config.get(secs[r],u'文件列表')
-                    cstr_list=cstr.split('&&')
-                    for cs in cstr_list:
-                        kconfig.append((u'文件列表',cs))
-                except:
-                    kconfig.append((u'文件列表','C---+"O"'))
-
-                try:
-                    cstr=config.get(secs[r],u'切换为简体字')
-                    cstr_list=cstr.split('&&')
-                    for cs in cstr_list:
-                        kconfig.append((u'切换为简体字',cs))
-                except:
-                    kconfig.append((u'切换为简体字','----+WXK_F7'))
-
-
-                try:
-                    cstr=config.get(secs[r],u'过滤HTML标记')
-                    cstr_list=cstr.split('&&')
-                    for cs in cstr_list:
-                        kconfig.append((u'过滤HTML标记',cs))
-                except:
-                    kconfig.append((u'过滤HTML标记','----+WXK_F9'))
-
-
-                try:
-                    cstr=config.get(secs[r],u'书本显示模式')
-                    cstr_list=cstr.split('&&')
-                    for cs in cstr_list:
-                        kconfig.append((u'书本显示模式',cs))
-                except:
-                    kconfig.append((u'书本显示模式','-A--+"B"'))
-
-                try:
-                    cstr=config.get(secs[r],u'检查更新')
-                    cstr_list=cstr.split('&&')
-                    for cs in cstr_list:
-                        kconfig.append((u'检查更新',cs))
-                except:
-                    kconfig.append((u'检查更新','----+WXK_F5'))
-
-                try:
-                    cstr=config.get(secs[r],u'版本更新内容')
-                    cstr_list=cstr.split('&&')
-                    for cs in cstr_list:
-                        kconfig.append((u'版本更新内容',cs))
-                except:
-                    kconfig.append((u'版本更新内容','----+WXK_F2'))
-
-
-                try:
-                    cstr=config.get(secs[r],u'查找上一个')
-                    cstr_list=cstr.split('&&')
-                    for cs in cstr_list:
-                        kconfig.append((u'查找上一个',cs))
-                except:
-                    kconfig.append((u'查找上一个','----+WXK_F4'))
-
-                try:
-                    cstr=config.get(secs[r],u'显示文件侧边栏')
-                    cstr_list=cstr.split('&&')
-                    for cs in cstr_list:
-                        kconfig.append((u'显示文件侧边栏',cs))
-                except:
-                    kconfig.append((u'显示文件侧边栏','-A--+"D"'))
-
-                try:
-                    cstr=config.get(secs[r],u'关闭')
-                    cstr_list=cstr.split('&&')
-                    for cs in cstr_list:
-                        kconfig.append((u'关闭',cs))
-                except:
-                    kconfig.append((u'关闭','C---+"Z"'))
-
-                try:
-                    cstr=config.get(secs[r],u'退出')
-                    cstr_list=cstr.split('&&')
-                    for cs in cstr_list:
-                        kconfig.append((u'退出',cs))
-                except:
-                    kconfig.append((u'退出','-A--+"X"'))
-
-                try:
-                    cstr=config.get(secs[r],u'上一个文件')
-                    cstr_list=cstr.split('&&')
-                    for cs in cstr_list:
-                        kconfig.append((u'上一个文件',cs))
-                except:
-                    kconfig.append((u'上一个文件','C---+"["'))
-
-                try:
-                    cstr=config.get(secs[r],u'显示进度条')
-                    cstr_list=cstr.split('&&')
-                    for cs in cstr_list:
-                        kconfig.append((u'显示进度条',cs))
-                except:
-                    kconfig.append((u'显示进度条','----+"Z"'))
-                try:
-                    cstr=config.get(secs[r],u'增大字体')
-                    cstr_list=cstr.split('&&')
-                    for cs in cstr_list:
-                        kconfig.append((u'增大字体',cs))
-                except:
-                    kconfig.append((u'增大字体','----+"="'))
-
-                try:
-                    cstr=config.get(secs[r],u'减小字体')
-                    cstr_list=cstr.split('&&')
-                    for cs in cstr_list:
-                        kconfig.append((u'减小字体',cs))
-                except:
-                    kconfig.append((u'减小字体','----+"-"'))
-
+                        kconfig.append((f,v))
                 KeyConfigList.append(kconfig)
             cur_str=self.combo_box_7.GetStringSelection()
             self.combo_box_7.Clear()
@@ -9261,6 +9123,7 @@ class Convert_EPUB_Dialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnSaveas, self.button_1)
         self.Bind(wx.EVT_BUTTON, self.OnOK, self.button_3)
         self.Bind(wx.EVT_BUTTON, self.OnCancell, self.button_4)
+        self.Bind(wx.EVT_TEXT,self.onChangeName,self.text_ctrl_2)
         # end wxGlade
 
     def __set_properties(self):
@@ -9307,6 +9170,10 @@ class Convert_EPUB_Dialog(wx.Dialog):
         sizer_1.Fit(self)
         self.Layout()
         # end wxGlade
+
+    def onChangeName(self,evt):
+        newtit=self.text_ctrl_2.GetValue().strip()
+        self.text_ctrl_3.SetValue(os.path.abspath(GlobalConfig['ShareRoot']+os.sep+newtit+u".epub"))
 
     def OnChose(self, event): # wxGlade: Search_Web_Dialog.<event_handler>
         if event.GetInt()==1:
@@ -9630,9 +9497,10 @@ class LBHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         else:
             return self.extensions_map['']
 
-    if not mimetypes.inited:
-        mimetypes.init() # try to read system mime.types
-    extensions_map = mimetypes.types_map.copy()
+##    if not mimetypes.inited:
+##        mimetypes.init() # try to read system mime.types
+##    extensions_map = mimetypes.types_map.copy()
+    extensions_map={}
     extensions_map.update({
         '': 'application/octet-stream', # Default
         '.py': 'text/plain',
