@@ -1,4 +1,4 @@
-LiteBook ver2.2 
+LiteBook ver2.4 
 (c)2011 Hu Jun	
 
 1.概述
@@ -41,12 +41,8 @@ LiteBook是一个运行在windows和Linux下的开源看书软件，具备如下
 svn checkout http ://litebook-project.googlecode.com/svn/trunk/2.0-Dev litebook2
 
 (2).确认你的系统中安装有如下python环境：
- - Python 2.6 （不支持python 3.0）
+ - Python 2.6 或以上（不支持python 3.0）
  - wxpython 2.8.10.1 unicode (ubuntu/debian下参见 http://wiki.wxpython.org/InstallingOnUbuntuOrDebian)
- - chardet 2.01 ( http://chardet.feedparser.org/)
-   下载下来后，解压并用这个命令安装：sudo python setup.py install
- - rarfile 2.0 ( http://pypi.python.org/pypi/rarfile/2.0
-   下载下来后，解压并用这个命令安装：sudo python setup.py install
  - unrar linux版( http://www.rarlab.com)
    放在litebook2所在的目录即可
 
@@ -87,6 +83,11 @@ genshi: Edgewall Software
 lxml: http://lxml.de
 python-epub-builder:timtanbin
 fanjian:ne.manman@gmail.com
+genshi:http://genshi.edgewall.org/
+lxml:http://lxml.de
+ez_epub:timtanbin@gmail.com
+pyzeroconf: Paul Scott-Murphy
+
 本软件的网络搜索功能支持并感谢如下网站：
 易读：www.yilook.com
 小说520：www.xsxs520.com
