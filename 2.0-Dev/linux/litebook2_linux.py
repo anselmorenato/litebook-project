@@ -3771,6 +3771,11 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 
     def ResetTool(self,newsize=(32,32)):
         self.frame_1_toolbar.ClearTools()
+        self.frame_1_toolbar.Destroy()
+
+        self.frame_1_toolbar = wx.ToolBar(self, -1, style=wx.TB_HORIZONTAL|wx.TB_FLAT|wx.TB_3DBUTTONS)
+        self.SetToolBar(self.frame_1_toolbar)
+
         self.frame_1_toolbar.SetToolBitmapSize(newsize)
         self.frame_1_toolbar.SetMargins((1,1))
         bmp=wx.Bitmap(GlobalConfig['IconDir']+os.sep+u"Network-32x32.png", wx.BITMAP_TYPE_ANY)
@@ -3845,8 +3850,6 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.sliderControl.Bind(wx.EVT_SCROLL,self.OnSScroll)
         self.frame_1_toolbar.SetToolSeparation(5)
         self.frame_1_toolbar.Realize()
-        self.frame_1_toolbar.Hide()
-        self.frame_1_toolbar.Show()
 
 
     def ResetMenu(self):
