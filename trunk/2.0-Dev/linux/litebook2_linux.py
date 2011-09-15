@@ -3845,6 +3845,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         bmp=bmp.ConvertToImage().Rescale(newsize[0],newsize[1],wx.IMAGE_QUALITY_HIGH).ConvertToBitmap()
         self.frame_1_toolbar.AddLabelTool(43, u"切换为繁体字", bmp, wx.NullBitmap, wx.ITEM_NORMAL, u"切换为繁体字", u"切换为繁体字")
         self.frame_1_toolbar.AddSeparator()
+        wid=wx.ScreenDC().GetSize()[0]-1024+50
         if wid<50:wid=50
         if wid>200:wid=200
         self.sliderControl=wx.Slider(self.frame_1_toolbar, -1, 0, 0, 100,size=(wid,-1),style=wx.SL_LABELS)
