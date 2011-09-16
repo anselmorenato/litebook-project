@@ -12,6 +12,7 @@
 
 import xml.parsers.expat
 import re
+import HTMLParser
 
 
 
@@ -29,6 +30,11 @@ class GCEPUB:
         self.Parser.CharacterDataHandler = self.getdata
         self.Parser.StartElementHandler = self.start_ef
         self.Parser.EndElementHandler = self.end_ef
+##        self.Parser.SetParamEntityParsing(xml.parsers.expat.XML_PARAM_ENTITY_PARSING_UNLESS_STANDALONE)
+        self.h=HTMLParser.HTMLParser()
+        self.instr=self.instr.replace('&lt;','')
+        self.instr=self.instr.replace('&gt;','')
+
 
     def start_ef(self,name,attrs):
 
@@ -48,7 +54,7 @@ class GCEPUB:
         if name.lower()=='navpoint':
             self.start_e=False
             self.start_txt=False
-            self.rlist[self.cur_url]=self.cur_txt
+            self.rlist[self.cur_url]=self.h.unescape(self.cur_txt)
             self.ecount+=1
         if name.lower()=='text':
             self.start_txt=False
