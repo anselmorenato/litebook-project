@@ -4337,12 +4337,12 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         if filename<>'':self.LoadBookmark(filename,pos)
 
     def Menu401(self, event): # wxGlade: MyFrame.<event_handler>
-        url="file://"+os.path.dirname(AnyToUnicode(os.path.abspath(sys.argv[0])))+'\\helpdoc\\index.htm'
+        url="file://"+os.path.dirname(AnyToUnicode(os.path.abspath(sys.argv[0])))+'\\helpdoc\\litebook.html'
         browser=webbrowser.get('windows-default')
         browser.open_new_tab(url)
 
     def Menu404(self, event): # wxGlade: MyFrame.<event_handler>
-        url="file:///"+os.path.dirname(AnyToUnicode(os.path.abspath(sys.argv[0])))+'\\helpdoc\\scr\\version_history.htm'
+        url="file:///"+os.path.dirname(AnyToUnicode(os.path.abspath(sys.argv[0])))+'\\helpdoc\\.html'
 ##        url=url.replace('\\','/')
 ##        url="file:///"+url
 ##        print url
