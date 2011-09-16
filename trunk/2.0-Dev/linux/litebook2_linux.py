@@ -4140,7 +4140,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         url="file://"+cur_file_dir()+'/helpdoc/litebook.html'
         webbrowser.open_new_tab(url)
     def Menu404(self, event): # wxGlade: MyFrame.<event_handler>
-        url="file://"+cur_file_dir()+'/helpdoc/.html'
+        url="file://"+cur_file_dir()+'/helpdoc/99.html'
         webbrowser.open_new_tab(url)
     def Menu402(self, event): # wxGlade: MyFrame.<event_handler>
         global Version

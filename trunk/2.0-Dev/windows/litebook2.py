@@ -4342,7 +4342,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         browser.open_new_tab(url)
 
     def Menu404(self, event): # wxGlade: MyFrame.<event_handler>
-        url="file:///"+os.path.dirname(AnyToUnicode(os.path.abspath(sys.argv[0])))+'\\helpdoc\\.html'
+        url="file:///"+os.path.dirname(AnyToUnicode(os.path.abspath(sys.argv[0])))+'\\helpdoc\\99.html'
 ##        url=url.replace('\\','/')
 ##        url="file:///"+url
 ##        print url
