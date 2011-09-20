@@ -1468,8 +1468,8 @@ BookMarkList=[]
 ThemeList=[]
 BookDB=[]
 Ticking=True
-Version='2.4 Linux'
-I_Version=2.40 # this is used to check updated version
+Version='2.41 Linux'
+I_Version=2.41 # this is used to check updated version
 lb_hash='3de03ac38cc1c2dc0547ee09f866ee7b'
 
 def cur_file_dir():
@@ -3659,25 +3659,37 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.__do_layout()
 
         #starting web server if configured
-
-        self.server = ThreadedLBServer(('', GlobalConfig['ServerPort']), LBHTTPRequestHandler)
-        # Start a thread with the server -- that thread will then start one
-        # more thread for each request
-        self.server_thread = threading.Thread(target=self.server.serve_forever)
-        # Exit the server thread when the main thread terminates
-        self.server_thread.setDaemon(True)
-        if GlobalConfig['RunWebserverAtStartup']:
-            try:
-                self.server_thread.start()
-                mbar=self.GetMenuBar()
-                mbar.Check(705,True)
-            except:
-                dlg = wx.MessageDialog(self, u'启动WEB服务器失败',
-                   u'出错了！',
-                   wx.OK | wx.ICON_ERROR
-                   )
-                dlg.ShowModal()
-                dlg.Destroy()
+        self.server=None
+        try:
+            self.server = ThreadedLBServer(('', GlobalConfig['ServerPort']), LBHTTPRequestHandler)
+        except socket.error:
+            splash_frame.Close()
+            dlg = wx.MessageDialog(self,u'端口'+
+                str(GlobalConfig['ServerPort'])+
+                u'已被占用，WEB服务器无法启动！或许是因为litebook已经在运行？',
+               u'出错了！',
+               wx.OK | wx.ICON_ERROR
+               )
+            dlg.ShowModal()
+            dlg.Destroy()
+        else:
+            # Start a thread with the server -- that thread will then start one
+            # more thread for each request
+            self.server_thread = threading.Thread(target=self.server.serve_forever)
+            # Exit the server thread when the main thread terminates
+            self.server_thread.setDaemon(True)
+            if GlobalConfig['RunWebserverAtStartup']:
+                try:
+                    self.server_thread.start()
+                    mbar=self.GetMenuBar()
+                    mbar.Check(705,True)
+                except:
+                    dlg = wx.MessageDialog(self, u'启动WEB服务器失败',
+                       u'出错了！',
+                       wx.OK | wx.ICON_ERROR
+                       )
+                    dlg.ShowModal()
+                    dlg.Destroy()
 
         #start mDNS ifconfigured
         self.mDNS=None
@@ -4414,7 +4426,20 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 #            self.mDNS.close()
 
         else:
-            #self.server = ThreadedLBServer((GlobalConfig['ServerAddr'], GlobalConfig['ServerPort']), LBHTTPRequestHandler)
+            if self.server==None:
+                try:
+                    self.server = ThreadedLBServer(('', GlobalConfig['ServerPort']), LBHTTPRequestHandler)
+                except socket.error:
+                    dlg = wx.MessageDialog(self,u'端口'+
+                        str(GlobalConfig['ServerPort'])+
+                        u'已被占用，WEB服务器无法启动！或许是因为litebook已经在运行？',
+                       u'出错了！',
+                       wx.OK | wx.ICON_ERROR
+                       )
+                    dlg.ShowModal()
+                    dlg.Destroy()
+                    mbar.Check(705,False)
+                    return
             try:
                 self.server_thread = threading.Thread(target=self.server.serve_forever)
                 self.server_thread.setDaemon(True)
