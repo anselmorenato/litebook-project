@@ -3415,11 +3415,9 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         wxglade_tmp_menu.Append(505, u"自动翻页"+KeyMenuList[u'自动翻页'], u"是否自动翻页", wx.ITEM_CHECK)
         wxglade_tmp_menu.Append(506, u"显示进度条"+KeyMenuList[u'显示进度条'], u"显示进度条", wx.ITEM_NORMAL)
         wxglade_tmp_menu.Append(509, u"显示章节"+KeyMenuList[u'显示目录'], u"显示章节", wx.ITEM_NORMAL)
-        if not GlobalConfig['HideToolbar']:
-            self.toolbar_visable=True
+        if GlobalConfig['HideToolbar']:
             wxglade_tmp_menu.Check(501,True)
-        else:
-            self.toolbar_visable=False
+
         self.SidebarMenu=wxglade_tmp_menu
         wxglade_tmp_menu.Append(504, u"智能分段"+KeyMenuList[u'智能分段'], u"智能分段", wx.ITEM_CHECK)
         self.FormatMenu=wxglade_tmp_menu
@@ -3771,7 +3769,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.Layout()
         #Hide the toolbar if it is hidden when litebook exit last time
         if GlobalConfig['HideToolbar']:
-            self.frame_1_toolbar.Hide()
+            self.GetToolBar().Hide()
             self.SetToolBar(None)
             self.Refresh()
             self.Layout()
@@ -4174,50 +4172,15 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.version_check_thread=VersionCheckThread(self)
 
     def Menu501(self, event):
-
-        if self.toolbar_visable:
-            self.frame_1_toolbar.Hide()
-            self.SetToolBar(None)
-            del self.frame_1_toolbar
+        mytbar=self.GetToolBar()
+        if  mytbar==None or not mytbar.IsShown():
+            self.ResetTool((GlobalConfig['ToolSize'],GlobalConfig['ToolSize']))
         else:
-            self.frame_1_toolbar = wx.ToolBar(self, -1, style=wx.TB_HORIZONTAL|wx.TB_FLAT|wx.TB_3DBUTTONS)
-            self.SetToolBar(self.frame_1_toolbar)
-            self.frame_1_toolbar.AddLabelTool(11, u"打开", wx.Bitmap(GlobalConfig['IconDir']+u"/file-open-32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"打开文件", u"打开文件列表")
-            self.frame_1_toolbar.AddLabelTool(13, u"关闭", wx.Bitmap(GlobalConfig['IconDir']+u"/file-close-32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"关闭文件", u"关闭文件")
-            self.frame_1_toolbar.AddLabelTool(18, u"另存为", wx.Bitmap(GlobalConfig['IconDir']+u"/savefile-32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"另存为", u"另存为")
-            self.frame_1_toolbar.AddLabelTool(16, u"选项", wx.Bitmap(GlobalConfig['IconDir']+u"/option-32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"选项", u"选项")
-            self.frame_1_toolbar.AddSeparator()
-            self.frame_1_toolbar.AddLabelTool(15, u"下一个", wx.Bitmap(GlobalConfig['IconDir']+u"/next-32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"下一个文件", u"下一个文件")
-            self.frame_1_toolbar.AddLabelTool(14, u"上一个", wx.Bitmap(GlobalConfig['IconDir']+u"/previous-32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"上一个文件", u"上一个文件")
-            self.frame_1_toolbar.AddSeparator()
-            self.frame_1_toolbar.AddLabelTool(23, u"查找", wx.Bitmap(GlobalConfig['IconDir']+u"/search-32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"搜索", u"搜索")
-            self.frame_1_toolbar.AddLabelTool(24, u"查找下一个", wx.Bitmap(GlobalConfig['IconDir']+u"/search-next-32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"搜索下一个", u"搜索下一个")
-            self.frame_1_toolbar.AddLabelTool(25, u"查找上一个", wx.Bitmap(GlobalConfig['IconDir']+u"/search-previous-32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"搜索上一个", u"搜索上一个")
-            self.frame_1_toolbar.AddSeparator()
-            self.frame_1_toolbar.AddLabelTool(31, u"加入收藏夹", wx.Bitmap(GlobalConfig['IconDir']+u"/bookmark-add-32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"将当前阅读位置加入收藏夹", u"将当前阅读位置加入收藏夹")
-            self.frame_1_toolbar.AddLabelTool(32, u"收藏夹", wx.Bitmap(GlobalConfig['IconDir']+u"/bookmark-32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"打开收藏夹", u"打开收藏夹")
-            self.frame_1_toolbar.AddSeparator()
-            self.frame_1_toolbar.AddLabelTool(41, "HTML", wx.Bitmap(GlobalConfig['IconDir']+u"/html--32x32.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"过滤HTML标记", u"过滤HTML标记")
-            self.frame_1_toolbar.AddLabelTool(42, u"切换为简体字", wx.Bitmap(GlobalConfig['IconDir']+u"/jian.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"切换为简体字", u"切换为简体字")
-            self.frame_1_toolbar.AddLabelTool(43, u"切换为繁体字", wx.Bitmap(GlobalConfig['IconDir']+u"/fan.png", wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, u"切换为繁体字", u"切换为繁体字")
-            self.Bind(wx.EVT_TOOL, self.Menu101, id=11)
-            self.Bind(wx.EVT_TOOL, self.Menu103, id=13)
-            self.Bind(wx.EVT_TOOL, self.Menu106, id=16)
-            self.Bind(wx.EVT_TOOL, self.Menu105, id=15)
-            self.Bind(wx.EVT_TOOL, self.Menu104, id=14)
-            self.Bind(wx.EVT_TOOL, self.Menu108, id=18)
-            self.Bind(wx.EVT_TOOL, self.Menu203, id=23)
-            self.Bind(wx.EVT_TOOL, self.Menu204, id=24)
-            self.Bind(wx.EVT_TOOL, self.Menu205, id=25)
-            self.Bind(wx.EVT_TOOL, self.Menu301, id=31)
-            self.Bind(wx.EVT_TOOL, self.Menu302, id=32)
-            self.Bind(wx.EVT_TOOL, self.Tool41, id=41)
-            self.Bind(wx.EVT_TOOL, self.Tool42, id=42)
-            self.Bind(wx.EVT_TOOL, self.Tool43, id=43)
-            self.frame_1_toolbar.SetToolBitmapSize((32, 32))
-            self.frame_1_toolbar.SetToolSeparation(5)
-            self.frame_1_toolbar.Realize()
-        self.toolbar_visable = not self.toolbar_visable
+            mytbar.Hide()
+            self.SetToolBar(None)
+            self.Refresh()
+            self.Layout()            
+            
 
     def CloseSidebar(self,evt=None):
         """Hide the directory sidebar"""
@@ -5193,7 +5156,12 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         GlobalConfig['CurFontData']=self.text_ctrl_1.GetFont()
         GlobalConfig['CurFColor']=self.text_ctrl_1.GetFColor()
         GlobalConfig['CurBColor']=self.text_ctrl_1.GetBackgroundColour()
-        GlobalConfig['HideToolbar']=not self.toolbar_visable
+        if self.GetToolBar()==None:
+            GlobalConfig['HideToolbar']=True
+        else:
+            GlobalConfig['HideToolbar']=not self.GetToolBar().IsShown()
+        
+            
         if OnDirectSeenPage:
             writeConfigFile(GlobalConfig['LastPos'])
         else:
