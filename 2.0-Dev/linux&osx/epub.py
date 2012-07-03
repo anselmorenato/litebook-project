@@ -25,15 +25,16 @@ def cur_file_dir():
         return os.path.dirname(path)
 
 myos=platform.architecture()
+ros = platform.system()
 cdir=cur_file_dir()
-if myos[1]=='ELF':
+if myos[1]=='ELF' and ros == 'Linux':
     if myos[0]=='64bit':
-        shutil.copyfile(cdir+'/lxml/etree_64b.so',cdir+'/lxml/etree.so')
-        shutil.copyfile(cdir+'/lxml/objectify_64b.so',cdir+'/lxml/objectify.so')
+        from lxml_linux_64 import etree
     elif myos[0]=='32bit':
-        shutil.copyfile(cdir+'/lxml/etree_32b.so',cdir+'/lxml/etree.so')
-        shutil.copyfile(cdir+'/lxml/objectify_32b.so',cdir+'/lxml/objectify.so')
-from lxml import etree
+        from lxml_linux import etree
+else:
+    from lxml import etree
+
 
 class TocMapNode:
 

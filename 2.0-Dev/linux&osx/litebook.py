@@ -1660,9 +1660,13 @@ def GenCatalog(instr,divide_method=0,zishu=10000):
             #last_chapter=None
             c_list.append(u'本书首页>>>>')
             rlist[u'本书首页>>>>']=0
+            last_end=0
             for m in m_list:
+                if instr[last_end:m.start()].find('\n')==-1:
+                    continue
                 re_start_pos=m.start()
                 re_end_pos=m.end()
+                last_end=re_end_pos
     ##            if last_chapter==instr[re_start_pos:re_end_pos]:
     ##                continue
     ##            else:
