@@ -3490,6 +3490,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.FileHistoryDiag=None
         self.cnsort=cnsort()
         self.last_search_pos=False
+        self.title_str=u'litebook 轻巧读书'
 
         # begin wxGlade: MyFrame.__init__
         #kwds["style"] = wx.DEFAULT_FRAME_STYLE
@@ -3733,7 +3734,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 
 
 
-        self.SetTitle(u'Litebook2 轻巧读书')
+        self.SetTitle(self.title_str)
         # load last opened file
         if openfile<>None:
             if isinstance(openfile,str):
@@ -4153,7 +4154,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         current_file=''
         OnScreenFileList=[]
         self.frame_1_statusbar.SetStatusText('Ready.')
-        self.SetTitle(u'Litebook2 轻巧读书')
+        self.SetTitle(self.title_str)
         self.cur_catalog=None
 
     def Menu104(self, event): # wxGlade: MyFrame.<event_handler>
@@ -4354,7 +4355,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         global Version
         # First we create and fill the info object
         info = wx.AboutDialogInfo()
-        info.Name = u"轻巧看书(LiteBook)"
+        info.Name = self.title_str
         info.Version = Version
         info.Copyright = "(C) 2012 Hu Jun"
         info.Description = u"轻巧看书，简单好用的看书软件！"
@@ -5084,7 +5085,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             self.Formated=not self.Formated
 
         #fresh sth
-        self.SetTitle(u'Litebook2 轻巧读书 --- '+filepath[0])
+        self.SetTitle(self.title_str+filepath[0])
         self.cur_catalog=None
         self.text_ctrl_1.SetFocus()
         ldlg.Destroy()
@@ -6026,7 +6027,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             OnScreenFileList=[]
             OnScreenFileList.append((event.name,'',event.bk.__len__()))
             #change the title
-            self.SetTitle(u'Litebook2 轻巧读书 --- '+event.name)
+            self.SetTitle(self.title_str+' --- '+event.name)
             self.cur_catalog=None
         else:
             if rr==u'另存为...':
@@ -6175,7 +6176,7 @@ class MyOpenFileDialog(wx.Dialog,wx.lib.mixins.listctrl.ColumnSorterMixin):
         bmp=wx.Bitmap(GlobalConfig['IconDir']+u"/epub.png",wx.BITMAP_TYPE_ANY)
         self.image_list.Add(bmp)
         self.file_icon_list["epub"]=10
-        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"\\Driver.png",wx.BITMAP_TYPE_ANY)
+        bmp=wx.Bitmap(GlobalConfig['IconDir']+u"/Driver.png",wx.BITMAP_TYPE_ANY)
         self.image_list.Add(bmp)
         self.file_icon_list["driver"]=11
 
