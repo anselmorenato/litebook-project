@@ -1565,6 +1565,8 @@ def cur_file_dir():
     global MYOS
     if MYOS == 'Linux':
         path = sys.path[0]
+    elif MYOS == 'Windows':
+        return os.path.dirname(AnyToUnicode(os.path.abspath(sys.argv[0])))
     else:
         if sys.argv[0].find('/') != -1:
             path = sys.argv[0]
@@ -9449,6 +9451,7 @@ class SliderDialog(wx.Dialog):
 class cnsort:
     #use the code from henrysting@gmail.com, change a little bit
     def __init__(self):
+        global MYOS
     # 建立拼音辞典
         self.dic_py = dict()
         try:
