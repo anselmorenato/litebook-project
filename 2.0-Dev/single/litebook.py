@@ -1332,6 +1332,34 @@ zh_dict={
 
 }
 
+def getEPUBMeta(ifile):
+    """
+    return a dict of epub meta data
+    ifile is the path to the epub file
+    """
+    try:
+        zfile = zipfile.ZipFile(ifile,'r')
+    except:
+        return False
+    container_xml = zfile.open('META-INF/container.xml')
+    context = etree.iterparse(container_xml)
+    opfpath='OPS/content.opf'
+    for action, elem in context:
+        if elem.tag[-8:].lower()=='rootfile':
+            try:
+                opfpath=elem.attrib['full-path']
+            except:
+                break
+            break
+    opf_file = zfile.open(opfpath)
+    context = etree.iterparse(opf_file)
+    meta_list={}
+    for action, elem in context:
+        if elem.tag.split('}')[0][1:].lower()=='http://purl.org/dc/elements/1.1/':
+            meta_list[elem.tag.split('}')[-1:][0]]=elem.text
+    return meta_list
+
+
 def GetMDNSIP_OSX():
     """
     return v4 addr of 1st wlan interface in OSX, if there is no wlan interface,
@@ -1712,7 +1740,7 @@ def GenCatalog(instr,divide_method=0,zishu=10000):
                 cur_pos+=1
         else:
             #if there is NO lb_hash string found, try to automatic guess the catalog
-            chnum_str=u'(零|一|二|三|四|五|六|七|八|九|十|百|千|万|0|1|2|3|4|5|6|7|8|9)'
+            chnum_str=u'(零|一|壹|二|俩|两|贰|三|叁|四|肆|五|伍|六|陆|七|柒|八|捌|九|玖|十|拾|百|佰|千|仟|万|0|1|2|3|4|5|6|7|8|9)'
             ch_ten_str=u'(十|百|千|万)'
             ch_ten_dict={u'十':u'0',u'百':u'00',u'千':u'000',u'万':u'0000',}
             ch_dict={u'零':u'0',u'一':u'1',u'二':u'2',u'三':u'3',u'四':u'4',u'五':u'5',u'六':u'6',u'七':u'7',u'八':u'8',u'九':u'9',}
@@ -3141,7 +3169,10 @@ def umd_decode(infile):
     while end<>True:
         (u_type,u_value,pos,end)=umd_field_decode(f,pos+1)
         umdinfo[u_type]=u_value
-
+    print umdinfo['author']
+    print umdinfo['title']
+    print umdinfo['publisher']
+    print umdinfo['vendor']
     return umdinfo
 
 
@@ -4506,18 +4537,20 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.list_ctrl_mulu.SetColumnWidth(0,-1)
 
 
-    def Menu509(self,evt):
+    def GetChapter(self):
+        """
+        return following:
+            - rlist from GenCatalog
+            - clist from GenCatalog
+            - current chapter name
+            - current index in rlist
+        """
         if self.cur_catalog==None:
             rlist,c_list=GenCatalog(self.text_ctrl_1.GetValue())
             self.cur_catalog=(rlist,c_list)
         else:
             rlist=self.cur_catalog[0]
             c_list=self.cur_catalog[1]
-        dlg = wx.SingleChoiceDialog(
-                self, u'选择章节并跳转', u'章节选择',
-                choices=c_list,
-                style=wx.CHOICEDLG_STYLE
-                )
         c_pos=self.text_ctrl_1.GetStartPos()
         i=0
         for cc in c_list:
@@ -4525,6 +4558,30 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                 break
             else:
                 i+=1
+        return (rlist,c_list,i,c_list[i-1].strip())
+
+
+
+    def Menu509(self,evt):
+##        if self.cur_catalog==None:
+##            rlist,c_list=GenCatalog(self.text_ctrl_1.GetValue())
+##            self.cur_catalog=(rlist,c_list)
+##        else:
+##            rlist=self.cur_catalog[0]
+##            c_list=self.cur_catalog[1]
+        (rlist,c_list,i,cname)=self.GetChapter()
+        dlg = wx.SingleChoiceDialog(
+                self, u'选择章节并跳转', u'章节选择',
+                choices=c_list,
+                style=wx.CHOICEDLG_STYLE
+                )
+##        c_pos=self.text_ctrl_1.GetStartPos()
+##        i=0
+##        for cc in c_list:
+##            if c_pos<rlist[cc]:
+##                break
+##            else:
+##                i+=1
         dlg.SetSelection(i-1)
         if dlg.ShowModal() == wx.ID_OK:
             i=dlg.GetSelection()
@@ -5537,17 +5594,19 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         if event.FieldNum<>0:
             self.frame_1_statusbar.SetStatusText(event.Value,event.FieldNum)
         else:
-            dc=wx.ClientDC(self.frame_1_statusbar)
-            field=self.frame_1_statusbar.GetFieldRect(0)
-            field_len=field[2]-field[0]
-            txt=event.Value
-            txt_len=dc.GetTextExtent(txt)[0]
-            if txt_len>field_len:
-                tlist=txt.split('/')
-                m=len(tlist)
-                txt=txt[:6]+u'.../'+tlist[m-2]+u"/"+tlist[m-1]
+            self.frame_1_statusbar.SetStatusText(event.Value,event.FieldNum)
+##            dc=wx.ClientDC(self.frame_1_statusbar)
+##            field=self.frame_1_statusbar.GetFieldRect(0)
+##            field_len=field[2]-field[0]
+##            txt=event.Value
+##            txt_len=dc.GetTextExtent(txt)[0]
+##            if txt_len>field_len:
+##                tlist=txt.split(os.sep)
+##                print tlist
+##                m=len(tlist)
+##                txt=txt[:6]+u'.../'+tlist[m-2]+u"/"+tlist[m-1]
 
-            self.frame_1_statusbar.SetStatusText(txt,0)
+##            self.frame_1_statusbar.SetStatusText(txt,0)
             pos=int(self.text_ctrl_1.GetPosPercent())
             self.sliderControl.SetValue(pos)
     def ReadTimeAlert(self,event):
@@ -7384,10 +7443,11 @@ class DisplayPosThread():
             evt=GetPosEvent()
             wx.PostEvent(self.win, evt)
             percent=self.win.text_ctrl_1.GetPosPercent()
+            (rlist,c_list,i,cname)=self.win.GetChapter()
             if percent<>False:
                 percent=int(percent)
                 try:
-                    txt=unicode(percent)+u'% , '+OnScreenFileList[0][0]
+                    txt=unicode(percent)+u'%;'+cname+';'+OnScreenFileList[0][0]
                 except:
                     txt=" "
                 evt = UpdateStatusBarEvent(FieldNum = 0, Value =txt)
