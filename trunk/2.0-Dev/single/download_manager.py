@@ -56,6 +56,7 @@ class DownloadManager(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.stopDownloading, self.button_11)
         self.Bind(wx.EVT_BUTTON, self.delTask, self.button_9)
         self.Bind(wx.EVT_BUTTON, self.inputURL, self.button_8)
+        self.Bind(wx.EVT_CLOSE,self.OnClose)
         self.list_ctrl_1.Bind(wx.EVT_LIST_ITEM_SELECTED,self.onSelect)
 
         self.__set_properties()
@@ -65,6 +66,7 @@ class DownloadManager(wx.Frame):
     def __set_properties(self):
         # begin wxGlade: DownloadManager.__set_properties
         self.SetTitle(u"下载管理器")
+        self.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
         self.list_ctrl_1.InsertColumn(0,u'文件名',width=200)
         self.list_ctrl_1.InsertColumn(1,u'URL',width=300)
         self.list_ctrl_1.InsertColumn(2,u'进度')
@@ -108,16 +110,21 @@ class DownloadManager(wx.Frame):
         purl=urlparse.urlparse(newurl)
         if purl.netloc=='' or purl.scheme <>'http' or purl.path == '':
             return False
+        for t in self.tasklist.values():
+            if t['url'] == newurl: return
         if savepath==None:
             savepath=self.savepath
         fname = os.path.basename(urlparse.urlparse(newurl).path)
         fname = urllib.unquote_plus(fname).decode('utf-8')
         ti=self.list_ctrl_1.InsertStringItem(sys.maxint,fname)
+
+        self.list_ctrl_1.SetItemData(ti,ti)
         self.list_ctrl_1.SetStringItem(ti,1,newurl)#url
         self.list_ctrl_1.SetStringItem(ti,2,'0')#cur
         self.list_ctrl_1.SetStringItem(ti,3,'0')#total
         localname=os.path.abspath(savepath+os.sep+fname)
         dt=DThread(self,newurl,ti,localname)
+##        print "add ",newurl,"as ",ti
         self.tasklist[ti]={'url':newurl,'thread':dt,'localname':localname}
         return True
 
@@ -136,7 +143,7 @@ class DownloadManager(wx.Frame):
 
     def resumeDownloading(self,evt):
         item=-1
-        while True:         
+        while True:
             item=self.list_ctrl_1.GetNextSelected(item)
             if item == -1: return
             dt=DThread(self,self.tasklist[item]['url'],item,self.tasklist[item]['localname'])
@@ -163,7 +170,8 @@ class DownloadManager(wx.Frame):
     def updateButtonStatus(self):
         selected_item=self.list_ctrl_1.GetNextSelected(-1)
         if selected_item == -1:return
-        if self.tasklist[selected_item]['thread'].running == True:
+        task_id=self.list_ctrl_1.GetItemData(selected_item)
+        if self.tasklist[task_id]['thread'].running == True:
             self.button_10.Disable()
             self.button_11.Enable()
         else:
@@ -175,10 +183,45 @@ class DownloadManager(wx.Frame):
         self.Refresh()
         self.Update()
 
+
+    def printlist(self):
+        i=-1
+        print "*******************"
+        while True:
+            i=self.list_ctrl_1.GetNextSelected(i)
+            if i==-1:return
+            print i,'----',self.list_ctrl_1.GetItemData(i)
+
+    def _delItemviaData(self,data):
+        i=-1
+        while True:
+            i=self.list_ctrl_1.GetNextItem(i)
+            if i==-1: return False
+            if self.list_ctrl_1.GetItemData(i)==data:
+                self.list_ctrl_1.DeleteItem(i)
+                return i
+
+
+
+
     def delTask(self,evt):
-        selected_item=self.list_ctrl_1.GetNextSelected(-1)
-        self.list_ctrl_1.DeleteItem(selected_item)
-        del self.tasklist[selected_item]
+        item=-1
+        s_list=[]
+        while True:
+            item=self.list_ctrl_1.GetNextSelected(item)
+            if item == -1: break
+            else:
+                s_list.append(item)
+        for data in s_list:
+            self.tasklist[data]['thread'].stop()
+            self._delItemviaData(data)
+
+##            self.button_11.Disable()
+##            if self.list_ctrl_1.GetItem(item,2).GetText()==u'完成':
+##                self.button_10.Disable()
+##            else:
+##                self.button_10.Enable()
+
 
     def inputURL(self,evt):
         dlg = wx.TextEntryDialog(
@@ -198,6 +241,9 @@ class DownloadManager(wx.Frame):
 
     def onSelect(self,evt):
         self.updateButtonStatus()
+
+    def OnClose(self,evt):
+        self.Hide()
 # end of class DownloadManager
 
 class DThread:
@@ -207,7 +253,6 @@ class DThread:
         self.tid = id
         self.savename=savename
         self.running=False
-        self.downloader=fileDownloader.DownloadFile(url,localFileName=savename)
         thread.start_new_thread(self.run, ())
 
 
@@ -221,6 +266,8 @@ class DThread:
 
     def run(self):
         self.running=True
+        self.downloader=fileDownloader.DownloadFile(self.url,localFileName=self.savename)
+        if self.running == False: return
         try:
             if os.path.isfile(self.savename):
                 self.downloader.resume(reportFunc=self.report)
@@ -233,7 +280,11 @@ class DThread:
 
 
     def stop(self):
-        self.downloader.stop()
+        try:
+            self.downloader.stop()
+        except:
+            pass
+        self.running=False
 
 
 
@@ -244,7 +295,9 @@ if __name__ == "__main__":
     frame_1 = DownloadManager(None)
     #frame_1.addTask('http://litebook-project.googlecode.com/files/LiteBook2_v2d.1_Win_setup.exe','.')
     #frame_1.addTask('http://127.0.0.1:8000/%E5%86%92%E7%89%8C%E5%A4%A7%E8%8B%B1%E9%9B%84.epub','.')
-    frame_1.addTask('http://127.0.0.1:8000/%E5%8D%83%E5%B9%B4%E4%B9%8B%E5%A4%96.epub','.')
+    frame_1.addTask('http://10.10.10.10:8000/1.epub','.')
+    frame_1.addTask('http://20.20.20.20:8000/2.epub','.')
+    frame_1.addTask('http://30.30.30.30:8000/3.epub','.')
     app.SetTopWindow(frame_1)
     frame_1.Show()
     app.MainLoop()

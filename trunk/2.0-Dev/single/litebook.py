@@ -11,6 +11,12 @@
 #
 #
 #
+import KADP
+import download_manager
+import ltbsearchdiag
+import signal
+import xmlrpclib
+import uc
 import fj
 import traceback
 import platform
@@ -101,32 +107,7 @@ except ImportError: # if it's not there locally, try the wxPython lib.
 
 
 
-def getEPUBMeta(ifile):
-    """
-    return a dict of epub meta data
-    ifile is the path to the epub file
-    """
-    try:
-        zfile = zipfile.ZipFile(ifile,'r')
-    except:
-        return False
-    container_xml = zfile.open('META-INF/container.xml')
-    context = etree.iterparse(container_xml)
-    opfpath='OPS/content.opf'
-    for action, elem in context:
-        if elem.tag[-8:].lower()=='rootfile':
-            try:
-                opfpath=elem.attrib['full-path']
-            except:
-                break
-            break
-    opf_file = zfile.open(opfpath)
-    context = etree.iterparse(opf_file)
-    meta_list={}
-    for action, elem in context:
-        if elem.tag.split('}')[0][1:].lower()=='http://purl.org/dc/elements/1.1/':
-            meta_list[elem.tag.split('}')[-1:][0]]=elem.text
-    return meta_list
+
 
 
 def GetMDNSIP_OSX():
@@ -2297,6 +2278,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
     u'启用WEB服务器':'self.Menu705()',
     u'显示章节侧边栏':'self.Menu510(None)',
     u'搜索LTBNET':'self.Menu113(None)',
+    u'下载管理器':'self.Menu114(None)',
     }
 
     def __init__(self,parent,openfile=None):
@@ -2373,6 +2355,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         wxglade_tmp_menu.AppendSeparator()
         wxglade_tmp_menu.Append(110, u"搜索小说网站(&S)"+KeyMenuList[u'搜索小说网站'], u"搜索小说网站", wx.ITEM_NORMAL)
         wxglade_tmp_menu.Append(113, u"搜索LTBNET"+KeyMenuList[u'搜索LTBNET'], u"搜索LTBNET", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(114, u"下载管理器"+KeyMenuList[u'下载管理器'], u"下载管理器", wx.ITEM_NORMAL)
         wxglade_tmp_menu.Append(111, u"重新载入插件"+KeyMenuList[u'重新载入插件'], u"重新载入插件", wx.ITEM_NORMAL)
         wxglade_tmp_menu.AppendSeparator()
         wxglade_tmp_menu.Append(112, u"清空缓存(&O)"+KeyMenuList[u'清空缓存'], u"清空缓存目录", wx.ITEM_NORMAL)
@@ -2459,6 +2442,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.Bind(wx.EVT_MENU, self.Menu111, id=111)
         self.Bind(wx.EVT_MENU, self.Menu112, id=112)
         self.Bind(wx.EVT_MENU, self.Menu113, id=113)
+        self.Bind(wx.EVT_MENU, self.Menu114, id=114)
         self.Bind(wx.EVT_MENU, self.Menu202, id=202)
         self.Bind(wx.EVT_MENU, self.Menu203, id=203)
         self.Bind(wx.EVT_MENU, self.Menu204, id=204)
@@ -2659,7 +2643,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             #self.text_ctrl_1.HideNativeCaret()
         self.__set_properties()
         self.__do_layout()
-
+        #add UPNP mapping
+        uc.addUPNPPortMapping([{'proto':'TCP','port':GlobalConfig['ServerPort']},])
         #starting web server if configured
         self.server=None
         try:
@@ -2706,6 +2691,21 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                 self.mDNS=Zeroconf.Zeroconf(host_ip)
                 self.mDNS_svc=Zeroconf.ServiceInfo("_opds._tcp.local.", "litebook_shared._opds._tcp.local.", socket.inet_aton(host_ip), GlobalConfig['ServerPort'], 0, 0, {'version':'0.10'})
                 self.mDNS.registerService(self.mDNS_svc)
+
+        #start KADP
+        if MYOS == 'Windows':
+            kadp_exe = cur_file_dir()+"\KADP.exe"
+        else:
+            kadp_exe = cur_file_dir()+"/kadp"
+        cmd = [
+            kadp_exe,
+            '-server',
+            '0',
+            '0',
+        ]
+        self.KADP_Process = subprocess.Popen(cmd, stderr=subprocess.STDOUT)
+        #create download manager
+        self.DownloadManager = download_manager.DownloadManager(self,GlobalConfig['ShareRoot'])
 
         splash_frame.Close()
         #print "splash_frame clsoed"
@@ -3105,15 +3105,15 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         """
         search LTBNET
         """
-        dlg = wx.TextEntryDialog(
-                self, u'请输入搜索关键字:',
-                u'搜索LTBNET', '')
-        if dlg.ShowModal() == wx.ID_OK:
-            print dlg.GetValue()
-        dlg.Destroy()
+        lsd = ltbsearchdiag.LTBSearchDiag(self,self.DownloadManager.addTask,'http://127.0.0.1:50201')
+        lsd.Show()
 
-##    def Menu201(self, event): # wxGlade: MyFrame.<event_handler>
-##        self.text_ctrl_1.SetSelection(-1,-1)
+    def Menu114(self,evt):
+        """
+        Download Manager
+        """
+        #global GlobalConfig
+        self.DownloadManager.Show()
 
     def Menu202(self, event): # wxGlade: MyFrame.<event_handler>
         self.text_ctrl_1.CopyText()
@@ -4265,6 +4265,19 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             self.server.shutdown()
         if self.mDNS<>None:
             self.mDNS.close()
+        #stop KADP
+        kadp_ctrl = xmlrpclib.Server('http://127.0.0.1:50201/')
+        try:
+            kadp_ctrl.stopall(False)
+        except:
+            try:
+                self.KADP_Process.kill()
+            except:
+                pass
+##            if MYOS != 'Windows':
+##                os.kill(self.KADP_Process.pid, signal.SIGKILL)
+##            else:
+##                os.kill(self.KADP_Process.pid, signal.CTRL_C_EVENT)
         writeKeyConfig()
         event.Skip()
 
