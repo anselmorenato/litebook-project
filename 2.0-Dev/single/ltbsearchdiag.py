@@ -119,9 +119,16 @@ class LTBSearchDiag(wx.Frame):
         self.text_ctrl_1 = wx.TextCtrl(self, -1, "",style=wx.TE_PROCESS_ENTER)
         self.list_ctrl_1 = CheckListCtrl(self)
         self.downloadFunc=downloadFunc
+        self.ongoing_kw = 0
 
-        self.list_ctrl_1.InsertStringItem(sys.maxint, 'test.txt')
-        self.list_ctrl_1.InsertStringItem(sys.maxint, 'test2.txt')
+        index = self.list_ctrl_1.InsertStringItem(sys.maxint,u'小说1')
+        self.list_ctrl_1.SetStringItem(index, 3, 'http://10.10.10.10/1.txt')
+
+        index = self.list_ctrl_1.InsertStringItem(sys.maxint,u'小说2')
+        self.list_ctrl_1.SetStringItem(index, 3, 'http://20.20.20.20/2.txt')
+
+        index = self.list_ctrl_1.InsertStringItem(sys.maxint,u'小说3')
+        self.list_ctrl_1.SetStringItem(index, 3, 'http://30.30.30.30/3.txt')
 
         self.button_1 = wx.Button(self, -1, u"下载")
         self.button_2 = wx.Button(self, -1, u"取消")
@@ -179,7 +186,7 @@ class LTBSearchDiag(wx.Frame):
 
     def OnSearch(self,evt):
         global report_port,report_rpc_path
-        #self.list_ctrl_1.ClearAll()
+        self.list_ctrl_1.DeleteAllItems() #can NOT use ClearAll here, because it will del all columns too
         kw_list = self.text_ctrl_1.GetValue().strip().split()
         for kw in kw_list:
             if len(kw)<=1:
@@ -188,6 +195,7 @@ class LTBSearchDiag(wx.Frame):
                 dlg.Destroy()
                 return
         if kw_list==[]: return
+        self.ongoing_kw = len(kw_list)
         self.button_3.Disable()
         self.text_ctrl_1.Disable()
         self.kadp_ctrl.search(kw_list,'http://127.0.0.1:'+str(report_port)+report_rpc_path)
@@ -201,16 +209,18 @@ class LTBSearchDiag(wx.Frame):
 
     def OnDownload(self,evt):
         rlist=self.list_ctrl_1.GetAllChecked()
-        self.downloadFunc(rlist)
+        for r in rlist:
+            self.downloadFunc(r['url'])
         self.Close()
 
     def OnReport(self,evt):
-        self.list_ctrl_1.DeleteAllItems() #can NOT use ClearAll here, because it will del all columns too
         for r in evt.result:
             self.list_ctrl_1.addResult(r)
-        self.frame_1_statusbar.SetStatusText(u'搜索结束.')
-        self.button_3.Enable()
-        self.text_ctrl_1.Enable()
+        self.ongoing_kw -= 1
+        if self.ongoing_kw <=0:
+            self.frame_1_statusbar.SetStatusText(u'搜索结束.')
+            self.button_3.Enable()
+            self.text_ctrl_1.Enable()
 
 
 # end of class LTBSearchDiag
