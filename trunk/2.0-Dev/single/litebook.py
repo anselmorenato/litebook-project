@@ -246,18 +246,19 @@ def parseBook(instr,divide_method=0,zishu=10000):
     """
     if not isinstance(instr,unicode):
         instr=instr.decode('GBK','ignore')
-    rlist,c_list=GenCatalog(instr,divide_method,zishu)
+##    rlist,c_list=GenCatalog(instr,divide_method,zishu)
+    rlist=GenCatalog(instr,divide_method,zishu)
     sections = []
     istr=instr
     last_pos=0
     i=0
-    for c in c_list:
+    for c in rlist:
         section = ez_epub.Section()
         #section.css = """.em { font-style: italic; }"""
-        section.title = c
-        x=rlist[c]
-        if i<len(c_list)-1:
-            sec_str=istr[x:rlist[c_list[i+1]]]
+        section.title = c[0]
+        x=c[1]
+        if i<len(rlist)-1:
+            sec_str=istr[x:rlist[i+1][1]]
         else:
             sec_str=istr[x:]
 ##        line_list = sec_str.splitlines()
@@ -471,10 +472,13 @@ def FtoJ(data):
 
 
 def GenCatalog(instr,divide_method=0,zishu=10000):
+    """
+    Return a list of : [cname,pos]
+    """
     if not isinstance(instr,unicode):
         instr=instr.decode("gbk")
-    rlist={}
-    c_list=[]
+    rlist=[]
+    #c_list=[]
     if divide_method==0:
     #自动划分章节
         max_chapter_len=50 #the chapter len>50 will be skipped,this is used to detect redundant chapter lines
@@ -489,8 +493,9 @@ def GenCatalog(instr,divide_method=0,zishu=10000):
                 tstr=instr[cur_pos:cur_pos+100]
                 llist=tstr.splitlines()
                 chapter=llist[0][hash_len:]
-                rlist[chapter]=cur_pos
-                c_list.append(chapter)
+                rlist.append([chapter,cur_pos])
+##                rlist[chapter]=cur_pos
+##                c_list.append(chapter)
                 cur_pos+=1
         else:
             #if there is NO lb_hash string found, try to automatic guess the catalog
@@ -505,12 +510,14 @@ def GenCatalog(instr,divide_method=0,zishu=10000):
                 p=re.compile(u'(章|节|部|卷|回)'+chnum_str+u'+\s',re.L|re.U)
                 m_list=p.finditer(instr)
             #last_chapter=None
-            c_list.append(u'本书首页>>>>')
-            rlist[u'本书首页>>>>']=0
+##            c_list.append(u'本书首页>>>>')
+##            rlist[u'本书首页>>>>']=0
+            rlist.append([u'本书首页>>>>',0])
             last_end=0
 ##            last_chapter=None
             for m in m_list:
                 if instr[last_end:m.start()].find('\n')==-1:
+
                     continue
                 re_start_pos=m.start()
                 re_end_pos=m.end()
@@ -532,12 +539,14 @@ def GenCatalog(instr,divide_method=0,zishu=10000):
                     pos2+=1
                     ch=instr[pos2]
                 #pos2-=1
-                if pos2-pos1>50:continue
+                if pos2-pos1>50:
+                    continue
                 chapter=instr[pos1:pos2].strip()
 ##                if chapter == last_chapter:
 ##                    continue
-                rlist[chapter]=pos1
-                c_list.append(chapter)
+                rlist.append([chapter,pos1])
+##                rlist[chapter]=pos1
+##                c_list.append(chapter)
 ##                last_chapter = chapter
 
     elif divide_method==1:
@@ -553,10 +562,15 @@ def GenCatalog(instr,divide_method=0,zishu=10000):
             rlist[chapter]=cur_pos
             i+=1
         chapter=u'第'+unicode(i)+u'章(字数划分)'
-        c_list.append(chapter)
-        rlist[chapter]=num_ch*zishu
+        rlist.append([chapter,num_ch*zishu])
+##        c_list.append(chapter)
+##        rlist[chapter]=num_ch*zishu
     #for c in c_list:print c
-    return (rlist,c_list)
+##
+##    print "the final rlist is ", rlist
+##    print "the final clist is ",c_list
+##    return (rlist,c_list)
+    return rlist
 
 
 def AnyToUnicode(input_str,coding=None):
@@ -2703,7 +2717,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             '0',
             '0',
         ]
-        self.KADP_Process = subprocess.Popen(cmd, stderr=subprocess.STDOUT)
+        #self.KADP_Process = subprocess.Popen(cmd, stderr=subprocess.STDOUT)
         #create download manager
         self.DownloadManager = download_manager.DownloadManager(self,GlobalConfig['ShareRoot'])
 
@@ -3251,9 +3265,10 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             self.list_ctrl_1.SetFocus()
 
     def OnActMulu(self,evt):
-        chp=evt.GetText()
-        if chp<>"" and chp<>None:
-            pos=self.cur_catalog[0][chp]
+        ind=evt.GetIndex()
+        i=self.list_ctrl_mulu.GetItemData(ind)
+        if i<len(self.cur_catalog):
+            pos=self.cur_catalog[i][1]
             self.text_ctrl_1.JumpTo(pos)
 
 
@@ -3314,24 +3329,27 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 
     def reloadMulu(self):
         if self.cur_catalog==None:
-            rlist,c_list=GenCatalog(self.text_ctrl_1.GetValue())
-            self.cur_catalog=(rlist,c_list)
+            rlist=GenCatalog(self.text_ctrl_1.GetValue())
+            self.cur_catalog=rlist
         else:
-            rlist=self.cur_catalog[0]
-            c_list=self.cur_catalog[1]
+            rlist=self.cur_catalog
         self.list_ctrl_mulu.DeleteAllItems()
-        for c in c_list:
-            self.list_ctrl_mulu.InsertStringItem(sys.maxint,c)
+        i=0
+        for c in rlist:
+            ind=self.list_ctrl_mulu.InsertStringItem(sys.maxint,c[0])
+            self.list_ctrl_mulu.SetItemData(ind,i)
+            i+=1
         c_pos=self.text_ctrl_1.GetStartPos()
         i=0
-        for cc in c_list:
-            if c_pos<rlist[cc]:
+        for cc in rlist:
+            if c_pos<cc[1]:
                 break
             else:
                 i+=1
         self.list_ctrl_mulu.Select(i-1)
         self.list_ctrl_mulu.Focus(i-1)
         self.list_ctrl_mulu.SetColumnWidth(0,-1)
+        self.list_ctrl_mulu.EnsureVisible(i-1)
 
 
     def GetChapter(self):
@@ -3343,19 +3361,18 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             - current index in rlist
         """
         if self.cur_catalog==None:
-            rlist,c_list=GenCatalog(self.text_ctrl_1.GetValue())
-            self.cur_catalog=(rlist,c_list)
+            rlist=GenCatalog(self.text_ctrl_1.GetValue())
+            self.cur_catalog=rlist
         else:
-            rlist=self.cur_catalog[0]
-            c_list=self.cur_catalog[1]
+            rlist=self.cur_catalog
         c_pos=self.text_ctrl_1.GetStartPos()
         i=0
-        for cc in c_list:
-            if c_pos<rlist[cc]:
+        for cc in rlist:
+            if c_pos<cc[1]:
                 break
             else:
                 i+=1
-        return (rlist,c_list,i,c_list[i-1].strip())
+        return (rlist,i,rlist[i-1][0].strip())
 
 
 
@@ -3366,7 +3383,10 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 ##        else:
 ##            rlist=self.cur_catalog[0]
 ##            c_list=self.cur_catalog[1]
-        (rlist,c_list,i,cname)=self.GetChapter()
+        (rlist,i,cname)=self.GetChapter()
+        c_list=[]
+        for c in rlist:
+            c_list.append(c[0])
         dlg = wx.SingleChoiceDialog(
                 self, u'选择章节并跳转', u'章节选择',
                 choices=c_list,
@@ -3382,7 +3402,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         dlg.SetSelection(i-1)
         if dlg.ShowModal() == wx.ID_OK:
             i=dlg.GetSelection()
-            pos=rlist[c_list[i]]
+            pos=rlist[i][1]
             self.text_ctrl_1.JumpTo(pos)
         dlg.Destroy()
 
@@ -6253,7 +6273,7 @@ class DisplayPosThread():
             evt=GetPosEvent()
             wx.PostEvent(self.win, evt)
             percent=self.win.text_ctrl_1.GetPosPercent()
-            (rlist,c_list,i,cname)=self.win.GetChapter()
+            (rlist,i,cname)=self.win.GetChapter()
             if percent<>False:
                 percent=int(percent)
                 try:
