@@ -21,6 +21,8 @@ import fj
 import traceback
 import platform
 import sys
+import kpub
+from lxml import etree
 #import jft
 MYOS = platform.system()
 if MYOS != 'Linux' and MYOS != 'Darwin' and MYOS != 'Windows':
@@ -911,6 +913,7 @@ def readConfigFile():
             GlobalConfig['IconDir']=cur_file_dir()+u"/icon"
             GlobalConfig['ConfigDir']=unicode(os.environ['HOME'],'utf-8')+u'/litebook/'
             GlobalConfig['ShareRoot']=unicode(os.environ['HOME'],'utf-8')+u"/litebook/shared"
+        GlobalConfig['LTBNETRoot']=GlobalConfig['ShareRoot']
         OpenedFileList=[]
         GlobalConfig['LastFile']=''
         GlobalConfig['LastZipFile']=''
@@ -989,12 +992,19 @@ def readConfigFile():
             GlobalConfig['ShareRoot']=os.environ['USERPROFILE'].decode('gbk')+u"\\litebook\\shared"
         else:
             GlobalConfig['ShareRoot']=unicode(os.environ['HOME'],'utf-8')+u"/litebook/shared"
+
     #if the path is not writeable, restore to default value
     if not os.access(GlobalConfig['ShareRoot'],os.W_OK | os.R_OK):
         if MYOS == 'Windows':
             GlobalConfig['ShareRoot']=os.environ['USERPROFILE'].decode('gbk')+u"\\litebook\\shared"
         else:
             GlobalConfig['ShareRoot']=unicode(os.environ['HOME'],'utf-8')+u"/litebook/shared"
+
+    try:
+        GlobalConfig['LTBNETRoot']=config.getboolean('settings','LTBNETRoot')
+    except:
+        GlobalConfig['LTBNETRoot']=GlobalConfig['ShareRoot']
+
 
     try:
         GlobalConfig['InstallDefaultConfig']=config.getboolean('settings','installdefaultconfig')
@@ -1342,6 +1352,7 @@ def writeConfigFile(lastpos):
     config.set('settings','lastweb',unicode(GlobalConfig['lastweb']))
     config.set('settings','installdefaultconfig',unicode(GlobalConfig['InstallDefaultConfig']))
     config.set('settings','ShareRoot',unicode(GlobalConfig['ShareRoot']))
+    config.set('settings','LTBNETRoot',unicode(GlobalConfig['LTBNETRoot']))
     config.set('settings','RunWebserverAtStartup',unicode(GlobalConfig['RunWebserverAtStartup']))
     config.set('settings','ServerPort',unicode(GlobalConfig['ServerPort']))
     config.set('settings','mDNS_interface',unicode(GlobalConfig['mDNS_interface']))
@@ -1642,18 +1653,55 @@ def epubfile_decode(infile):
 
 
 
-    i=1
-    content=u''
+    container_xml = zfile.open('META-INF/container.xml')
+    context = etree.iterparse(container_xml)
+    opfpath='OPS/content.opf'
+    for action, elem in context:
+        if elem.tag[-8:].lower()=='rootfile':
+            try:
+                opfpath=elem.attrib['full-path']
+            except:
+                break
+            break
+    opf_file = zfile.open(opfpath)
+    context = etree.iterparse(opf_file)
+    toc_path = None
+    for action, elem in context:
+        #print elem.tag,'---',elem.attrib
+        attr_list={}
+        for k,v in elem.attrib.items():
+            attr_list[k.lower()]=v
+        if 'media-type' in attr_list and attr_list['media-type'].lower()=='application/x-dtbncx+xml':
+            toc_path = attr_list['href']
+            break
+    if toc_path == None:
+        print "can not find toc_path"
+        return False
+    toc_path = os.path.dirname(opfpath)+'/'+toc_path
+    toc_file = zfile.open(toc_path)
+    context = etree.iterparse(toc_file)
     clist=[]
-    for fname in zfile.namelist():
-        fext=os.path.splitext(fname)[1].lower()
-        if fext=='.ncx':
-            dirfile=fname
-        if fext==".xml" or fext==".html" or fext==".htm":
-            if fname<>'META-INF/container.xml':
-                clist.append(fname)
-    fp=zfile.open(dirfile)
-    instr=fp.read()
+    for action, elem in context:
+        if elem.tag.split('}')[1].lower()=='content':
+            attr_list={}
+            for k,v in elem.attrib.items():
+                attr_list[k.lower()]=v
+            if 'src' in attr_list:
+                clist.append(os.path.dirname(toc_path)+'/'+attr_list['src'])
+
+##    i=1
+    content=u''
+##    clist=[]
+##    for fname in zfile.namelist():
+##        fext=os.path.splitext(fname)[1].lower()
+##        if fext=='.ncx':
+##            dirfile=fname
+##        if fext in ['.xml','.html','.htm','.xhtml']:
+##            if fname<>'META-INF/container.xml':
+##                clist.append(fname)
+##    fp=zfile.open(dirfile)
+    toc_file = zfile.open(toc_path)
+    instr=toc_file.read()
     gc=gcepub.GCEPUB(instr)
     gc.parser()
     rlist=gc.GetRList()
@@ -1673,6 +1721,8 @@ def epubfile_decode(infile):
             content+=txt.decode('utf-8','ignore')
         except:
             content+=txt.decode('utf-16','ignore')
+
+
     s=htm2txt(content)
     s=s.encode('gbk','ignore')
     s=s.decode('gbk')
@@ -2715,9 +2765,11 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             kadp_exe,
             '-server',
             '0',
-            '0',
+            '1',
         ]
-        #self.KADP_Process = subprocess.Popen(cmd, stderr=subprocess.STDOUT)
+        self.KADP_Process = subprocess.Popen(cmd, stderr=subprocess.STDOUT)
+        self.KPUB_thread = kpub.KPUB(GlobalConfig['LTBNETRoot'])
+        self.KPUB_thread.start()
         #create download manager
         self.DownloadManager = download_manager.DownloadManager(self,GlobalConfig['ShareRoot'])
 
@@ -4266,6 +4318,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.clk_thread.stop()
         self.display_pos_thread.stop()
         self.auto_count_thread.stop()
+        self.KPUB_thread.stop()
         time.sleep(1)
         GlobalConfig['CurFontData']=self.text_ctrl_1.GetFont()
         GlobalConfig['CurFColor']=self.text_ctrl_1.GetFColor()
@@ -6916,6 +6969,8 @@ class NewOptionDialog(wx.Dialog):
         self.notebook_1_pane_4 = wx.Panel(self.notebook_1, -1)
         self.notebook_1_pane_3 = wx.Panel(self.notebook_1, -1)
         self.notebook_1_pane_2 = wx.Panel(self.notebook_1, -1)
+        self.notebook_1_pane_ltbnet = wx.Panel(self.notebook_1, -1)
+        self.staticbox_ltbnet = wx.StaticBox(self.notebook_1_pane_ltbnet, -1, u"LTBNET设置")
         self.notebook_1_pane_1 = wx.ScrolledWindow(self.notebook_1, -1, style=wx.TAB_TRAVERSAL)
         self.sizer_5_staticbox = wx.StaticBox(self.notebook_1_pane_1, -1, u"显示主题")
         self.sizer_6_staticbox = wx.StaticBox(self.notebook_1_pane_1, -1, u"显示模式")
@@ -6988,8 +7043,13 @@ class NewOptionDialog(wx.Dialog):
         self.label_16 = wx.StaticText(self.notebook_1_pane_3, -1, u"下载完毕后的缺省动作：")
         self.combo_box_6 = wx.ComboBox(self.notebook_1_pane_3, -1, choices=[u"直接阅读", u"另存为文件", u"直接保存在缺省目录下"], style=wx.CB_DROPDOWN|wx.CB_DROPDOWN|wx.CB_READONLY)
         self.label_17 = wx.StaticText(self.notebook_1_pane_3, -1, u"保存的缺省目录：")
+        self.label_ltbroot = wx.StaticText(self.notebook_1_pane_ltbnet, -1, u"LTBNET共享目录：")
         self.text_ctrl_1 = wx.TextCtrl(self.notebook_1_pane_3, -1, "")
+        self.text_ctrl_ltbroot = wx.TextCtrl(self.notebook_1_pane_ltbnet, -1, "", size=(200,-1))
+        self.label_ltbport = wx.StaticText(self.notebook_1_pane_ltbnet, -1, u"LTBNET端口(UDP)：")
+        self.spin_ctrl_ltbport = wx.SpinCtrl(self.notebook_1_pane_ltbnet, -1, "", min=1, max=65536)
         self.button_12 = wx.Button(self.notebook_1_pane_3, -1, u"选择")
+        self.button_ltbroot = wx.Button(self.notebook_1_pane_ltbnet, -1, u"选择")
         self.label_18 = wx.StaticText(self.notebook_1_pane_3, -1, u"同时下载的线程个数（需插件支持；不能超过50）：")
         self.spin_ctrl_11 = wx.SpinCtrl(self.notebook_1_pane_3, -1, "20", min=1, max=50)
         self.checkbox_6 = wx.CheckBox(self.notebook_1_pane_3, -1, u"启用代理服务器")
@@ -7144,6 +7204,7 @@ class NewOptionDialog(wx.Dialog):
         self.text_ctrl_6.SetValue(unicode(GlobalConfig['proxypass']))
         self.spin_ctrl_11.SetValue(GlobalConfig['numberofthreads'])
         self.text_ctrl_1.SetValue(unicode(GlobalConfig['defaultsavedir']))
+        self.text_ctrl_ltbroot.SetValue(unicode(GlobalConfig['LTBNETRoot']))
 
         #load the initial value for keyconfig tab
         for kconfig in KeyConfigList:
@@ -7322,10 +7383,12 @@ class NewOptionDialog(wx.Dialog):
         sizer_33.Add(self.label_16, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         sizer_33.Add(self.combo_box_6, 0, 0, 0)
         sizer_32.Add(sizer_33, 1, wx.EXPAND, 0)
+
         sizer_34.Add(self.label_17, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         sizer_34.Add(self.text_ctrl_1, 0, 0, 0)
         sizer_34.Add(self.button_12, 0, 0, 0)
         sizer_32.Add(sizer_34, 1, wx.EXPAND, 0)
+
         sizer_35.Add(self.label_18, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         sizer_35.Add(self.spin_ctrl_11, 0, 0, 0)
         sizer_32.Add(sizer_35, 1, wx.EXPAND, 0)
@@ -7357,10 +7420,29 @@ class NewOptionDialog(wx.Dialog):
         sizer_7.Add(sizer_27, 1, wx.EXPAND, 0)
         self.notebook_1_pane_4.SetSizer(sizer_7)
 
+        #LTBNET
+        sizer_ltbnet_all = wx.BoxSizer(wx.VERTICAL)
+        sizer_ltbnet = wx.StaticBoxSizer(self.staticbox_ltbnet, wx.VERTICAL)
+        sizer_ltbroot = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_ltbroot.Add(self.label_ltbroot, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_ltbroot.Add(self.text_ctrl_ltbroot, 0, 0, 0)
+        sizer_ltbroot.Add(self.button_ltbroot, 0, 0, 0)
+        sizer_ltbnet.Add(sizer_ltbroot,0,wx.EXPAND,0)
+        sizer_ltbport = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_ltbport.Add(self.label_ltbport,0,0,0)
+        sizer_ltbport.Add(self.spin_ctrl_ltbport,0,0,0)
+        sizer_ltbnet.Add(sizer_ltbport,1,wx.EXPAND,0)
+        #sizer_32.Add(sizer_ltbroot, 1, wx.EXPAND, 0)
+        #sizer_ltbnet_all.Add(sizer_ltbnet,0,wx.EXPAND,0)
+
+
+        self.notebook_1_pane_ltbnet.SetSizer(sizer_ltbnet)
+
         self.notebook_1.AddPage(self.notebook_1_pane_1, u"显示设置")
         self.notebook_1.AddPage(self.notebook_1_pane_2, u"控制设置")
         self.notebook_1.AddPage(self.notebook_1_pane_3, u"下载设置")
         self.notebook_1.AddPage(self.notebook_1_pane_4, u"按键设置")
+        self.notebook_1.AddPage(self.notebook_1_pane_ltbnet, u"LTBNET设置")
         sizer_3.Add(self.notebook_1, 1, wx.EXPAND, 0)
         sizer_30.Add((100, 10), 1, wx.EXPAND, 0)
         sizer_30.Add(self.button_10, 0, 0, 0)
