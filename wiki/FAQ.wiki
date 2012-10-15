@@ -28,7 +28,7 @@
    * 如果litebook连源码形式都无法在你的操作系统运行的话，那么只有最后一招：你自己Hack吧。<br>
 
 === 如何以源码形式运行litebook？ ===
-  见软件帮助（按F1键）
+  参见这篇[http://code.google.com/p/litebook-project/wiki/RunUnderLinux WIKI]
 
 
 
