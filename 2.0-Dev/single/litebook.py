@@ -11,7 +11,15 @@
 #
 #
 #
-import KADP
+#import KADP
+
+#
+#ToDo:
+# - make search & download work
+# - make py2exe work
+#
+
+
 import download_manager
 import ltbsearchdiag
 import signal
@@ -22,9 +30,18 @@ import traceback
 import platform
 import sys
 import kpub
-from lxml import etree
+#from lxml import etree
 #import jft
 MYOS = platform.system()
+osarch=platform.architecture()
+if osarch[1]=='ELF' and MYOS == 'Linux':
+    if osarch[0]=='64bit':
+        from lxml_linux_64 import etree
+    elif osarch[0]=='32bit':
+        from lxml_linux import etree
+else:
+    from lxml import etree
+
 if MYOS != 'Linux' and MYOS != 'Darwin' and MYOS != 'Windows':
     print "This version of litebook only support Linux and MAC OSX"
     sys.exit(1)
@@ -553,6 +570,7 @@ def GenCatalog(instr,divide_method=0,zishu=10000):
 
     elif divide_method==1:
         #按字数划分
+        c_list=[]
         len_str=len(instr)
         num_ch,left=divmod(len_str,zishu)
         cur_pos=0
@@ -561,7 +579,8 @@ def GenCatalog(instr,divide_method=0,zishu=10000):
             cur_pos=(i-1)*zishu
             chapter=u'第'+unicode(i)+u'章(字数划分)'
             c_list.append(chapter)
-            rlist[chapter]=cur_pos
+            rlist.append([chapter,cur_pos])
+            #rlist[chapter]=cur_pos
             i+=1
         chapter=u'第'+unicode(i)+u'章(字数划分)'
         rlist.append([chapter,num_ch*zishu])
@@ -914,6 +933,8 @@ def readConfigFile():
             GlobalConfig['ConfigDir']=unicode(os.environ['HOME'],'utf-8')+u'/litebook/'
             GlobalConfig['ShareRoot']=unicode(os.environ['HOME'],'utf-8')+u"/litebook/shared"
         GlobalConfig['LTBNETRoot']=GlobalConfig['ShareRoot']
+        GlobalConfig['LTBNETPort']=50200
+        GlobalConfig['LTBNETID']='NONE'
         OpenedFileList=[]
         GlobalConfig['LastFile']=''
         GlobalConfig['LastZipFile']=''
@@ -1005,13 +1026,20 @@ def readConfigFile():
     except:
         GlobalConfig['LTBNETRoot']=GlobalConfig['ShareRoot']
 
+    try:
+        GlobalConfig['LTBNETPort']=config.getint('settings','LTBNETPort')
+    except:
+        GlobalConfig['LTBNETPort']=50200
+
+    try:
+        GlobalConfig['LTBNETID']=(config.get('settings','LTBNETID')).strip()
+    except:
+        GlobalConfig['LTBNETID']='NONE'
 
     try:
         GlobalConfig['InstallDefaultConfig']=config.getboolean('settings','installdefaultconfig')
     except:
         GlobalConfig['InstallDefaultConfig']=True
-
-
 
 
 
@@ -1353,6 +1381,9 @@ def writeConfigFile(lastpos):
     config.set('settings','installdefaultconfig',unicode(GlobalConfig['InstallDefaultConfig']))
     config.set('settings','ShareRoot',unicode(GlobalConfig['ShareRoot']))
     config.set('settings','LTBNETRoot',unicode(GlobalConfig['LTBNETRoot']))
+    (lport,nodeids)=GlobalConfig['kadp_ctrl'].getinfo(False)
+    config.set('settings','LTBNETPort',unicode(GlobalConfig['LTBNETPort']))
+    config.set('settings','LTBNETID',nodeids)
     config.set('settings','RunWebserverAtStartup',unicode(GlobalConfig['RunWebserverAtStartup']))
     config.set('settings','ServerPort',unicode(GlobalConfig['ServerPort']))
     config.set('settings','mDNS_interface',unicode(GlobalConfig['mDNS_interface']))
@@ -1663,6 +1694,7 @@ def epubfile_decode(infile):
             except:
                 break
             break
+    #print "opfpath is ",opfpath
     opf_file = zfile.open(opfpath)
     context = etree.iterparse(opf_file)
     toc_path = None
@@ -1674,10 +1706,14 @@ def epubfile_decode(infile):
         if 'media-type' in attr_list and attr_list['media-type'].lower()=='application/x-dtbncx+xml':
             toc_path = attr_list['href']
             break
+    #print "toc_path is ",toc_path
     if toc_path == None:
-        print "can not find toc_path"
         return False
     toc_path = os.path.dirname(opfpath)+'/'+toc_path
+    #print "toc_path is ",toc_path
+    if toc_path[0]=='/':
+        toc_path=toc_path[1:]
+    #print "toc_path is ",toc_path
     toc_file = zfile.open(toc_path)
     context = etree.iterparse(toc_file)
     clist=[]
@@ -1690,6 +1726,7 @@ def epubfile_decode(infile):
                 clist.append(os.path.dirname(toc_path)+'/'+attr_list['src'])
 
 ##    i=1
+    #print "clist is ",clist
     content=u''
 ##    clist=[]
 ##    for fname in zfile.namelist():
@@ -1707,6 +1744,8 @@ def epubfile_decode(infile):
     rlist=gc.GetRList()
     clist.sort(cmp=cmp_filename)
     for fname in clist:
+        if fname[0]=='/':
+            fname=fname[1:]
         try:
             fp=zfile.open(fname,"r")
         except:break
@@ -2707,8 +2746,10 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             #self.text_ctrl_1.HideNativeCaret()
         self.__set_properties()
         self.__do_layout()
-        #add UPNP mapping
-        uc.addUPNPPortMapping([{'proto':'TCP','port':GlobalConfig['ServerPort']},])
+        #add UPNP mapping via thread, otherwise it will block, and it takes long time
+        upnp_t = ThreadAddUPNPMapping()
+        upnp_t.start()
+##        uc.addUPNPPortMapping([{'proto':'TCP','port':GlobalConfig['ServerPort']},])
         #starting web server if configured
         self.server=None
         try:
@@ -2758,20 +2799,46 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 
         #start KADP
         if MYOS == 'Windows':
-            kadp_exe = cur_file_dir()+"\KADP.exe"
+            kadp_exe = cur_file_dir()+"\kadp\KADP.exe"
+            cmd = [
+                kadp_exe,
+                '-product',
+                str(GlobalConfig['LTBNETPort']),
+                GlobalConfig['LTBNETID'],
+                '0',
+                '1',
+            ]
+            kadp_ip='127.0.0.1'
         else:
-            kadp_exe = cur_file_dir()+"/kadp"
-        cmd = [
-            kadp_exe,
-            '-server',
-            '0',
-            '1',
-        ]
+##            cmd = [
+##                'python',
+##                cur_file_dir()+"/KADP.py",
+##                '-product',
+##                str(GlobalConfig['LTBNETPort']),
+##                GlobalConfig['LTBNETID'],
+##                '0',
+##                '1',
+##            ]
+            #following is the test code
+            kadp_ip='218.21.123.99'
+            cmd = [
+                'python',
+                cur_file_dir()+"/KADP.py",
+                '-server',
+                kadp_ip,
+                '50200',
+                '11110111100000009999',
+                '/root/kconf-21',
+                '0',
+            ]
+        GlobalConfig['kadp_ctrl'] = xmlrpclib.Server('http://'+kadp_ip+':50201/')
         self.KADP_Process = subprocess.Popen(cmd, stderr=subprocess.STDOUT)
         self.KPUB_thread = kpub.KPUB(GlobalConfig['LTBNETRoot'])
         self.KPUB_thread.start()
         #create download manager
         self.DownloadManager = download_manager.DownloadManager(self,GlobalConfig['ShareRoot'])
+        #create LTBNET search dialog
+        self.lsd = ltbsearchdiag.LTBSearchDiag(self,self.DownloadManager.addTask,'http://'+kadp_ip+':50201/')
 
         splash_frame.Close()
         #print "splash_frame clsoed"
@@ -3171,8 +3238,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         """
         search LTBNET
         """
-        lsd = ltbsearchdiag.LTBSearchDiag(self,self.DownloadManager.addTask,'http://127.0.0.1:50201')
-        lsd.Show()
+        #lsd = ltbsearchdiag.LTBSearchDiag(self,self.DownloadManager.addTask,'http://127.0.0.1:50201')
+        self.lsd.Show()
 
     def Menu114(self,evt):
         """
@@ -4339,7 +4406,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         if self.mDNS<>None:
             self.mDNS.close()
         #stop KADP
-        kadp_ctrl = xmlrpclib.Server('http://127.0.0.1:50201/')
+        kadp_ctrl = GlobalConfig['kadp_ctrl']
         try:
             kadp_ctrl.stopall(False)
         except:
@@ -7046,7 +7113,7 @@ class NewOptionDialog(wx.Dialog):
         self.label_ltbroot = wx.StaticText(self.notebook_1_pane_ltbnet, -1, u"LTBNET共享目录：")
         self.text_ctrl_1 = wx.TextCtrl(self.notebook_1_pane_3, -1, "")
         self.text_ctrl_ltbroot = wx.TextCtrl(self.notebook_1_pane_ltbnet, -1, "", size=(200,-1))
-        self.label_ltbport = wx.StaticText(self.notebook_1_pane_ltbnet, -1, u"LTBNET端口(UDP)：")
+        self.label_ltbport = wx.StaticText(self.notebook_1_pane_ltbnet, -1, u"LTBNET端口(重启后生效)：")
         self.spin_ctrl_ltbport = wx.SpinCtrl(self.notebook_1_pane_ltbnet, -1, "", min=1, max=65536)
         self.button_12 = wx.Button(self.notebook_1_pane_3, -1, u"选择")
         self.button_ltbroot = wx.Button(self.notebook_1_pane_ltbnet, -1, u"选择")
@@ -7204,7 +7271,7 @@ class NewOptionDialog(wx.Dialog):
         self.text_ctrl_6.SetValue(unicode(GlobalConfig['proxypass']))
         self.spin_ctrl_11.SetValue(GlobalConfig['numberofthreads'])
         self.text_ctrl_1.SetValue(unicode(GlobalConfig['defaultsavedir']))
-        self.text_ctrl_ltbroot.SetValue(unicode(GlobalConfig['LTBNETRoot']))
+
 
         #load the initial value for keyconfig tab
         for kconfig in KeyConfigList:
@@ -7250,6 +7317,10 @@ class NewOptionDialog(wx.Dialog):
             self.combo_box_MDNS.SetStringSelection(u'自动检测')
         else:
             self.combo_box_MDNS.SetStringSelection(GlobalConfig['mDNS_interface'])
+
+        #set initial value for LTBNET
+        self.spin_ctrl_ltbport.SetValue(GlobalConfig['LTBNETPort'])
+        self.text_ctrl_ltbroot.SetValue(unicode(GlobalConfig['LTBNETRoot']))
 
         # end wxGlade
 
@@ -7429,9 +7500,9 @@ class NewOptionDialog(wx.Dialog):
         sizer_ltbroot.Add(self.button_ltbroot, 0, 0, 0)
         sizer_ltbnet.Add(sizer_ltbroot,0,wx.EXPAND,0)
         sizer_ltbport = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_ltbport.Add(self.label_ltbport,0,0,0)
+        sizer_ltbport.Add(self.label_ltbport,0,wx.ALIGN_CENTER_VERTICAL,0)
         sizer_ltbport.Add(self.spin_ctrl_ltbport,0,0,0)
-        sizer_ltbnet.Add(sizer_ltbport,1,wx.EXPAND,0)
+        sizer_ltbnet.Add(sizer_ltbport,0,wx.EXPAND,0)
         #sizer_32.Add(sizer_ltbroot, 1, wx.EXPAND, 0)
         #sizer_ltbnet_all.Add(sizer_ltbnet,0,wx.EXPAND,0)
 
@@ -7584,6 +7655,10 @@ class NewOptionDialog(wx.Dialog):
             GlobalConfig['mDNS_interface']="AUTO"
         else:
             GlobalConfig['mDNS_interface']=m_int
+
+        #save LTBNET config
+        GlobalConfig['LTBNETPort'] = self.spin_ctrl_ltbport.GetValue()
+        GlobalConfig['LTBNETRoot'] = self.text_ctrl_ltbroot.GetValue()
 
         self.Destroy()
 
@@ -8995,7 +9070,11 @@ class LBHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 class ThreadedLBServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     pass
 
-
+class ThreadAddUPNPMapping(threading.Thread):
+        def run(self):
+            global GlobalConfig
+            #add UPNP mapping
+            uc.addUPNPPortMapping([{'proto':'TCP','port':GlobalConfig['ServerPort']},])
 
 if __name__ == "__main__":
     if MYOS == 'Windows':
@@ -9055,7 +9134,9 @@ if __name__ == "__main__":
     readPlugin()
     if GlobalConfig['InstallDefaultConfig']:InstallDefaultConfig()
     wx.InitAllImageHandlers()
+    t0=time.time()
     frame_1 = MyFrame(None,fname)
     app.SetTopWindow(frame_1)
+    print "windows is created ",time.time()-t0
     frame_1.Show()
     app.MainLoop()

@@ -9,6 +9,9 @@ import wx.lib.newevent
 from SimpleXMLRPCServer import SimpleXMLRPCServer
 from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler
 import xmlrpclib
+import traceback
+import cPickle
+import base64
 
 (SearchReportEvent,EVT_SRE)=wx.lib.newevent.NewEvent()
 
@@ -44,8 +47,15 @@ class ReportSVRThread():
 ##        self.running=False
 
     def report(self,search_results):
-        evt=SearchReportEvent(result=search_results)
-        wx.PostEvent(self.win, evt)
+        sr=cPickle.loads(base64.b16decode(search_results))
+        evt=SearchReportEvent(result=sr)
+        try:
+            wx.PostEvent(self.win, evt)
+        except Exception, inst:
+            print "LTBSearchDiag: catched except:"
+            print traceback.format_exc()
+            print inst
+
         return 'ok'
 
     def run(self):
@@ -121,23 +131,24 @@ class LTBSearchDiag(wx.Frame):
         self.downloadFunc=downloadFunc
         self.ongoing_kw = 0
 
-        index = self.list_ctrl_1.InsertStringItem(sys.maxint,u'小说1')
-        self.list_ctrl_1.SetStringItem(index, 3, 'http://10.10.10.10/1.txt')
-
-        index = self.list_ctrl_1.InsertStringItem(sys.maxint,u'小说2')
-        self.list_ctrl_1.SetStringItem(index, 3, 'http://20.20.20.20/2.txt')
-
-        index = self.list_ctrl_1.InsertStringItem(sys.maxint,u'小说3')
-        self.list_ctrl_1.SetStringItem(index, 3, 'http://30.30.30.30/3.txt')
+##        index = self.list_ctrl_1.InsertStringItem(sys.maxint,u'小说1')
+##        self.list_ctrl_1.SetStringItem(index, 3, 'http://10.10.10.10/1.txt')
+##
+##        index = self.list_ctrl_1.InsertStringItem(sys.maxint,u'小说2')
+##        self.list_ctrl_1.SetStringItem(index, 3, 'http://20.20.20.20/2.txt')
+##
+##        index = self.list_ctrl_1.InsertStringItem(sys.maxint,u'小说3')
+##        self.list_ctrl_1.SetStringItem(index, 3, 'http://30.30.30.30/3.txt')
 
         self.button_1 = wx.Button(self, -1, u"下载")
-        self.button_2 = wx.Button(self, -1, u"取消")
+        self.button_2 = wx.Button(self, -1, u"关闭")
         self.button_3 = wx.Button(self, -1, u"搜索")
         self.Bind(wx.EVT_BUTTON, self.OnDownload, self.button_1)
         self.Bind(wx.EVT_BUTTON, self.OnCancell, self.button_2)
         self.Bind(wx.EVT_TEXT_ENTER, self.OnSearch, self.text_ctrl_1)
         self.Bind(wx.EVT_BUTTON, self.OnSearch, self.button_3)
         self.Bind(EVT_SRE,self.OnReport)
+        self.Bind(wx.EVT_CLOSE,self.OnClose)
 
         self.__set_properties()
         self.__do_layout()
@@ -195,23 +206,34 @@ class LTBSearchDiag(wx.Frame):
                 dlg.Destroy()
                 return
         if kw_list==[]: return
+        utfklist=[]
+        for k in kw_list:
+            utfklist.append(k.encode('utf-8'))
         self.ongoing_kw = len(kw_list)
+##        print "prepare start searching"
+##        print kw_list
+        try:
+            self.kadp_ctrl.search(utfklist,'http://127.0.0.1:'+str(report_port)+report_rpc_path)
+        except Exception, inst:
+                dlg = wx.MessageDialog(None, u'无法连接到KADP协议进程！建议稍后重试或是重启程序。\n'+str(inst),u"错误！",wx.OK|wx.ICON_ERROR)
+                dlg.ShowModal()
+                dlg.Destroy()
+                return
         self.button_3.Disable()
         self.text_ctrl_1.Disable()
-        self.kadp_ctrl.search(kw_list,'http://127.0.0.1:'+str(report_port)+report_rpc_path)
         self.frame_1_statusbar.SetStatusText(u'搜索中...')
 
     def GetResults(self):
         return self.list_ctrl_1.GetAllChecked()
 
     def OnCancell(self,evt):
-        self.Close()
+        self.Hide()
 
     def OnDownload(self,evt):
         rlist=self.list_ctrl_1.GetAllChecked()
         for r in rlist:
             self.downloadFunc(r['url'])
-        self.Close()
+        self.Hide()
 
     def OnReport(self,evt):
         for r in evt.result:
@@ -222,6 +244,8 @@ class LTBSearchDiag(wx.Frame):
             self.button_3.Enable()
             self.text_ctrl_1.Enable()
 
+    def OnClose(self,evt):
+        self.Hide()
 
 # end of class LTBSearchDiag
 
