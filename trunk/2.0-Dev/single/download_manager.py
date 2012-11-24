@@ -11,11 +11,36 @@ import os
 import thread
 import traceback
 import urllib
+import platform
+import os
 
 # begin wxGlade: extracode
 # end wxGlade
 
 (DownloadReport,EVT_DRA)=wx.lib.newevent.NewEvent()
+
+MYOS = platform.system()
+def cur_file_dir():
+    #获取脚本路径
+    global MYOS
+    if MYOS == 'Linux':
+        path = sys.path[0]
+    elif MYOS == 'Windows':
+        return os.path.dirname(os.path.abspath(sys.argv[0]))
+    else:
+        if sys.argv[0].find('/') != -1:
+            path = sys.argv[0]
+        else:
+            path = sys.path[0]
+    if isinstance(path,str):
+        path=path.decode('utf-8')
+
+    #判断为脚本文件还是py2exe编译后的文件，如果是脚本文件，则返回的是脚本的目录，如果是编译后的文件，则返回的是编译后的文件路径
+    if os.path.isdir(path):
+        return path
+    elif os.path.isfile(path):
+        return os.path.dirname(path)
+
 
 def HumanSize(ffsize):
     fsize=float(ffsize)
@@ -65,6 +90,9 @@ class DownloadManager(wx.Frame):
 
     def __set_properties(self):
         # begin wxGlade: DownloadManager.__set_properties
+        _icon = wx.EmptyIcon()
+        _icon.CopyFromBitmap(wx.Bitmap(cur_file_dir()+u"/icon/litebook-icon_32x32.png", wx.BITMAP_TYPE_ANY))
+        self.SetIcon(_icon)
         self.SetTitle(u"下载管理器")
         self.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
         self.list_ctrl_1.InsertColumn(0,u'文件名',width=200)
@@ -114,13 +142,13 @@ class DownloadManager(wx.Frame):
             if t['url'] == newurl: return
         if savepath==None:
             savepath=self.savepath
-        fname = os.path.basename(urlparse.urlparse(newurl).path)
+        fname = str(os.path.basename(urlparse.urlparse(newurl).path))
         fname = urllib.unquote_plus(fname).decode('utf-8')
         ti=self.list_ctrl_1.InsertStringItem(sys.maxint,fname)
 
         self.list_ctrl_1.SetItemData(ti,ti)
         self.list_ctrl_1.SetStringItem(ti,1,newurl)#url
-        self.list_ctrl_1.SetStringItem(ti,2,'0')#cur
+        self.list_ctrl_1.SetStringItem(ti,2,u'开始下载')#cur
         self.list_ctrl_1.SetStringItem(ti,3,'0')#total
         localname=os.path.abspath(savepath+os.sep+fname)
         dt=DThread(self,newurl,ti,localname)
@@ -132,6 +160,7 @@ class DownloadManager(wx.Frame):
         if evt.current_size == False or evt.total_size == False:
             self.list_ctrl_1.SetStringItem(evt.tid,2,u'失败')
             self.list_ctrl_1.SetStringItem(evt.tid,3,u'失败')
+            self.Refresh()
             return
 
         if evt.current_size==-1:
@@ -140,6 +169,7 @@ class DownloadManager(wx.Frame):
         else:
             self.list_ctrl_1.SetStringItem(evt.tid,2,HumanSize(evt.current_size))
         self.list_ctrl_1.SetStringItem(evt.tid,3,HumanSize(evt.total_size))
+        self.Refresh()
 
     def resumeDownloading(self,evt):
         item=-1
@@ -151,6 +181,8 @@ class DownloadManager(wx.Frame):
             if self.list_ctrl_1.GetItem(item,2).GetText()!=u'失败':
                 self.button_10.Disable()
                 self.button_11.Enable()
+            self.list_ctrl_1.SetStringItem(item,2,u'开始下载')#cur
+            self.list_ctrl_1.SetStringItem(item,3,u'0')#total
 
 
 
