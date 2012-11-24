@@ -12,6 +12,8 @@ import xmlrpclib
 import traceback
 import cPickle
 import base64
+import platform
+import os
 
 (SearchReportEvent,EVT_SRE)=wx.lib.newevent.NewEvent()
 
@@ -20,6 +22,29 @@ import base64
 
 report_rpc_path='/REPORT'
 report_port=50202
+
+MYOS = platform.system()
+def cur_file_dir():
+    #获取脚本路径
+    global MYOS
+    if MYOS == 'Linux':
+        path = sys.path[0]
+    elif MYOS == 'Windows':
+        return os.path.dirname(os.path.abspath(sys.argv[0]))
+    else:
+        if sys.argv[0].find('/') != -1:
+            path = sys.argv[0]
+        else:
+            path = sys.path[0]
+    if isinstance(path,str):
+        path=path.decode('utf-8')
+
+    #判断为脚本文件还是py2exe编译后的文件，如果是脚本文件，则返回的是脚本的目录，如果是编译后的文件，则返回的是编译后的文件路径
+    if os.path.isdir(path):
+        return path
+    elif os.path.isfile(path):
+        return os.path.dirname(path)
+
 
 class XMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
     global report_rpc_path
@@ -161,6 +186,9 @@ class LTBSearchDiag(wx.Frame):
 
     def __set_properties(self):
         # begin wxGlade: LTBSearchDiag.__set_properties
+        _icon = wx.EmptyIcon()
+        _icon.CopyFromBitmap(wx.Bitmap(cur_file_dir()+u"/icon/litebook-icon_32x32.png", wx.BITMAP_TYPE_ANY))
+        self.SetIcon(_icon)
         self.SetTitle(u"LTBNET搜索")
         self.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
         self.frame_1_statusbar.SetStatusWidths([-1])

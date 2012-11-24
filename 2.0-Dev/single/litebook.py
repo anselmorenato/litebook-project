@@ -15,7 +15,7 @@
 
 #
 #ToDo:
-# - make search & download work
+# - make search result send to download work
 # - make py2exe work
 #
 
@@ -98,6 +98,7 @@ import encodings.utf_16
 from chardet.universaldetector import UniversalDetector
 import chardet
 if MYOS == 'Windows':
+    import win32process
     import UnRAR2
 import subprocess
 import thread
@@ -2832,7 +2833,16 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                 '0',
             ]
         GlobalConfig['kadp_ctrl'] = xmlrpclib.Server('http://'+kadp_ip+':50201/')
-        self.KADP_Process = subprocess.Popen(cmd, stderr=subprocess.STDOUT)
+        if hasattr(sys.stderr, 'fileno'):
+            childstderr = sys.stderr
+        elif hasattr(sys.stderr, '_file') and hasattr(sys.stderr._file, 'fileno'):
+            childstderr = sys.stderr._file
+        else:
+            # Give up and point child stderr at nul
+            childStderrPath = 'nul'
+            childstderr = file(childStderrPath, 'a')
+        #childstderr = file('nul', 'a')
+        self.KADP_Process = subprocess.Popen(cmd, stdin=childstderr,stdout=childstderr,stderr=childstderr,creationflags = win32process.CREATE_NO_WINDOW)
         self.KPUB_thread = kpub.KPUB(GlobalConfig['LTBNETRoot'])
         self.KPUB_thread.start()
         #create download manager
@@ -3027,7 +3037,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         mbar.SetLabel(110,u"搜索小说网站(&S)"+KeyMenuList[u'搜索小说网站'])
         mbar.SetLabel(111,u"重新载入插件"+KeyMenuList[u'重新载入插件'])
         mbar.SetLabel(112,u"清空缓存"+KeyMenuList[u'清空缓存'])
-
+        mbar.SetLabel(113, u"搜索LTBNET"+KeyMenuList[u'搜索LTBNET'])
+        mbar.SetLabel(114, u"下载管理器"+KeyMenuList[u'下载管理器'])
         mbar.SetLabel(106,u"选项(&O)"+KeyMenuList[u'选项'])
         mbar.SetLabel(107,u"退出(&X)"+KeyMenuList[u'退出'])
         mbar.SetLabel(202,u"拷贝(&C)"+KeyMenuList[u'拷贝'])
@@ -3038,8 +3049,6 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         mbar.SetLabel(601,u'纸张显示模式'+KeyMenuList[u'纸张显示模式'])
         mbar.SetLabel(602,u'书本显示模式'+KeyMenuList[u'书本显示模式'])
         mbar.SetLabel(603,u'竖排书本显示模式'+KeyMenuList[u'竖排书本显示模式'])
-        mbar.SetLabel(507,u"增大字体"+KeyMenuList[u'增大字体'])
-        mbar.SetLabel(508,u"减小字体"+KeyMenuList[u'减小字体'])
 
         mbar.SetLabel(501,u"显示工具栏"+KeyMenuList[u'显示工具栏'])
         mbar.SetLabel(511,u"缩小工具栏"+KeyMenuList[u'缩小工具栏'])
@@ -3051,7 +3060,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         mbar.SetLabel(504,u"智能分段"+KeyMenuList[u'智能分段'])
         mbar.SetLabel(507,u"增大字体"+KeyMenuList[u'增大字体'])
         mbar.SetLabel(508,u"减小字体"+KeyMenuList[u'减小字体'])
-        mbar.SetLabel(509,u"显示目录"+KeyMenuList[u'显示目录'])
+        mbar.SetLabel(509,u"显示章节"+KeyMenuList[u'显示目录'])
         mbar.SetLabel(510,u'显示章节侧边栏'+KeyMenuList[u'显示章节侧边栏'])
         mbar.SetLabel(301,u"添加到收藏夹(&A)"+KeyMenuList[u'添加到收藏夹'])
         mbar.SetLabel(302,u"整理收藏夹(&M)"+KeyMenuList[u'整理收藏夹'])
@@ -7645,7 +7654,7 @@ class NewOptionDialog(wx.Dialog):
         while i<tl:
             KeyMenuList[kconfig[i][0]]=keygrid.str2menu(kconfig[i][1])
             i+=1
-
+        self.GetParent().ResetMenu()
         #save web server related config
         GlobalConfig['ShareRoot']=self.text_ctrl_webroot.GetValue()
         GlobalConfig['ServerPort']=int(self.spin_ctrl_webport.GetValue())
@@ -9103,7 +9112,8 @@ if __name__ == "__main__":
         ) ;"""
         SqlCon.execute(sqlstr)
         SqlCur=SqlCon.cursor()
-    app = wx.PySimpleApp(0)
+    app = wx.PySimpleApp(1,'mylog.txt')
+    #app = wx.PySimpleApp(0)
     fname=None
     if len(sys.argv)>1:
         if sys.argv[1]=='-reset':
