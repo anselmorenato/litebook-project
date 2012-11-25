@@ -2812,27 +2812,27 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             ]
             kadp_ip='127.0.0.1'
         else:
-##            cmd = [
-##                'python',
-##                cur_file_dir()+"/KADP.py",
-##                '-product',
-##                str(GlobalConfig['LTBNETPort']),
-##                GlobalConfig['LTBNETID'],
-##                '0',
-##                '1',
-##            ]
-            #following is the test code
-            kadp_ip='218.21.123.99'
             cmd = [
                 'python',
                 cur_file_dir()+"/KADP.py",
-                '-server',
-                kadp_ip,
-                '50200',
-                '11110111100000009999',
-                '/root/kconf-21',
+                '-product',
+                str(GlobalConfig['LTBNETPort']),
+                GlobalConfig['LTBNETID'],
                 '0',
+                '1',
             ]
+            #following is the test code
+##            kadp_ip='218.21.123.99'
+##            cmd = [
+##                'python',
+##                cur_file_dir()+"/KADP.py",
+##                '-server',
+##                kadp_ip,
+##                '50200',
+##                '11110111100000009999',
+##                '/root/kconf-21',
+##                '0',
+##            ]
         GlobalConfig['kadp_ctrl'] = xmlrpclib.Server('http://'+kadp_ip+':50201/')
         if hasattr(sys.stderr, 'fileno'):
             childstderr = sys.stderr
@@ -2843,7 +2843,10 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             childStderrPath = 'nul'
             childstderr = file(childStderrPath, 'a')
         #childstderr = file('nul', 'a')
-        self.KADP_Process = subprocess.Popen(cmd, stdin=childstderr,stdout=childstderr,stderr=childstderr,creationflags = win32process.CREATE_NO_WINDOW)
+        if MYOS == 'Windows':
+            self.KADP_Process = subprocess.Popen(cmd, stdin=childstderr,stdout=childstderr,stderr=childstderr,creationflags = win32process.CREATE_NO_WINDOW)
+        else:
+            self.KADP_Process = subprocess.Popen(cmd, stdin=childstderr,stdout=childstderr,stderr=childstderr)
         self.KPUB_thread = kpub.KPUB(GlobalConfig['LTBNETRoot'])
         self.KPUB_thread.start()
         #create download manager
