@@ -2847,7 +2847,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             self.KADP_Process = subprocess.Popen(cmd, stdin=childstderr,stdout=childstderr,stderr=childstderr,creationflags = win32process.CREATE_NO_WINDOW)
         else:
             self.KADP_Process = subprocess.Popen(cmd)
-        self.KPUB_thread = kpub.KPUB(GlobalConfig['LTBNETRoot'])
+        self.KPUB_thread = kpub.KPUB(GlobalConfig['ShareRoot'],rloc_base_url=u'http://SELF:'+str(GlobalConfig['ServerPort']+'/'))
         self.KPUB_thread.start()
         #create download manager
         self.DownloadManager = download_manager.DownloadManager(self,GlobalConfig['ShareRoot'])
@@ -9088,6 +9088,8 @@ class ThreadAddUPNPMapping(threading.Thread):
             global GlobalConfig
             #add UPNP mapping
             uc.addUPNPPortMapping([{'proto':'TCP','port':GlobalConfig['ServerPort']},])
+            uc.addUPNPPortMapping([{'proto':'UDP','port':GlobalConfig['LTBNETPort']},])
+
 
 if __name__ == "__main__":
     if MYOS == 'Windows':
