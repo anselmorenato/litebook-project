@@ -1,4 +1,4 @@
-LiteBook ver3.0 Beta 
+LiteBook ver3.0 Beta 1
 (c)2012 Hu Jun	
 
 1.概述
@@ -6,6 +6,7 @@ LiteBook是一个开源看书软件，具备如下主要功能：
 － 支持Windows XP/Vista/Windows 7 
 － 支持Linux
 － 支持MAC OSX
+－ 支持P2P网络LTBNET共享图书
 － 三种不同的显示模式：纸张/书本/竖排书本
 － 可以灵活定制的显示主题
 － 可以灵活定制的快捷键方案
@@ -30,20 +31,20 @@ LiteBook是一个开源看书软件，具备如下主要功能：
 － 在线版本检查
 － 记录并查看文件打开历史
 
+
 2. 安装和运行
 - LiteBook在windows下提供安装文件，安装完毕即可运行。
 - LiteBook在Linux下面只能以python源码形式运行,步骤如下：
-(1)从官方网站( http://code.google.com/p/litebook-project/)的SVN中获取最新的源代码，或是在官方网站的下载页面下载源码版。
-从svn中checkout源码的方法：
-svn checkout http ://litebook-project.googlecode.com/svn/trunk/2.0-Dev litebook2
+	(1)从官方网站( http://code.google.com/p/litebook-project/)的SVN中获取最新的源代码，或是在官方网站的下载页面下载源码版。从svn中checkout源码的方法：svn checkout http ://litebook-project.googlecode.com/svn/trunk/2.0-Dev/single litebook3
 
-(2).确认你的系统中安装有如下python环境：
- - Python 2.6或以上（不支持python 3.0）
- - wxpython 2.8.10.1 unicode (ubuntu/debian下参见 http://wiki.wxpython.org/InstallingOnUbuntuOrDebian)
- - unrar linux版( http://www.rarlab.com)
-   放在litebook2所在的目录即可
-
-(3).在Linux下，运行python litebook2_linux.py
+	(2).确认你的系统中安装有如下python环境：
+	- Python 2.7（不支持python 3.0）
+	- wxpython 2.8 unicode (ubuntu下sudo apt-get install python-wxgtk2.8)
+	- twisted (ubuntu下sudo apt-get install python-twisted)
+	- netifaces (ubuntu下sudo apt-get install python-netifaces)
+	- unrar linux版( http://www.rarlab.com) 放在litebook2所在的目录即可
+ 
+	(3).在Linux下，运行python litebook.py
 
 
 
