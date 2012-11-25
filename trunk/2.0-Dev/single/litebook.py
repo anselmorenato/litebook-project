@@ -105,6 +105,7 @@ import thread
 import hashlib
 import urllib
 import threading
+
 try:
     from agw import hyperlink as hl
 except ImportError: # if it's not there locally, try the wxPython lib.
@@ -9112,7 +9113,7 @@ if __name__ == "__main__":
         ) ;"""
         SqlCon.execute(sqlstr)
         SqlCur=SqlCon.cursor()
-    app = wx.PySimpleApp(1,'mylog.txt')
+    app = wx.PySimpleApp(False)
     #app = wx.PySimpleApp(0)
     fname=None
     if len(sys.argv)>1:
