@@ -51,6 +51,7 @@ from twisted.web.xmlrpc import XMLRPC, withRequest
 from twisted.web import server as TW_xmlserver
 import base64
 import logging
+from logging.handlers import DatagramHandler
 #from logging.handlers import SysLogHandler
 ##from pymmseg import mmseg
 
@@ -2985,7 +2986,7 @@ class MyUDPHandler(SocketServer.BaseRequestHandler):
         rec = logging.makeLogRecord(cPickle.loads(data[4:]))
         #socket = self.request[1]
         #print "{} wrote:".format(self.client_address[0])
-        print rec.asctime+" - "+rec.name+" - "+rec.levelname+" : "+rec.getMessage()+"\n"
+        print "\n"+rec.asctime+" - "+rec.name+" - "+rec.levelname+" : "+rec.getMessage()
 
 class ThreadingUDPServer(SocketServer.ThreadingMixIn, SocketServer.UDPServer):
     pass
@@ -2999,7 +3000,7 @@ class tXMLSvr(XMLRPC):
 
     def addlog(self, cip):
         if not cip in self.log_list:
-            lh = logging.handlers.DatagramHandler(cip, 9999)
+            lh = DatagramHandler(cip, 9999)
             lh.setLevel(logging.DEBUG)
             formatter = \
                 logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'
