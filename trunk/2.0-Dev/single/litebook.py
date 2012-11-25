@@ -2819,7 +2819,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                 str(GlobalConfig['LTBNETPort']),
                 GlobalConfig['LTBNETID'],
                 '0',
-                '1',
+                '0',
             ]
             #following is the test code
 ##            kadp_ip='218.21.123.99'
