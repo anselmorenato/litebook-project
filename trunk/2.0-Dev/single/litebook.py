@@ -2846,7 +2846,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         if MYOS == 'Windows':
             self.KADP_Process = subprocess.Popen(cmd, stdin=childstderr,stdout=childstderr,stderr=childstderr,creationflags = win32process.CREATE_NO_WINDOW)
         else:
-            self.KADP_Process = subprocess.Popen(cmd, stdin=childstderr,stdout=childstderr,stderr=childstderr)
+            self.KADP_Process = subprocess.Popen(cmd)
         self.KPUB_thread = kpub.KPUB(GlobalConfig['LTBNETRoot'])
         self.KPUB_thread.start()
         #create download manager
