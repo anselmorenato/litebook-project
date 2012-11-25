@@ -2847,7 +2847,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             self.KADP_Process = subprocess.Popen(cmd, stdin=childstderr,stdout=childstderr,stderr=childstderr,creationflags = win32process.CREATE_NO_WINDOW)
         else:
             self.KADP_Process = subprocess.Popen(cmd)
-        self.KPUB_thread = kpub.KPUB(GlobalConfig['ShareRoot'],rloc_base_url=u'http://SELF:'+str(GlobalConfig['ServerPort']+'/'))
+        self.KPUB_thread = kpub.KPUB(GlobalConfig['ShareRoot'],rloc_base_url=u'http://SELF:'+str(GlobalConfig['ServerPort'])+'/')
         self.KPUB_thread.start()
         #create download manager
         self.DownloadManager = download_manager.DownloadManager(self,GlobalConfig['ShareRoot'])
@@ -9153,6 +9153,6 @@ if __name__ == "__main__":
     t0=time.time()
     frame_1 = MyFrame(None,fname)
     app.SetTopWindow(frame_1)
-    print "windows is created ",time.time()-t0
+    #print "windows is created ",time.time()-t0
     frame_1.Show()
     app.MainLoop()
