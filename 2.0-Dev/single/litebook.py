@@ -2800,6 +2800,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                 self.mDNS.registerService(self.mDNS_svc)
 
         #start KADP
+        kadp_ip='127.0.0.1'
         if MYOS == 'Windows':
             kadp_exe = cur_file_dir()+"\kadp\KADP.exe"
             cmd = [
@@ -2810,7 +2811,6 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                 '0',
                 '1',
             ]
-            kadp_ip='127.0.0.1'
         else:
             cmd = [
                 'python',
