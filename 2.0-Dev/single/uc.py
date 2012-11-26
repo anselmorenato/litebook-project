@@ -16,7 +16,7 @@ MYOS = platform.system()
 if MYOS != "Darwin":
     import netifaces
 else:
-    import netifaces_osx
+    from netifaces_osx import netifaces
 
 
 def insubnet(ip1,mask1,ip2):
