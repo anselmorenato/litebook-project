@@ -62,7 +62,7 @@ LiteBook是一个开源看书软件，具备如下主要功能：
 		注意：如果在安装时遇到”... is damaged and can’t be opened. You should eject the disk image."错误，请使用如下命令安装："sudo installer -pkg /Volumes/<path-to-wxpython.pkg> -target /"
 	- twisted (推荐采用mac port安装: sudo port install py-twisted)
 	
-	(3)在litebook的目录下运行“./lb3_osx"
+	(3)在litebook的目录下运行“bash lb3_osx"
 
 
 
