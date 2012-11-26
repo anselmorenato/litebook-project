@@ -7,7 +7,7 @@ Usage:
 
 from setuptools import setup
 
-APP = ['litebook2.py']
+APP = ['litebook.py']
 DATA_FILES = []
 OPTIONS = {'arch':'i386','argv_emulation': True,
             'packages':['lxml',],

@@ -22,7 +22,7 @@ LTBNET是一个点对点的图书共享网络，litebook的用户可以在这个
 系统提供一个基于命令行方式的监控界面，可以对查看当前LTBNET进程的运行信息，以及关闭进程。
 运行方法：
 － Windows：在litebook安装目录下有一个“kadp”的子目录，其中有一个"kadp.exe"文件，运行“kadp.exe -debug"
-－ Linux：在litebook安装目录下，运行"python KADP.py -debug"
+－ Linux or MAC OSX：在litebook安装目录下，运行"python KADP.py -debug"
 命令：
 "d 0":开启LOG
 "stop":关闭进程
