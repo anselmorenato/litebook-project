@@ -33,7 +33,12 @@ LiteBook是一个开源看书软件，具备如下主要功能：
 
 
 2. 安装和运行
+------------------------------------------------------------
+
 - LiteBook在windows下提供安装文件，安装完毕即可运行。
+
+------------------------------------------------------------
+
 - LiteBook在Linux下面只能以python源码形式运行,步骤如下：
 	(1)从官方网站( http://code.google.com/p/litebook-project/)的SVN中获取最新的源代码，或是在官方网站的下载页面下载源码版。从svn中checkout源码的方法：svn checkout http ://litebook-project.googlecode.com/svn/trunk/2.0-Dev/single litebook3
 
@@ -46,22 +51,28 @@ LiteBook是一个开源看书软件，具备如下主要功能：
  
 	(3).在Linux下，运行python litebook.py
 
+------------------------------------------------------------
+
+- LiteBook在MAC OSX下面只能以python源码形式运行,步骤如下：
+	(1)从官方网站( http://code.google.com/p/litebook-project/)的SVN中获取最新的源代码，或是在官方网站的下载页面下载源码版。从svn中checkout源码的方法：svn checkout http ://litebook-project.googlecode.com/svn/trunk/2.0-Dev/single litebook3
+
+	(2).确认你的系统中安装有如下python环境：
+	- Python 2.7（不支持python 3.0）
+	- wxpython 2.8 unicode for python 2.7 (http://wxpython.org/download.php#stable)
+		注意：如果在安装时遇到”... is damaged and can’t be opened. You should eject the disk image."错误，请使用如下命令安装："sudo installer -pkg /Volumes/<path-to-wxpython.pkg> -target /"
+	- twisted (推荐采用mac port安装: sudo port install py-twisted)
+	
+	(3)在litebook的目录下运行“./lb3_osx"
+
 
 
 3.帮助文档
+(Beta1中暂不包括帮助文档)
 - 在litebook运行之后点击菜单“帮助”-》“简明帮助”或是快捷键F1
 - 或者直接用web浏览器打开litebook子目录"helpdoc"下的"index.htm"
 
-4. LiteBook 插件功能介绍
-LiteBook从1.70 beta1开始加入“搜索小说网站”功能，此功能通过插件的方式实现，不同的
-小说的网站通过不同的插件实现，每个插件由一个python脚本文件组成。这些插件都放在"
-plugin"子目录下。LiteBook在启动时会将"plugun"下所有的".py"文件读入内存；如果要安
-装新的插件的话，只要把"xxx.py"文件拷到"plugin"子目录下，然后点击"文件->重新读入
-插件"菜单使之生效。
-
-4.1 插件开发指南
-litebook的插件直接使用python编写，具体编写指南请参考这篇Wiki: http://code.google
-.com/p/litebook-project/wiki/Plugin_Dev_Guide
+4.LTBNET
+请参见"LTBNET_Readme.txt"
 
 5.和作者联系
 Email:	litebook.author@gmail.com
