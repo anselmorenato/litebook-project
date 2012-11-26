@@ -36,6 +36,8 @@ if myos[1]=='ELF' and ros == 'Linux':
         from lxml_linux_64 import etree
     elif myos[0]=='32bit':
         from lxml_linux import etree
+elif ros == 'Darwin':
+    from lxml_osx import etree
 else:
     from lxml import etree
 
