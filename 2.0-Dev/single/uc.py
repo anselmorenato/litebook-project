@@ -10,8 +10,13 @@
 #-------------------------------------------------------------------------------
 #!/usr/bin/env python
 import miranda
-import netifaces
 import socket
+import platform
+MYOS = platform.system()
+if MYOS != "Darwin":
+    import netifaces
+else:
+    import netifaces_osx
 
 
 def insubnet(ip1,mask1,ip2):
