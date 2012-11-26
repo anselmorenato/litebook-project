@@ -39,10 +39,13 @@ if myos[1]=='ELF' and ros == 'Linux':
 else:
     from lxml import etree
 
-if ros !='Windows':
-    from pymmseg import mmseg
-else:
+if ros == 'Windows':
     from pymmseg_win import mmseg
+elif ros == 'Darwin':
+    from pymmseg_osx import mmseg
+else:
+    from pymmseg import mmseg
+
 
 import urllib
 
