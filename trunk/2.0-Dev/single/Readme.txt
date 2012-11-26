@@ -40,7 +40,7 @@ LiteBook是一个开源看书软件，具备如下主要功能：
 ------------------------------------------------------------
 
 - LiteBook在Linux下面只能以python源码形式运行,步骤如下：
-	(1)从官方网站( http://code.google.com/p/litebook-project/)的SVN中获取最新的源代码，或是在官方网站的下载页面下载源码版。从svn中checkout源码的方法：svn checkout http ://litebook-project.googlecode.com/svn/trunk/2.0-Dev/single litebook3
+	(1)从官方网站( http://code.google.com/p/litebook-project/)的SVN中获取最新的源代码，或是在官方网站的下载页面下载源码版。从svn中checkout源码的方法：svn checkout http://litebook-project.googlecode.com/svn/trunk/2.0-Dev/single litebook3
 
 	(2).确认你的系统中安装有如下python环境：
 	- Python 2.7（不支持python 3.0）
@@ -54,7 +54,7 @@ LiteBook是一个开源看书软件，具备如下主要功能：
 ------------------------------------------------------------
 
 - LiteBook在MAC OSX下面只能以python源码形式运行,步骤如下：
-	(1)从官方网站( http://code.google.com/p/litebook-project/)的SVN中获取最新的源代码，或是在官方网站的下载页面下载源码版。从svn中checkout源码的方法：svn checkout http ://litebook-project.googlecode.com/svn/trunk/2.0-Dev/single litebook3
+	(1)从官方网站( http://code.google.com/p/litebook-project/)的SVN中获取最新的源代码，或是在官方网站的下载页面下载源码版。从svn中checkout源码的方法：svn checkout http://litebook-project.googlecode.com/svn/trunk/2.0-Dev/single litebook3
 
 	(2).确认你的系统中安装有如下python环境：
 	- Python 2.7（不支持python 3.0）
