@@ -8,10 +8,17 @@ if sys.platform == 'win32':
     ext = 'dll'
 else:
     ext = 'so'
-    
-mmseg = cdll.LoadLibrary(join(dirname(__file__),
-                              'mmseg-cpp',
-                              'mmseg.%s' % ext))
+def module_path():
+    """ This will get us the program's directory,
+    even if we are frozen using py2exe"""
+
+    if we_are_frozen():
+        return dirname(unicode(sys.executable, sys.getfilesystemencoding( )))
+
+    return dirname(unicode(__file__, sys.getfilesystemencoding( )))
+print module_path
+
+mmseg = cdll.LoadLibrary(join(module_path(),'mmseg.%s' % ext))
 
 ########################################
 # the Token struct
@@ -98,7 +105,7 @@ class Algorithm(object):
         """\
         Create an Algorithm instance to segment text.
         """
-        self.text      = text # add a reference to prevent the string buffer from 
+        self.text      = text # add a reference to prevent the string buffer from
                               # being GC-ed
         self.algor     = mmseg.mmseg_algor_create(text, len(text))
         self.destroied = False
@@ -114,14 +121,14 @@ class Algorithm(object):
             if tk is None:
                 raise StopIteration
             yield tk
-    
+
     def next_token(self):
         """\
         Get next token. When no token available, return None.
         """
         if self.destroied:
             return None
-        
+
         tk = mmseg.mmseg_next_token(self.algor)
         if tk.length == 0:
             # no token available, the algorithm object
@@ -132,7 +139,7 @@ class Algorithm(object):
             return tk
 
     def _destroy(self):
-        
+
         if not self.destroied:
             mmseg.mmseg_algor_destroy(self.algor)
             self.destroied = True
