@@ -42,10 +42,11 @@ import chardet
 import Queue
 import urlparse
 import ConfigParser
-if MYOS != "Darwin":
-    import netifaces
-else:
-    from netifaces_osx import netifaces
+import netifaces
+##if MYOS != "Darwin":
+##    import netifaces
+##else:
+##    from netifaces_osx import netifaces
 
 
 # import wx.lib.newevent
