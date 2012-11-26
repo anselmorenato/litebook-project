@@ -45,6 +45,8 @@ if ros == 'Windows':
     from pymmseg_win import mmseg
 elif ros == 'Darwin':
     from pymmseg_osx import mmseg
+elif myos[1]=='ELF' and ros == 'Linux' and myos[0]=='64bit':
+    from pymmseg_linux_64 import mmseg
 else:
     from pymmseg import mmseg
 
@@ -320,14 +322,14 @@ if __name__ == '__main__':
         print 'You pressed Ctrl+C!'
         kp.stop()
     signal.signal(signal.SIGINT, signal_handler)
-    kurl='http://127.0.0.1:50201'
-    if len(sys.argv)<2:
-        print "kpub <ctrl_url>"
+    if len(sys.argv)>=2:
+        sroot=sys.argv[1]
+        try:
+            kcurl=sys.argv[2]
+        except:
+            kcurl='http://127.0.0.1:50201/'
+        kp = KPUB(sroot,kcurl=kcurl)
+        kp.start()
+        print "starting..."
     else:
-        kurl='http://' + sys.argv[1] + ':50201'
-    if ros=='Linux':
-        kp = KPUB('/root/book',kcurl=kurl)
-    else:
-        kp = KPUB(u'd:\\book')
-    kp.start()
-    print "starting..."
+        print "kpub <share_root> <ctrl_url>"
