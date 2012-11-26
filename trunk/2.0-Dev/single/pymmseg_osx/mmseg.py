@@ -8,17 +8,10 @@ if sys.platform == 'win32':
     ext = 'dll'
 else:
     ext = 'so'
-def module_path():
-    """ This will get us the program's directory,
-    even if we are frozen using py2exe"""
 
-    if we_are_frozen():
-        return dirname(unicode(sys.executable, sys.getfilesystemencoding( )))
-
-    return dirname(unicode(__file__, sys.getfilesystemencoding( )))
-print module_path
-
-mmseg = cdll.LoadLibrary(join(module_path(),'mmseg.%s' % ext))
+mmseg = cdll.LoadLibrary(join(dirname(__file__),
+                              'mmseg-cpp',
+                              'mmseg.%s' % ext))
 
 ########################################
 # the Token struct
