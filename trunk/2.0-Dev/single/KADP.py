@@ -42,6 +42,7 @@ import chardet
 import Queue
 import urlparse
 import ConfigParser
+import netifaces
 
 
 # import wx.lib.newevent
@@ -78,6 +79,19 @@ def AnyToUnicode(input_str, coding=None):
     else:
         output_str = unicode(input_str, 'gbk', errors='replace')
     return output_str
+
+def getOSXIP():
+    """
+    return the ethernet interface ip that in the OSX
+    """
+    int_list=netifaces.interfaces()
+    if 'en0' in int_list:
+        return netifaces.ifaddresses('en0')[2][0]['addr']
+    for intf in int_list:
+        int_info=netifaces.ifaddresses(intf)
+        if 2 in int_info and 18 in int_info:
+            return int_info[2][0]['addr']
+    return False
 
 class KQueue(Queue.Queue):
     """
@@ -1087,8 +1101,10 @@ class KADProtocol(DatagramProtocol):
         """
         Generate NodeID for self
         """
-
-        hostip = socket.gethostbyname(socket.gethostname())
+        if MYOS == 'Darwin':
+            hostip=getOSXIP()
+        else:
+            hostip = socket.gethostbyname(socket.gethostname())
         hostname = socket.gethostname()
         times = str(time.time())
         fid = '00000000000000000000'
