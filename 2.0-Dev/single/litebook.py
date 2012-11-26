@@ -39,6 +39,8 @@ if osarch[1]=='ELF' and MYOS == 'Linux':
         from lxml_linux_64 import etree
     elif osarch[0]=='32bit':
         from lxml_linux import etree
+elif MYOS == 'Darwin':
+    from lxml_osx import etree
 else:
     from lxml import etree
 
