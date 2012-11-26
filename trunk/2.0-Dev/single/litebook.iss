@@ -7,7 +7,7 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{C271CABE-D1DE-46B3-A92B-2CFD5DE732D5}
 AppName=LiteBook v3
-AppVerName=LiteBook v3.0 beta
+AppVerName=LiteBook v3.0 beta1
 OutputBaseFilename=LiteBook_v3.0b1_Win_setup
 AppPublisher=Hu Jun
 AppPublisherURL=http://sites.google.com/site/litebooksite/
@@ -30,6 +30,10 @@ Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescrip
 Source: "D:\hujun\litebook\tobuild\svn3\single\dist\litebook.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\hujun\litebook\tobuild\svn3\single\dist\python27.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\hujun\litebook\tobuild\svn3\single\dist\unrar.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\hujun\litebook\tobuild\svn3\single\dist\booknames.dic"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\hujun\litebook\tobuild\svn3\single\dist\chars.dic"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\hujun\litebook\tobuild\svn3\single\dist\mmseg.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\hujun\litebook\tobuild\svn3\single\dist\mainlist.txt"; DestDir: "{app}"; Flags: ignoreversion
 ;Source: "D:\hujun\litebook\tobuild\svn3\single\dist\l2_splash.gif"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\hujun\litebook\tobuild\svn3\single\dist\w9xpopen.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\hujun\litebook\tobuild\svn3\single\dist\litebook.exe.manifest"; DestDir: "{app}"; Flags: ignoreversion
@@ -40,9 +44,10 @@ Source: "D:\hujun\litebook\tobuild\svn3\single\dist\defaultconfig.ini"; DestDir:
 Source: "D:\hujun\litebook\tobuild\svn3\single\dist\py.dat"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\hujun\litebook\tobuild\svn3\single\dist\bh.dat"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\hujun\litebook\tobuild\svn3\single\dist\icon\*"; DestDir: "{app}\icon"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "D:\hujun\litebook\tobuild\svn3\single\dist\kadp\*"; DestDir: "{app}\kadp"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "D:\hujun\litebook\tobuild\svn3\single\dist\lib\*"; DestDir: "{app}\lib"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "D:\hujun\litebook\tobuild\svn3\single\dist\UnRAR2\*"; DestDir: "{app}\UnRAR2"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "D:\hujun\litebook\tobuild\svn3\single\dist\helpdoc\*"; DestDir: "{app}\helpdoc"; Flags: ignoreversion recursesubdirs createallsubdirs
+;Source: "D:\hujun\litebook\tobuild\svn3\single\dist\helpdoc\*"; DestDir: "{app}\helpdoc"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "D:\hujun\litebook\tobuild\svn3\single\dist\background\*"; DestDir: "{app}\background"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "D:\hujun\litebook\tobuild\svn3\single\dist\plugin\*"; DestDir: "{app}\plugin"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "D:\hujun\litebook\tobuild\svn3\single\dist\templates\*"; DestDir: "{app}\templates"; Flags: ignoreversion recursesubdirs createallsubdirs
