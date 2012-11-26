@@ -45,7 +45,7 @@ import ConfigParser
 if MYOS != "Darwin":
     import netifaces
 else:
-    import netifaces_osx
+    from netifaces_osx import netifaces
 
 
 # import wx.lib.newevent
