@@ -895,6 +895,7 @@ class KADProtocol(DatagramProtocol):
         cserver_url=None, #control server URL, a XMLRPC server URL that search result sent to
         nodebug=False, #if enabling display log at start
         ):
+        global MYOS
 
 ##        mmseg.dict_load_defaults()
 
@@ -1015,13 +1016,18 @@ class KADProtocol(DatagramProtocol):
 ##                                     socket.gethostbyname(socket.gethostname()),
 ##                                     lport)
         self.listening_port = lport
+        if MYOS=='Darwin':
+            myhostip=getOSXIP()
+        else:
+            myhostip=socket.gethostbyname(socket.gethostname())
+
         if nodeid != None:
             self.knode = KADNode(nodeid,
-                                 socket.gethostbyname(socket.gethostname()),
+                                 myhostip,
                                  lport)
         else:
             self.knode = KADNode(self.genNodeID(),
-                                 socket.gethostbyname(socket.gethostname()),
+                                 myhostip,
                                  lport)
         self.rlist.loadRes()
 
@@ -1101,6 +1107,7 @@ class KADProtocol(DatagramProtocol):
         """
         Generate NodeID for self
         """
+        global MYOS
         if MYOS == 'Darwin':
             hostip=getOSXIP()
         else:
