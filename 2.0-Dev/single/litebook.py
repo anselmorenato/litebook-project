@@ -4421,7 +4421,13 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         if self.mDNS<>None:
             self.mDNS.close()
         #stop KADP
-        kadp_ctrl = GlobalConfig['kadp_ctrl']
+##        print "start to stop KADP"
+##        kadp_ctrl = GlobalConfig['kadp_ctrl']
+##        kadp_ctrl.preparestop(False)
+##        print "start to kill KADP"
+##        self.KADP_Process.kill()
+##        print "finish stop KADP"
+
         try:
             kadp_ctrl.stopall(False)
         except:
@@ -4429,12 +4435,14 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                 self.KADP_Process.kill()
             except:
                 pass
+
 ##            if MYOS != 'Windows':
 ##                os.kill(self.KADP_Process.pid, signal.SIGKILL)
 ##            else:
 ##                os.kill(self.KADP_Process.pid, signal.CTRL_C_EVENT)
         writeKeyConfig()
         event.Skip()
+        print "end of onCLose"
 
 
     def GetCurrentPos(self):

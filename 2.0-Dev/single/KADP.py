@@ -1075,6 +1075,9 @@ class KADProtocol(DatagramProtocol):
         """
         return lport and self nodeid as string
         """
+        return [self.listening_port,str(self.knode.nodeid)]
+
+    def printme(self):
         return [self.listening_port,self.knode.nodeid.hexstr()]
 
     def setTaskList(self, rptlist):
@@ -1325,7 +1328,7 @@ class KADProtocol(DatagramProtocol):
                     src_node.nodeid.val, rseq)
             packet = self.gen_packet(header, attrs)
             self.sendDatagram(src_node.v4addr, src_node.port, packet)
-            self.logger.debug(str(rseq)+" Send FindNodeReply to "+src_node.nodeid.val)
+            self.logger.debug(str(rseq)+" Send FindNodeReply to "+src_node.nodeid.hexstr())
 
     def FindNode(
         self,
@@ -3084,9 +3087,13 @@ class tXMLSvr(XMLRPC):
         #{'rloc': 'http://1.1.1.1/', 'meta_list': {'size': 9999}, 'type': 1, 'creation_time': 1343344275.1678779, 'rid': {'val': '10101011010000000000', 'nlen': 20}, 'data': u'\u8fd9\u662f\u4e00\u4e2a\u6d4b\u8bd5\u95ee\u955c', 'owner_id': '10101011019999999999'}
         ridv=base64.b16decode(rid_val)
         rid = longbin.LongBin(ridv)
+        newklist=[]
+        for k in kw_list:
+            if not isinstance(k,unicode):
+                newklist.append(k.decode('utf-8'))
         kkres = KADRes(rid,res_data,res_rtype,res_rloc,res_metadata,res_owner)
 
-        self.proto.PublishRes(kw_list,kkres,True)
+        self.proto.PublishRes(newklist,kkres,True)
         return 'ok'
 
 
@@ -3167,6 +3174,9 @@ class tXMLSvr(XMLRPC):
         self.proto.stopAll()
         #return 'ok'
 
+    def xmlrpc_preparestop(self, dump):
+        self.proto.prepareStop()
+
     def xmlrpc_publish(self, fname):
         self.proto.Publish(fname)
         return 'ok'
@@ -3188,6 +3198,9 @@ class tXMLSvr(XMLRPC):
 
     def xmlrpc_getinfo(self, dump):
         return self.proto.getInfo()
+
+    def xmlrpc_printme(self, dump):
+        return self.proto.printme()
 
 def KShell(proc_list):
     """
@@ -3287,9 +3300,9 @@ def KShell(proc_list):
                 proc_list[i]['debug'].printbucklist(False)
             continue
 
-        if clist[0] == 'getinfo':  # print bucket tree
+        if clist[0] == 'printme':  # print bucket tree
             if i != None:
-                print proc_list[i]['debug'].getinfo(False)
+                print proc_list[i]['debug'].printme(False)
             continue
 
         if clist[0] == 'pr':  # print res list
