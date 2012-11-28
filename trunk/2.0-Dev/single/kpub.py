@@ -255,14 +255,13 @@ class KPUB(threading.Thread):
             kw = tok.text.decode('utf-8')
             if len(kw)<2:continue
             if p.search(kw) != None:continue
-            klist.append(tok.text.decode('utf-8'))
-        if not fname.decode('utf-8') in klist:
-            klist.append(fname.decode('utf-8'))
-
+            klist.append(tok.text)
+        if not fname in klist:
+            klist.append(fname)
         #book_state={'rid':rid,'relpath':rlpath,'lastpub':time.time(),'bookpath':bookpath}
         if klist != []:
             try:
-                self.logger.debug(u'pubBook: publishing '+data+u' with keywords: '+u' '.join(klist))
+                self.logger.debug(u'pubBook: publishing '+data+u' with keywords: '+(' '.join(klist).decode('utf-8')))
                 self.kserver.publishRes(klist,base64.b16encode(rid),data,rtype,rloc,meta_list,'SELF')
             except Exception, inst:
                 self.logger.error('pubBook:'+traceback.format_exc())
@@ -296,6 +295,7 @@ class KPUB(threading.Thread):
     def run(self):
         mmseg.dict_load_chars(cur_file_dir()+os.sep+'chars.dic')
         mmseg.dict_load_words(cur_file_dir()+os.sep+'booknames.dic')
+        time.sleep(10)#wait for KADP startup
 ##        self.loadStates()
         while self.running == True:
             flist=self.getNovelFileList()
