@@ -296,7 +296,6 @@ class KADResList:
                             self.proto.PublishRes([kw,],r)
 
     def print_me(self):
-        #self.proto.logger.debug(u"你好吗".encode('utf-8'))
         self.proto.logger.debug("kw list has:\n")
         for kw in self.reslist.keys():
             self.proto.logger.debug(kw.encode('utf-8'))
@@ -305,7 +304,7 @@ class KADResList:
             for rl in rid_list.values():
                 for r in rl:
                     self.proto.logger.debug(kw.encode('utf-8')+'---'+
-                                        r.rloc.encode('utf-8')+" "+r.owner_id)
+                                        r.rloc.encode('utf-8')+" "+r.owner_id.encode('hex_codec'))
                     #print kw+u'---'+unicode(r.rloc)+u" "+unicode(r.owner_id)
 
 
@@ -631,7 +630,7 @@ class KADTree:
         if rootnode.bucket != []:
             self.proto.logger.debug('current nid is ---- ' + nid)
             for c in rootnode.bucket:
-                self.proto.logger.debug(c.nodeid.val)
+                self.proto.logger.debug(c.nodeid.hexstr())
                 self.proto.logger.debug(c.strME())
                 self.proto.logger.debug("_____________")
         if rootnode.left==None and rootnode.right==None:
@@ -821,7 +820,7 @@ class KADNode:
         Generate a printable string for the KADNode
         """
         rs=''
-        rs+="NodeId:"+str(self.nodeid)+"-----"
+        rs+="NodeId:"+self.nodeid.hexstr()+"-----"
         rs+="Addr:"+self.v4addr+":"+str(self.port)
         return rs
 
@@ -1076,7 +1075,7 @@ class KADProtocol(DatagramProtocol):
         """
         return lport and self nodeid as string
         """
-        return [self.listening_port,str(self.knode.nodeid)]
+        return [self.listening_port,self.knode.nodeid.hexstr()]
 
     def setTaskList(self, rptlist):
         self.rptlist = rptlist
@@ -1175,8 +1174,9 @@ class KADProtocol(DatagramProtocol):
                 for c in thetask['shortlist']:
                     if c['contact'].nodeid.val == r['src_id']:
                         c['status'] = 'answered'
-                        self.logger.debug('FindNodeCallback: found '
-                                     + str(c['contact'].nodeid.val))
+                        if r['result'] != False:
+                            self.logger.debug('FindNodeCallback: found '
+                                         + str(c['contact'].nodeid.hexstr()))
                         thec = c
                         break
             if r['result'] == True:  # if got the reply to FindNode
@@ -1228,7 +1228,7 @@ class KADProtocol(DatagramProtocol):
 
                 if found == False:  # lookup stops
                     self.logger.debug('FindNodeCallback: Stopped')
-                    self.logger.debug('FindNodeCallback: '+self.knode.nodeid.val+' found '+str(len(thetask['shortlist']))+' contacts')
+                    self.logger.debug('FindNodeCallback: '+self.knode.nodeid.hexstr()+' found '+str(len(thetask['shortlist']))+' contacts')
                     del self.task_list[taskseq]
                     thetask['defer'
                             ].callback({'context': thetask['callback_context'
@@ -1248,7 +1248,7 @@ class KADProtocol(DatagramProtocol):
             else:
 
                  # if there is no answer
-                self.logger.warning(str(r['seq'])+" NO ANSWER FROM "+str(r['src_id']))
+                self.logger.warning("FindNodeCallback: "+str(r['seq'])+" NO ANSWER FROM "+r['src_id'].encode('hex_codec'))
                 thetask['shortlist'].remove(thec)
                 self.buck_list.remove(thec['contact'].nodeid)
                 thetask['onthefly'] -= 1
@@ -1268,7 +1268,7 @@ class KADProtocol(DatagramProtocol):
                         found = True
 
                 if found == False:  # lookup stops
-                    self.logger.debug('FindNodeCallback:'+self.knode.nodeid.val+' found '+str(len(thetask['shortlist'])))
+                    self.logger.debug('FindNodeCallback:'+self.knode.nodeid.hexstr()+' found '+str(len(thetask['shortlist'])))
                     self.logger.debug('FindNodeCallback: Stopped')
                     del self.task_list[taskseq]
                     thetask['defer'
@@ -1470,7 +1470,7 @@ class KADProtocol(DatagramProtocol):
                         else:
                             c['status'] = 'answered'
                         self.logger.debug('FindValueCallback: found '
-                                     + str(c['contact'].nodeid.val))
+                                     + str(c['contact'].nodeid.hexstr()))
                     thec = c
                     break
 
@@ -1478,7 +1478,7 @@ class KADProtocol(DatagramProtocol):
                 self.logger.debug('FindValueCallback:Got the answer')
                 if thec['status'] == 'answered-file':  # got the search result
                     self.logger.debug('FindValueCallback: got result from '
-                                 + r['src_id'])
+                                 + r['src_id'].encode('hex_codec'))
                     for xr in r['attr_list'][6]:
                         if not xr in thetask['rlist']:
                             thetask['rlist'].append(xr)
@@ -3285,6 +3285,11 @@ def KShell(proc_list):
         if clist[0] == 'pc':  # print bucket tree
             if i != None:
                 proc_list[i]['debug'].printbucklist(False)
+            continue
+
+        if clist[0] == 'getinfo':  # print bucket tree
+            if i != None:
+                print proc_list[i]['debug'].getinfo(False)
             continue
 
         if clist[0] == 'pr':  # print res list

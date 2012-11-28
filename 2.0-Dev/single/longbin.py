@@ -125,6 +125,9 @@ class LongBin:
             i+=1
         return rstr
 
+    def hexstr(self):
+        return "0x"+self.val.encode('hex_codec')
+
 
 
 
