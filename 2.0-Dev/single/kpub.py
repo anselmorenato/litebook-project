@@ -59,7 +59,7 @@ def cur_file_dir():
     if myos == 'Linux':
         path = sys.path[0]
     elif myos == 'Windows':
-        return os.path.dirname(AnyToUnicode(os.path.abspath(sys.argv[0])))
+        return os.path.dirname(os.path.abspath(sys.argv[0].decode('utf-16')))
     else:
         if sys.argv[0].find('/') != -1:
             path = sys.argv[0]
@@ -129,9 +129,9 @@ class KPUB(threading.Thread):
         # add console handler to logger, multiple handler could be added to same logger
 
         self.logger.addHandler(ch)
-        self.logger.disabled = True
+        self.logger.disabled = False
 
-        self.states={}#this is a dict used to save pub states
+##        self.states={}#this is a dict used to save pub states
 
         if os.path.isdir(ipath) != True:
             raise ValueError('Invalid Path:'+ipath)
@@ -156,38 +156,38 @@ class KPUB(threading.Thread):
 ##        ctime=None
 
 
-    def saveStates(self):
-        fname = self.root+os.sep+'.kpub.states'
-        savef = open(fname, 'wb')
-        saves = cPickle.dumps(self.states, 2)
-        saves = struct.pack('f',time.time()) + saves
-        m = hashlib.sha224()
-        m.update(saves+self.SALT)
-        savef.write(m.digest()+saves) #use sha224 to hash
-        savef.close()
+##    def saveStates(self):
+##        fname = self.root+os.sep+'.kpub.states'
+##        savef = open(fname, 'wb')
+##        saves = cPickle.dumps(self.states, 2)
+##        saves = struct.pack('f',time.time()) + saves
+##        m = hashlib.sha224()
+##        m.update(saves+self.SALT)
+##        savef.write(m.digest()+saves) #use sha224 to hash
+##        savef.close()
 
 
-    def loadStates(self):
-        fname = self.root+os.sep+'.kpub.states'
-        if not os.path.exists(fname):
-            self.logger.warning('saved states not found')
-            return False
-        try:
-            savef = open(fname, 'rb')
-            loads = savef.read()
-            m = hashlib.sha224()
-            m.update(loads[28:]+self.SALT)
-            if m.digest() != loads[:28]:
-                return False
-            if time.time() - (struct.unpack('f',loads[28:32])[0]) > self.lifetime:
-                return False
-            self.states = cPickle.loads(loads[32:])
-            savef.close()
-        except Exception, inst:
-            self.logger.error("loadStates failed\n")
-            self.logger.error(str(inst))
-            return False
-        return True
+##    def loadStates(self):
+##        fname = self.root+os.sep+'.kpub.states'
+##        if not os.path.exists(fname):
+##            self.logger.warning('saved states not found')
+##            return False
+##        try:
+##            savef = open(fname, 'rb')
+##            loads = savef.read()
+##            m = hashlib.sha224()
+##            m.update(loads[28:]+self.SALT)
+##            if m.digest() != loads[:28]:
+##                return False
+##            if time.time() - (struct.unpack('f',loads[28:32])[0]) > self.lifetime:
+##                return False
+##            self.states = cPickle.loads(loads[32:])
+##            savef.close()
+##        except Exception, inst:
+##            self.logger.error("loadStates failed\n")
+##            self.logger.error(str(inst))
+##            return False
+##        return True
 
 
     def pubBook(self,bookpath):
@@ -231,13 +231,13 @@ class KPUB(threading.Thread):
             rlpath=rlpath.encode('utf-8')
         rlpath=urllib.quote(rlpath)
         #check if the resource has been published within last lifetime
-        if rid in self.states:
-            if self.states[rid]['relpath']==rlpath:
-                if time.time()-self.states[rid]['lastpub']<=self.lifetime:
-                    return False
-            else:
-                if os.path.exists(self.states[rid]['bookpath']):
-                    return False
+##        if rid in self.states:
+##            if self.states[rid]['relpath']==rlpath:
+##                if time.time()-self.states[rid]['lastpub']<=self.lifetime:
+##                    return False
+##            else:
+##                if os.path.exists(self.states[rid]['bookpath']):
+##                    return False
         rloc=self.rloc_base+rlpath
         rtype=1
         #kres = KADP.KADRes(rid,data,rtype,rloc,meta_list)
@@ -259,6 +259,7 @@ class KPUB(threading.Thread):
         if not fname.decode('utf-8') in klist:
             klist.append(fname.decode('utf-8'))
 
+        #book_state={'rid':rid,'relpath':rlpath,'lastpub':time.time(),'bookpath':bookpath}
         if klist != []:
             try:
                 self.logger.debug(u'pubBook: publishing '+data+u' with keywords: '+u' '.join(klist))
@@ -268,7 +269,7 @@ class KPUB(threading.Thread):
                 self.logger.error('pubBook: catched exception: '
                              + str(inst))
                 return False
-        self.states[rid]={'relpath':rlpath,'lastpub':time.time(),'bookpath':bookpath}
+##        self.states[rid]={'relpath':rlpath,'lastpub':time.time(),'bookpath':bookpath}
         return True
 
 
@@ -295,17 +296,17 @@ class KPUB(threading.Thread):
     def run(self):
         mmseg.dict_load_chars(cur_file_dir()+os.sep+'chars.dic')
         mmseg.dict_load_words(cur_file_dir()+os.sep+'booknames.dic')
-        self.loadStates()
+##        self.loadStates()
         while self.running == True:
             flist=self.getNovelFileList()
             for book in flist:
                 self.pubBook(book)
                 if self.running == False:
-                    self.saveStates()
+##                    self.saveStates()
                     return
                 time.sleep(3)
             time.sleep(60)
-            self.saveStates()
+##            self.saveStates()
         return
 
     def stop(self):
@@ -316,12 +317,12 @@ class KPUB(threading.Thread):
 
 if __name__ == '__main__':
 
-    import signal
-    def signal_handler(signal, frame):
-        global kp
-        print 'You pressed Ctrl+C!'
-        kp.stop()
-    signal.signal(signal.SIGINT, signal_handler)
+##    import signal
+##    def signal_handler(signal, frame):
+##        global kp
+##        print 'You pressed Ctrl+C!'
+##        kp.stop()
+##    signal.signal(signal.SIGINT, signal_handler)
     if len(sys.argv)>=2:
         sroot=sys.argv[1]
         try:
@@ -331,5 +332,12 @@ if __name__ == '__main__':
         kp = KPUB(sroot,kcurl=kcurl)
         kp.start()
         print "starting..."
+        while True:
+            try:
+                kp.join(1)
+            except KeyboardInterrupt:
+                print "stopped"
+                kp.stop()
+                break
     else:
         print "kpub <share_root> <ctrl_url>"
