@@ -15,6 +15,11 @@
 #
 # ------------------------------------------------------------------------------
 
+#
+# todo: need to fix some exception while kpubing
+#
+#
+
 #import inspect
 import platform
 MYOS = platform.system()
@@ -140,6 +145,24 @@ class KADResList:
         self.tRepublish=86400
         self.proto=proto #This is the KADProtocol
         self.SALT = 'DKUYU'#salt for hashing
+
+    def __contains__(self,res):
+        """
+        check if the specified res is in
+        with same rid and rloc
+        """
+
+        for kw in self.reslist.values():
+            if res.rid.val in kw:
+                for r in kw[res.rid.val]:
+                    if r.rloc == res.rloc: return True
+        return False
+
+    def clearAll(self):
+        """
+        clear all stored res
+        """
+        self.reslist={}
 
     def add_res(self, kw, res_list, src_nodeid):
         """
@@ -952,6 +975,7 @@ class KADProtocol(DatagramProtocol):
         self.tReplicate=3600 #republish time for all res in res list
         self.tRepublish=86400 #republish time for owning res
 
+
         #test code
 ##        self.tReplicate=600 #republish time for all res in res list
 ##        self.tRepublish=1200 #republish time for owning res
@@ -970,6 +994,8 @@ class KADProtocol(DatagramProtocol):
         self.buck_size = self.k
         self.alpha = 3
         self.buck_list_len = 160
+
+
 
         #some scale limit
         self.MAX_NUM_CONTACT = 5000
@@ -1916,12 +1942,17 @@ class KADProtocol(DatagramProtocol):
                 self.Store([context['kw']], [kres], cc['contact'],
                            self.StoreCallback)
 
-    def PublishRes(self,kw_list,res):
+    def PublishRes(self,kw_list,res,check_pubed=False):
         """
         pulish function for all type of resource
         res is KADRes
         kw is a unicode
+        check_pubed is a boolean to control if system should check the res is already published
         """
+        if res in self.rlist and check_pubed==True:
+            self.logger.debug('PublishRes:res already in local list')
+            return
+
         self.logger.debug('PublishRes:start a new publish')
         for kw in kw_list:
             self.logger.debug('PublishRes: Got- ' + kw.encode('utf-8'))
@@ -2752,7 +2783,10 @@ class KADProtocol(DatagramProtocol):
 ##                print "aval is", aval
                 if isinstance(aval, str):
                     encoding = chardet.detect(aval)['encoding']
-                    aval = aval.decode(encoding)
+                    try:
+                        aval = aval.decode(encoding)
+                    except:
+                        aval = aval.decode('utf-8')
                 if isinstance(aval, unicode):
                     aval = aval.encode('utf-8')
             if atype == 7:
@@ -2818,11 +2852,15 @@ class KADProtocol(DatagramProtocol):
 
         newmlist = {}
         for (k, v) in meta_list.items():  # encode all unicode into utf-8
+            newk=k
+            newv=v
             if isinstance(k, unicode):
-                newk = k.encode('utf-8')
+                newk = urllib.quote_plus(k.encode('utf-8'))
             if isinstance(v, unicode):
-                newv = v.encode('utf-8')
-            newmlist[k] = v
+                newv = urllib.quote_plus(v.encode('utf-8'))
+            newmlist[newk] = newv
+##        if len(newmlist.keys())>1:
+##            print newmlist
         metas = urllib.urlencode(newmlist)
         attr_val += metas
         return self.gen_attr(6, attr_val)
@@ -3048,7 +3086,7 @@ class tXMLSvr(XMLRPC):
         rid = longbin.LongBin(ridv)
         kkres = KADRes(rid,res_data,res_rtype,res_rloc,res_metadata,res_owner)
 
-        self.proto.PublishRes(kw_list,kkres)
+        self.proto.PublishRes(kw_list,kkres,True)
         return 'ok'
 
 
