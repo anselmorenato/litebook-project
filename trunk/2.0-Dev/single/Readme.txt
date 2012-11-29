@@ -91,6 +91,9 @@ genshi:http://genshi.edgewall.org/
 lxml:http://lxml.de
 ez_epub:timtanbin@gmail.com
 pyzeroconf: Paul Scott-Murphy
+twisted: http://twistedmatrix.com
+jieba: https://github.com/fxsjy/jieba
+netifaces: Alastair Houghton
 
 本软件的网络搜索功能支持并感谢如下网站：
 易读：www.yilook.com
