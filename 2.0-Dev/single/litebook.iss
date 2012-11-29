@@ -30,9 +30,6 @@ Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescrip
 Source: "D:\hujun\litebook\tobuild\svn3\single\dist\litebook.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\hujun\litebook\tobuild\svn3\single\dist\python27.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\hujun\litebook\tobuild\svn3\single\dist\unrar.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\hujun\litebook\tobuild\svn3\single\dist\booknames.dic"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\hujun\litebook\tobuild\svn3\single\dist\chars.dic"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\hujun\litebook\tobuild\svn3\single\dist\mmseg.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\hujun\litebook\tobuild\svn3\single\dist\mainlist.txt"; DestDir: "{app}"; Flags: ignoreversion
 ;Source: "D:\hujun\litebook\tobuild\svn3\single\dist\l2_splash.gif"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\hujun\litebook\tobuild\svn3\single\dist\w9xpopen.exe"; DestDir: "{app}"; Flags: ignoreversion
