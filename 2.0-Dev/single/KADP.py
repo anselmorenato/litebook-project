@@ -1957,6 +1957,8 @@ class KADProtocol(DatagramProtocol):
             return
 
         self.logger.debug('PublishRes:start a new publish')
+##        self.logger.debug('PublishRes:kw_list is '+str(kw_list))
+##        print "kw_list is ",kw_list
         for kw in kw_list:
             self.logger.debug('PublishRes: Got- ' + kw.encode('utf-8'))
             self.rlist.add_res(kw,[res,],self.knode.nodeid.val)#add it into local rlist
@@ -3089,11 +3091,16 @@ class tXMLSvr(XMLRPC):
         rid = longbin.LongBin(ridv)
         newklist=[]
         for k in kw_list:
-            if not isinstance(k,unicode):
-                newklist.append(k.decode('utf-8'))
-        kkres = KADRes(rid,res_data,res_rtype,res_rloc,res_metadata,res_owner)
-
-        self.proto.PublishRes(newklist,kkres,True)
+            k = k.strip()
+            if k !='':
+                if not isinstance(k,unicode):
+                    newklist.append(k.decode('utf-8'))
+                else:
+                    newklist.append(k)
+##        print "newklist is",newklist
+        if newklist != []:
+            kkres = KADRes(rid,res_data,res_rtype,res_rloc,res_metadata,res_owner)
+            self.proto.PublishRes(newklist,kkres,True)
         return 'ok'
 
 

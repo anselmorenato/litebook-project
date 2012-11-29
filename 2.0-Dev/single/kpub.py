@@ -41,25 +41,31 @@ elif ros == 'Darwin':
 else:
     from lxml import etree
 
-if ros == 'Windows':
-    from pymmseg_win import mmseg
-elif ros == 'Darwin':
-    from pymmseg_osx import mmseg
-elif myos[1]=='ELF' and ros == 'Linux' and myos[0]=='64bit':
-    from pymmseg_linux_64 import mmseg
-else:
-    from pymmseg import mmseg
+import jieba
+
+
+##if ros == 'Windows':
+##    from pymmseg_win import mmseg
+##elif ros == 'Darwin':
+##    from pymmseg_osx import mmseg
+##elif myos[1]=='ELF' and ros == 'Linux' and myos[0]=='64bit':
+##    from pymmseg_linux_64 import mmseg
+##else:
+##    from pymmseg import mmseg
 
 
 import urllib
 
 def cur_file_dir():
     #获取脚本路径
-    global myos
-    if myos == 'Linux':
+    global ros
+    if ros == 'Linux':
         path = sys.path[0]
-    elif myos == 'Windows':
-        return os.path.dirname(os.path.abspath(sys.argv[0].decode('utf-16')))
+    elif ros == 'Windows':
+        x=os.path.dirname(os.path.abspath(sys.argv[0])).decode(sys.getfilesystemencoding())
+        print x
+        print type(x)
+        return x
     else:
         if sys.argv[0].find('/') != -1:
             path = sys.argv[0]
@@ -129,7 +135,7 @@ class KPUB(threading.Thread):
         # add console handler to logger, multiple handler could be added to same logger
 
         self.logger.addHandler(ch)
-        self.logger.disabled = True
+        self.logger.disabled = False
 
 ##        self.states={}#this is a dict used to save pub states
 
@@ -195,6 +201,7 @@ class KPUB(threading.Thread):
         Publish a book via KADP
         bpath is the full path to the book
         """
+        global ros
         bpath=os.path.abspath(bookpath)
         if os.path.isfile(bpath) == False:
             return False
@@ -216,7 +223,11 @@ class KPUB(threading.Thread):
         data=os.path.basename(bpath)
         #data=KADP.AnyToUnicode(data)
         if isinstance(data,str):
-            data=data.decode('utf-8')
+            data=data.decode(sys.getfilesystemencoding())
+##            if ros != 'Windows':
+##                data=data.decode('utf-8')
+##            else:
+##                data=data.decode('utf-16')
         try:
             rlpath=os.path.relpath(bpath,self.root)
         except Exception, inst:
@@ -248,14 +259,14 @@ class KPUB(threading.Thread):
         if not isinstance(fname,unicode):
             fname=fname.decode('utf-8')
         fname=fname.encode('utf-8')
-        kw_list = mmseg.Algorithm(fname)
+        kw_list = list(jieba.cut(fname,cut_all=False))
         klist = []
         p = re.compile('^\d+$')
-        for tok in kw_list:
-            kw = tok.text.decode('utf-8')
+        for kw in kw_list:
+##            kw = tok.text.decode('utf-8')
             if len(kw)<2:continue
             if p.search(kw) != None:continue
-            klist.append(tok.text)
+            klist.append(kw.encode('utf-8'))
         if not fname in klist:
             klist.append(fname)
         #book_state={'rid':rid,'relpath':rlpath,'lastpub':time.time(),'bookpath':bookpath}
@@ -293,8 +304,8 @@ class KPUB(threading.Thread):
         return rlist
 
     def run(self):
-        mmseg.dict_load_chars(cur_file_dir()+os.sep+'chars.dic')
-        mmseg.dict_load_words(cur_file_dir()+os.sep+'booknames.dic')
+##        mmseg.dict_load_chars(cur_file_dir()+os.sep+'chars.dic')
+##        mmseg.dict_load_words(cur_file_dir()+os.sep+'booknames.dic')
         time.sleep(10)#wait for KADP startup
 ##        self.loadStates()
         while self.running == True:
