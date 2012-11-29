@@ -4442,7 +4442,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 ##                os.kill(self.KADP_Process.pid, signal.CTRL_C_EVENT)
         writeKeyConfig()
         event.Skip()
-        print "end of onCLose"
+
 
 
     def GetCurrentPos(self):

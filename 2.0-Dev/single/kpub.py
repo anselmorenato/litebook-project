@@ -129,7 +129,7 @@ class KPUB(threading.Thread):
         # add console handler to logger, multiple handler could be added to same logger
 
         self.logger.addHandler(ch)
-        self.logger.disabled = False
+        self.logger.disabled = True
 
 ##        self.states={}#this is a dict used to save pub states
 
