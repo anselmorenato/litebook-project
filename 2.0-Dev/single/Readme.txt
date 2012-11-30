@@ -1,4 +1,4 @@
-LiteBook ver3.0 Beta 1
+﻿LiteBook ver3.0 Beta 1
 (c)2012 Hu Jun	
 
 1.概述
@@ -97,7 +97,6 @@ netifaces: Alastair Houghton
 
 本软件的网络搜索功能支持并感谢如下网站：
 易读：www.yilook.com
-小说520：www.xsxs520.com
 
 7.本软件授权（License）
 本软件遵循GPL 3.0和如下条款：
