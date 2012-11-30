@@ -13,8 +13,8 @@ LTBNET是一个点对点的图书共享网络，litebook的用户可以在这个
 － LTBNET随着litebook一同启动和关闭
 － LTBNET以独立进程的方式运行
 － LTBNET缺省使用UDP端口50200；内置的WEB服务器缺省使用TCP端口8000。这两个端口都可以在litebook“选项”对话框中修改。
+－ litebook会使用UPNP协议自动添加NAT端口转发，用户也可以手工在路由器上添加以上两个端口的转发。注意：如果端口转发没有创建的话，LTBNET无法工作。
 － 图书共享目录目前采用WEB服务器的共享根目录，此目录下的所有后缀名为['txt','html','htm','epub','umd','jar','zip','rar']都会被共享。
-－ litebook会使用UPNP协议自动添加NAT端口转发，用户也可以手工在路由器上添加以上两个端口的转发。
 － LTBNET搜索是通过litebook文件菜单中的“搜索LTBNET”进行
 － 搜索到结果之后，可以直接下载，下载进度可以在litebook文件菜单中的“下载管理器”中查看
 
