@@ -240,13 +240,15 @@ class LTBSearchDiag(wx.Frame):
         self.ongoing_kw = len(kw_list)
 ##        print "prepare start searching"
 ##        print kw_list
-        try:
-            self.kadp_ctrl.search(utfklist,'http://127.0.0.1:'+str(report_port)+report_rpc_path)
-        except Exception, inst:
-                dlg = wx.MessageDialog(None, u'无法连接到KADP协议进程！建议稍后重试或是重启程序。\n'+str(inst),u"错误！",wx.OK|wx.ICON_ERROR)
-                dlg.ShowModal()
-                dlg.Destroy()
-                return
+##        try:
+        self.kadp_ctrl.search(utfklist,'http://127.0.0.1:'+str(report_port)+report_rpc_path)
+##        except Exception, inst:
+##                dlg = wx.MessageDialog(None, u'无法连接到KADP协议进程！建议稍后重试或是重启程序。\n'+str(inst),u"错误！",wx.OK|wx.ICON_ERROR)
+##                dlg.ShowModal()
+##                dlg.Destroy()
+##                print traceback.format_exc()
+##                print inst
+##                return
         self.button_3.Disable()
         self.text_ctrl_1.Disable()
         self.frame_1_statusbar.SetStatusText(u'搜索中...')
@@ -264,11 +266,16 @@ class LTBSearchDiag(wx.Frame):
         self.Hide()
 
     def OnReport(self,evt):
-        for r in evt.result:
-            self.list_ctrl_1.addResult(r)
-        self.ongoing_kw -= 1
+        if evt.result=="NoContact":
+            msg=u"没有Peer,无法搜索。"
+            self.ongoing_kw=0
+        else:
+            for r in evt.result:
+                self.list_ctrl_1.addResult(r)
+            msg=u'搜索结束'
+            self.ongoing_kw -= 1
         if self.ongoing_kw <=0:
-            self.frame_1_statusbar.SetStatusText(u'搜索结束.')
+            self.frame_1_statusbar.SetStatusText(msg)
             self.button_3.Enable()
             self.text_ctrl_1.Enable()
 

@@ -1,4 +1,4 @@
-LTBNET (litebook 3.0 beta1)
+﻿LTBNET (litebook 3.0 beta1)
 (c)2012 Hu Jun	
 
 1.概述
@@ -30,6 +30,7 @@ LTBNET是一个点对点的图书共享网络，litebook的用户可以在这个
 (以下命令需要先执行d 0)
 "pc 0":列出当前所有的contact 
 "pr 0":列出当前已知的所有资源
+"printme 0":列出当前的端口号和自己的NodeID
 
 4.和作者联系
 Email:	litebook.author@gmail.com
