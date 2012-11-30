@@ -5133,6 +5133,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         else:
             self.slider.Closeme()
 
+
+
 class MyOpenFileDialog(wx.Dialog,wx.lib.mixins.listctrl.ColumnSorterMixin):
     global GlobalConfig
     select_files=[]

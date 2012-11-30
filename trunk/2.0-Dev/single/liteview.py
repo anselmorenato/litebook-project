@@ -126,9 +126,13 @@ class LiteView(wx.ScrolledWindow):
         self.Bind(wx.EVT_LEFT_DOWN,self.OnMouseDrag)
         self.Bind(wx.EVT_LEFT_UP,self.OnMouseDrag)
         self.Bind(wx.EVT_MOTION,self.OnMouseDrag)
+        self.Bind(wx.EVT_LEFT_DOWN,self.MouseClick)
+
         #self.Bind(wx.EVT_RIGHT_UP,self.OnMouseDrag)
 
-
+    def MouseClick(self,evt):
+        self.SetFocus()
+        evt.Skip()
 
     def GetHitPos(self,pos):
         """返回坐标所在字在self.Value中的[index,字的坐标]"""
