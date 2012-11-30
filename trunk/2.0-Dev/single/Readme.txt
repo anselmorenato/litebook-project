@@ -94,6 +94,7 @@ pyzeroconf: Paul Scott-Murphy
 twisted: http://twistedmatrix.com
 jieba: https://github.com/fxsjy/jieba
 netifaces: Alastair Houghton
+Miranda: http://code.google.com/p/miranda-upnp/
 
 本软件的网络搜索功能支持并感谢如下网站：
 易读：www.yilook.com
