@@ -2133,7 +2133,7 @@ class KADProtocol(DatagramProtocol):
             if d != None:
                 d.addCallback(self.Searchcallback)
             else:
-                cxmlsvr.report([])
+                cxmlsvr.report(base64.b16encode(cPickle.dumps('NoContact')))
 
 
     def PingCallback(self, r):
