@@ -8923,7 +8923,8 @@ class LBHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def list_directory(self, path):
         client_addr = self.client_address[0]
-        if uc.checkLocalIP(client_addr)==False:return
+        if uc.checkLocalIP(client_addr)==False:
+            return
         try:
             browser=unicode(self.headers['user-agent'])
         except:

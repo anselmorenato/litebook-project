@@ -158,6 +158,28 @@ class KADResList:
                     if r.rloc == res.rloc: return True
         return False
 
+    def setPubed(self,res,pubed=True):
+        """
+        set the published status of res
+        """
+        for kw in self.reslist.values():
+            if res.rid.val in kw:
+                for r in kw[res.rid.val]:
+                    if r.rloc == res.rloc:
+                        r.published=pubed
+                        return True
+
+    def isPubed(self,res):
+        """
+        check if the res is in the local list and already published
+        """
+        for kw in self.reslist.values():
+            if res.rid.val in kw:
+                for r in kw[res.rid.val]:
+                    if r.rloc == res.rloc and r.published==True:
+                        return True
+        return False
+
     def clearAll(self):
         """
         clear all stored res
@@ -860,6 +882,7 @@ class KADRes:
         self.rloc = rloc
         self.meta_list = metadata
         self.owner_id=owner_id
+        self.published=False #if this res has been successfully published
 
 
 ##class KAD_Req:
@@ -1944,6 +1967,7 @@ class KADProtocol(DatagramProtocol):
                              + ' to ' + cc['contact'].nodeid.val)
                 self.Store([context['kw']], [kres], cc['contact'],
                            self.StoreCallback)
+            self.rlist.setPubed(kres)
 
     def PublishRes(self,kw_list,res,check_pubed=False):
         """
@@ -1952,7 +1976,7 @@ class KADProtocol(DatagramProtocol):
         kw is a unicode
         check_pubed is a boolean to control if system should check the res is already published
         """
-        if res in self.rlist and check_pubed==True:
+        if self.rlist.isPubed(res)==True and check_pubed==True:
             self.logger.debug('PublishRes:res already in local list')
             return
 
