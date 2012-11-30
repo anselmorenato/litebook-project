@@ -51,6 +51,21 @@ def getDRIntIP(gwip):
                     return if_addr
     return False
 
+def checkLocalIP(cip):
+    """
+    check if the cip is within the same subnet of any local address
+    """
+    if cip == '127.0.0.1':return True
+    for ifname in netifaces.interfaces():
+        if 2 in netifaces.ifaddresses(ifname):
+            if_addr = netifaces.ifaddresses(ifname)[2][0]['addr']
+            if if_addr != '127.0.0.1' and if_addr != None and if_addr != '':
+                if_mask = netifaces.ifaddresses(ifname)[2][0]['netmask']
+                if insubnet(if_addr,if_mask,cip) == True:
+                    return True
+    return False
+
+
 def addUPNPPortMapping(map_list):
     """
     map_list ia a list of following dict:

@@ -42,6 +42,7 @@ Source: "D:\hujun\litebook\tobuild\svn3\single\dist\py.dat"; DestDir: "{app}"; F
 Source: "D:\hujun\litebook\tobuild\svn3\single\dist\bh.dat"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\hujun\litebook\tobuild\svn3\single\dist\icon\*"; DestDir: "{app}\icon"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "D:\hujun\litebook\tobuild\svn3\single\dist\kadp\*"; DestDir: "{app}\kadp"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "D:\hujun\litebook\tobuild\svn3\single\dist\jieba\*"; DestDir: "{app}\jieba"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "D:\hujun\litebook\tobuild\svn3\single\dist\lib\*"; DestDir: "{app}\lib"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "D:\hujun\litebook\tobuild\svn3\single\dist\UnRAR2\*"; DestDir: "{app}\UnRAR2"; Flags: ignoreversion recursesubdirs createallsubdirs
 ;Source: "D:\hujun\litebook\tobuild\svn3\single\dist\helpdoc\*"; DestDir: "{app}\helpdoc"; Flags: ignoreversion recursesubdirs createallsubdirs
