@@ -972,7 +972,7 @@ class KADProtocol(DatagramProtocol):
         self.win = win
         self.numofcontact = 0
         #self.default_lport = KPORT
-        self.bstrap_url = 'http://ltbnet.alwaysdata.net/l.py?'
+        self.bstrap_url = 'http://boot-ltbnet.rhcloud.com/?'
         self.force_scan = force_scan
 
 
