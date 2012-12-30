@@ -173,11 +173,12 @@ def sendSOAP(hostName,serviceType,controlURL,actionName,actionArguments):
                 sock.close()
                 return False
 
-def changePortMapping(PM_proto,internal_port,external_port,PM_desc="",method='add'):
+#def changePortMapping(PM_proto,internal_port,external_port,PM_desc="",method='add'):
+def changePortMapping(mapping_list,method='add'):
     """
     add or remove PortMapping on 1st respond router via UPNP
-    PM_proto: 'TCP' or 'UDP'
-    PM_desc: description string for this mapping
+    mapping_list is a list of dict:
+        {'desc':str,'port':int,'proto':str}
     method: 'add' or 'remove'
     note: the internal ip is auto-detected via:
         - find the 1st interface address that are in the same subnet of
@@ -210,25 +211,27 @@ def changePortMapping(PM_proto,internal_port,external_port,PM_desc="",method='ad
                 break
 ##    print "ctrlURL is ",ctrlURL
     if ctrlURL != None:
-        if method=='add':
-            upnp_method='AddPortMapping'
-            sendArgs = {'NewPortMappingDescription': (PM_desc, 'string'),
-    			'NewLeaseDuration': ('0', 'ui4'),
-    			'NewInternalClient': (internal_ip, 'string'),
-    			'NewEnabled': ('1', 'boolean'),
-    			'NewExternalPort': (external_port, 'ui2'),
-    			'NewRemoteHost': ('', 'string'),
-    			'NewProtocol': (PM_proto, 'string'),
-    			'NewInternalPort': (internal_port, 'ui2')}
-        else:
-            upnp_method='DeletePortMapping'
-            sendArgs = {
-    			'NewExternalPort': (external_port, 'ui2'),
-    			'NewRemoteHost': ('', 'string'),
-    			'NewProtocol': (PM_proto, 'string'),}
+        for mapping in mapping_list:
+            if method=='add':
+                upnp_method='AddPortMapping'
+                sendArgs = {'NewPortMappingDescription': (mapping['desc'], 'string'),
+        			'NewLeaseDuration': ('0', 'ui4'),
+        			'NewInternalClient': (internal_ip, 'string'),
+        			'NewEnabled': ('1', 'boolean'),
+        			'NewExternalPort': (mapping['port'], 'ui2'),
+        			'NewRemoteHost': ('', 'string'),
+        			'NewProtocol': (mapping['proto'], 'string'),
+        			'NewInternalPort': (mapping['port'], 'ui2')}
+            else:
+                upnp_method='DeletePortMapping'
+                sendArgs = {
+        			'NewExternalPort': (mapping['port'], 'ui2'),
+        			'NewRemoteHost': ('', 'string'),
+        			'NewProtocol': (mapping['proto'], 'string'),}
 
-        sendSOAP(pr.netloc,'urn:schemas-upnp-org:service:WANIPConnection:1',
-                    ctrlURL,upnp_method,sendArgs)
+            sendSOAP(pr.netloc,'urn:schemas-upnp-org:service:WANIPConnection:1',
+                        ctrlURL,upnp_method,sendArgs)
+
 
 
 if __name__ == '__main__':

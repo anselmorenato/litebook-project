@@ -2745,7 +2745,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.__set_properties()
         self.__do_layout()
         #add UPNP mapping via thread, otherwise it will block, and it takes long time
-        upnp_t = ThreadAddUPNPMapping()
+        upnp_t = ThreadAddUPNPMapping(self)
         upnp_t.start()
         #starting web server if configured
         self.server=None
@@ -9108,13 +9108,22 @@ class ThreadedLBServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     pass
 
 class ThreadAddUPNPMapping(threading.Thread):
-        def run(self):
-            global GlobalConfig
-            #add UPNP mapping
-            myup.changePortMapping('TCP',GlobalConfig['ServerPort'],
-                                        GlobalConfig['ServerPort'],'LITEBOOK')
-            myup.changePortMapping('UDP',GlobalConfig['LTBNETPort'],
-                                        GlobalConfig['LTBNETPort'],'LITEBOOK')
+    def __init__(self,win):
+        threading.Thread.__init__(self)
+        self.win=win
+
+    def run(self):
+        global GlobalConfig
+        #add UPNP mapping
+        ml=[
+        {'port':GlobalConfig['ServerPort'],'proto':'TCP','desc':"LITEBOOK"},
+        {'port':GlobalConfig['LTBNETPort'],'proto':'UDP','desc':"LITEBOOK"},
+        ]
+        try:
+            myup.changePortMapping(ml)
+        except:
+            evt=AlertMsgEvt(txt=u'UPNP端口映射设置失败！请手动设置宽带路由器并添加相应的端口映射。')
+            wx.PostEvent(self.win, evt)
 
 class ThreadChkPort(threading.Thread):
     def __init__(self,win,alertOnOpen=True):
