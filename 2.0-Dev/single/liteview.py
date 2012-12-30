@@ -1191,7 +1191,7 @@ class LiteView(wx.ScrolledWindow):
 
 
 
-    def ShowPostition(self,pos):
+    def ShowPosition(self,pos):
         self.start_pos=pos
         self.ShowPos()
 
