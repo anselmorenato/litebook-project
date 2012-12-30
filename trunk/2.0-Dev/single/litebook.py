@@ -3,20 +3,9 @@
 
 
 #This is the source file of LiteBook (for all Windows/Linux/OSX)
-#require following modules:
-# - liteview
-# - chardet
-# - rarfile
-# - wxpython 2.8.10.1 unicode
+#see Readme.txt for module dependcy
 #
 #
-#
-#import KADP
-
-#
-#ToDo:
-# - make search result send to download work
-# - make py2exe work
 #
 
 
@@ -24,7 +13,7 @@ import download_manager
 import ltbsearchdiag
 import signal
 import xmlrpclib
-import uc
+import myup
 import fj
 import traceback
 import platform
@@ -123,10 +112,11 @@ except ImportError: # if it's not there locally, try the wxPython lib.
 (UpdateStatusBarEvent, EVT_UPDATE_STATUSBAR) = wx.lib.newevent.NewEvent()
 (ReadTimeAlert,EVT_ReadTimeAlert)=wx.lib.newevent.NewEvent()
 (ScrollDownPage,EVT_ScrollDownPage)=wx.lib.newevent.NewEvent()
-(GetPosEvent,EVT_GetPos)=wx.lib.newevent.NewEvent()
+##(GetPosEvent,EVT_GetPos)=wx.lib.newevent.NewEvent()
 (VerCheckEvent,EVT_VerCheck)=wx.lib.newevent.NewEvent()
 (DownloadFinishedAlert,EVT_DFA)=wx.lib.newevent.NewEvent()
 (DownloadUpdateAlert,EVT_DUA)=wx.lib.newevent.NewEvent()
+(AlertMsgEvt,EVT_AME)=wx.lib.newevent.NewEvent()
 
 
 
@@ -2040,10 +2030,10 @@ def umd_decode(infile):
     while end<>True:
         (u_type,u_value,pos,end)=umd_field_decode(f,pos+1)
         umdinfo[u_type]=u_value
-    print umdinfo['author']
-    print umdinfo['title']
-    print umdinfo['publisher']
-    print umdinfo['vendor']
+##    print umdinfo['author']
+##    print umdinfo['title']
+##    print umdinfo['publisher']
+##    print umdinfo['vendor']
     return umdinfo
 
 
@@ -2383,6 +2373,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
     u'最小化':'self.OnESC(None)',
     u'生成EPUB文件':'self.Menu704()',
     u'启用WEB服务器':'self.Menu705()',
+    u'检测端口是否开启':'self.Menu706()',
     u'显示章节侧边栏':'self.Menu510(None)',
     u'搜索LTBNET':'self.Menu113(None)',
     u'下载管理器':'self.Menu114(None)',
@@ -2516,6 +2507,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         wxglade_tmp_menu.Append(703, u"繁体转简体"+KeyMenuList[u'切换为简体字'], u"繁体转简体", wx.ITEM_NORMAL)
         wxglade_tmp_menu.Append(704, u"生成EPUB文件"+KeyMenuList[u'生成EPUB文件'], u"生成EPUB文件", wx.ITEM_NORMAL)
         wxglade_tmp_menu.Append(705, u"启用WEB服务器"+KeyMenuList[u'启用WEB服务器'], u"是否启用WEB服务器", wx.ITEM_CHECK)
+        wxglade_tmp_menu.Append(706, u'检测端口是否开启'+KeyMenuList[u'检测端口是否开启'], u'检测端口是否开启', wx.ITEM_NORMAL)
         self.frame_1_menubar.Append(wxglade_tmp_menu, u"工具(&T)")
 
 
@@ -2577,6 +2569,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.Bind(wx.EVT_MENU, self.Menu603, id=603)
         self.Bind(wx.EVT_MENU, self.Menu704, id=704)
         self.Bind(wx.EVT_MENU, self.Menu705, id=705)
+        self.Bind(wx.EVT_MENU, self.Menu706, id=706)
         self.Bind(wx.EVT_MENU, self.Tool41, id=701)
         self.Bind(wx.EVT_MENU, self.Tool43, id=702)
         self.Bind(wx.EVT_MENU, self.Tool42, id=703)
@@ -2623,8 +2616,9 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.Bind(EVT_ReadTimeAlert,self.ReadTimeAlert)
         self.Bind(EVT_DFA,self.DownloadFinished)
         self.Bind(EVT_DUA,self.UpdateStatusBar)
+        self.Bind(EVT_AME,self.AlertMsg)
         self.Bind(EVT_ScrollDownPage,self.scrolldownpage)
-        self.Bind(EVT_GetPos,self.getPos)
+##        self.Bind(EVT_GetPos,self.getPos)
         self.Bind(EVT_VerCheck,self.DisplayVerCheck)
         self.Bind(wx.EVT_SPLITTER_DCLICK,self.OnSplitterDClick,self.window_1)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected,self.list_ctrl_1)
@@ -2753,7 +2747,6 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         #add UPNP mapping via thread, otherwise it will block, and it takes long time
         upnp_t = ThreadAddUPNPMapping()
         upnp_t.start()
-##        uc.addUPNPPortMapping([{'proto':'TCP','port':GlobalConfig['ServerPort']},])
         #starting web server if configured
         self.server=None
         try:
@@ -2865,6 +2858,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         tlist={'paper':61,'book':62,'vbook':63}
         self.ViewMenu.Check(mlist[GlobalConfig['showmode']],True)
         self.frame_1_toolbar.ToggleTool(tlist[GlobalConfig['showmode']],True)
+        wx.CallLater(10000,self.chkPort,False)
 
 
 
@@ -3076,6 +3070,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         mbar.SetLabel(703,u"繁体转简体"+KeyMenuList[u'切换为简体字'])
         mbar.SetLabel(704,u"生成EPUB文件"+KeyMenuList[u'生成EPUB文件'])
         mbar.SetLabel(705,u"启用WEB服务器"+KeyMenuList[u'启用WEB服务器'])
+        mbar.SetLabel(706,u'检测端口是否开启'+KeyMenuList[u'检测端口是否开启'])
 
         mbar.SetLabel(401,u"简明帮助(&B)"+KeyMenuList[u'简明帮助'])
         mbar.SetLabel(404,u"版本更新内容"+KeyMenuList[u'版本更新内容'])
@@ -3642,6 +3637,19 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                 dlg.ShowModal()
                 dlg.Destroy()
 
+    def chkPort(self,AlertOnOpen=True):
+        global GlobalConfig
+        GlobalConfig['kadp_ctrl'].checkPort(False)
+        Tchkreport=ThreadChkPort(self,AlertOnOpen)
+        Tchkreport.start()
+
+    def Menu706(self,evt):
+        self.chkPort()
+
+    def AlertMsg(self,evt):
+        dlg = wx.MessageDialog(self, evt.txt,u"注意！",wx.OK|wx.ICON_INFORMATION)
+        dlg.ShowModal()
+        dlg.Destroy()
 
     def ChangeFontSize(self,delta):
         global GlobalConfig
@@ -3947,7 +3955,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                         current_zip_file=zipfilepath
                         try:
                             if isinstance(zipfilepath, str):
-                                zipfilepath=zipfilepath.deocde('gbk')
+                                zipfilepath=zipfilepath.decode('gbk')
                             zfile=zipfile.ZipFile(zipfilepath)
                         except:
                             dlg = wx.MessageDialog(self, zipfilepath+u' 文件打开错误！',u"错误！",wx.OK|wx.ICON_ERROR)
@@ -4423,7 +4431,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             self.mDNS.close()
         #stop KADP
 ##        print "start to stop KADP"
-##        kadp_ctrl = GlobalConfig['kadp_ctrl']
+        kadp_ctrl = GlobalConfig['kadp_ctrl']
 ##        kadp_ctrl.preparestop(False)
 ##        print "start to kill KADP"
 ##        self.KADP_Process.kill()
@@ -4538,31 +4546,31 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         if BookDB.__len__()>GlobalConfig['MaxBookDB']:
             BookDB.pop()
 
-    def DisplayPos(self,event):
-        global OnScreenFileList
-        while(True):
-            try:
-                pos=self.GetCurrentPos()[0]
-                last_pos=self.text_ctrl_1.GetLastPosition()
-            except:
-                return
-            if last_pos<>0:
-                percent=int((float(pos)/float(last_pos))*100)
-                allsize=0
-                i=0
-                pos+=2700
-                for f in OnScreenFileList:
-                    allsize+=f[2]
-                    if pos<allsize: break
-                    i+=1
-                if i>=OnScreenFileList.__len__():
-                    i=OnScreenFileList.__len__()-1
-                fname=OnScreenFileList[i][0]
-                try:
-                    self.frame_1_statusbar.SetStatusText(fname+u' , '+unicode(percent)+u'%',0)
-                except:
-                    return
-            time.sleep(0.5)
+##    def DisplayPos(self,event):
+##        global OnScreenFileList
+##        while(True):
+##            try:
+##                pos=self.GetCurrentPos()[0]
+##                last_pos=self.text_ctrl_1.GetLastPosition()
+##            except:
+##                return
+##            if last_pos<>0:
+##                percent=int((float(pos)/float(last_pos))*100)
+##                allsize=0
+##                i=0
+##                pos+=2700
+##                for f in OnScreenFileList:
+##                    allsize+=f[2]
+##                    if pos<allsize: break
+##                    i+=1
+##                if i>=OnScreenFileList.__len__():
+##                    i=OnScreenFileList.__len__()-1
+##                fname=OnScreenFileList[i][0]
+##                try:
+##                    self.frame_1_statusbar.SetStatusText(fname+u' , '+unicode(percent)+u'%',0)
+##                except:
+##                    return
+##            time.sleep(0.5)
 
     def UpdateStatusBar(self,event):
         if event.FieldNum<>0:
@@ -4595,13 +4603,13 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.text_ctrl_1.ReDraw()
 
 
-    def getPos(self,event):
-        try:
-            self.current_pos=self.GetCurrentPos()
-            self.last_pos=self.text_ctrl_1.GetLastPosition()
-        except:
-            self.current_pos=0
-            self.last_pos=0
+##    def getPos(self,event):
+##        try:
+##            self.current_pos=self.GetCurrentPos()
+##            self.last_pos=self.text_ctrl_1.GetLastPosition()
+##        except:
+##            self.current_pos=0
+##            self.last_pos=0
 
 #    def MyMouseMDC(self,event):
 #        self.last_mouse_event=1
@@ -6416,8 +6424,8 @@ class DisplayPosThread():
     def run(self):
         global OnScreenFileList
         while self.running:
-            evt=GetPosEvent()
-            wx.PostEvent(self.win, evt)
+##            evt=GetPosEvent()
+            #wx.PostEvent(self.win, evt)
             percent=self.win.text_ctrl_1.GetPosPercent()
             (rlist,i,cname)=self.win.GetChapter()
             if percent<>False:
@@ -8925,7 +8933,7 @@ class LBHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def list_directory(self, path):
         client_addr = self.client_address[0]
-        if uc.checkLocalIP(client_addr)==False:
+        if myup.checkLocalIP(client_addr)==False:
             return
         try:
             browser=unicode(self.headers['user-agent'])
@@ -9103,8 +9111,34 @@ class ThreadAddUPNPMapping(threading.Thread):
         def run(self):
             global GlobalConfig
             #add UPNP mapping
-            uc.addUPNPPortMapping([{'proto':'TCP','port':GlobalConfig['ServerPort']},])
-            uc.addUPNPPortMapping([{'proto':'UDP','port':GlobalConfig['LTBNETPort']},])
+            myup.changePortMapping('TCP',GlobalConfig['ServerPort'],
+                                        GlobalConfig['ServerPort'],'LITEBOOK')
+            myup.changePortMapping('UDP',GlobalConfig['LTBNETPort'],
+                                        GlobalConfig['LTBNETPort'],'LITEBOOK')
+
+class ThreadChkPort(threading.Thread):
+    def __init__(self,win,alertOnOpen=True):
+        threading.Thread.__init__(self)
+        self.win=win
+        self.aOO=alertOnOpen
+
+    def run(self):
+        global GlobalConfig
+        for x in range(30):
+            time.sleep(1)
+            pstatus=GlobalConfig['kadp_ctrl'].PortStatus(False)
+            if pstatus==-1:
+                evt=AlertMsgEvt(txt=u'LTBNET端口未打开！请设置宽带路由器并添加相应的端口映射。')
+                wx.PostEvent(self.win, evt)
+                return
+            elif pstatus==1:
+                if self.aOO==True:
+                    evt=AlertMsgEvt(txt=u'LTBNET端口已打开！')
+                    wx.PostEvent(self.win, evt)
+                return
+        evt=AlertMsgEvt(txt=u'LTBNET端口未打开！请设置宽带路由器并添加相应的端口映射。')
+        wx.PostEvent(self.win, evt)
+        return
 
 
 if __name__ == "__main__":

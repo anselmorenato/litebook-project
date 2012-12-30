@@ -423,15 +423,6 @@ class KADFile:
 ##                self.meta_list = meta_list
 
 
-
-
-def bigger(a, b):
-    if a > b:
-        return a
-    else:
-        return b
-
-
 class KADTreeNode:
 
     def __init__(self, nodedata=None, parentnode=None):
@@ -973,6 +964,9 @@ class KADProtocol(DatagramProtocol):
         self.numofcontact = 0
         #self.default_lport = KPORT
         self.bstrap_url = 'http://boot-ltbnet.rhcloud.com/?'
+        self.chkport_url = 'http://boot-ltbnet.rhcloud.com/check?'
+        self.port_open_status = 'INIT' #'INIT' means unknow, 1 means open,-1 means closed, 0 means waiting
+        self.port_open_nonce = None
         self.force_scan = force_scan
 
 
@@ -2547,6 +2541,8 @@ class KADProtocol(DatagramProtocol):
                     rpt_list['BootStrap'] = rpt11
 
         self.setTaskList(rpt_list)
+        #self.checkPort()
+
 
 
 
@@ -2572,6 +2568,58 @@ class KADProtocol(DatagramProtocol):
     def stopProtocol(self):
         self.prepareStop()
         self.logger.debug("KADP STOPPED.")
+
+    def answerPortOpen(self,nonce=99):
+        """
+        this function is called while receving code=11 packet
+        """
+        if self.port_open_status==0:
+            if self.port_open_nonce==nonce:
+                self.port_open_status=1
+                self.logger.debug("answerPortOpen:Port is open!")
+                self.checkportopen_call.cancel()
+            else:
+                self.port_open_status=-1
+                self.logger.error("answerPortOpen:Port is NOT open!")
+
+
+    def checkPort(self):
+        """
+        check if the listening port is open
+        """
+        self.logger.debug("checkPort: i am in")
+        if self.port_open_status == 0:
+            return
+        self.port_open_status = 'INIT'
+        reactor.callLater(10,self.checkPortOpen)
+        self.checkportopen_call = reactor.callLater(
+                20,
+                self.answerPortOpen,
+                99
+                )
+
+    def checkPortOpen(self):
+        """
+        supporting function for checkPort, checkPort() should be used
+        """
+        if self.port_open_status == 0:
+            return
+        self.logger.debug("checkPortOpen:start checking port")
+        nonce=os.urandom(8)
+        cnode = {'nid':self.knode.nodeid.val,'port':self.listening_port,
+                    'nonce':nonce
+                }
+        encodes = urllib.urlencode(cnode)
+        full_url = self.chkport_url + encodes
+        try:
+            clistf = urllib.urlopen(full_url)
+        except Exception, inst:
+            self.logger.error("checkPortOpen: Error opening check URL!")
+            return False
+
+        self.port_open_nonce=nonce
+        self.port_open_status=0
+        self.logger.debug("checkPortOpen:port check request submited")
 
 
     def BootStrap(self):
@@ -2662,7 +2710,8 @@ class KADProtocol(DatagramProtocol):
             (pheader, alist) = rr
         src_node = KADNode(longbin.LongBin(pheader['src_id']), host[0],
                            host[1])#the src-port in the IP header is used iso listening port in the KADP header
-        self.updateContactQ.put(src_node)  # put dst_node into queue
+        if pheader['code'] != 11:
+            self.updateContactQ.put(src_node)  # put dst_node into queue
         if pheader['code'] == 0:  # if it is ping-request
             self.PingReply(src_node, pheader['seq'])
             return
@@ -2746,6 +2795,9 @@ class KADProtocol(DatagramProtocol):
 
         if pheader['code'] == 9:  # if it is Boot
             self.BootReplyQ.put([src_node, pheader['seq'], time.time()])
+            return
+        if pheader['code'] == 11:  # if it is check_port_open
+            self.answerPortOpen(alist[8][0])
             return
         if pheader['code'] == 10:  # if it is Boot-reply
             rseq = pheader['seq']
@@ -3205,6 +3257,14 @@ class tXMLSvr(XMLRPC):
         self.proto.stopAll()
         #return 'ok'
 
+    def xmlrpc_checkPort(self, dump):
+        print "xml is checking port"
+        self.proto.checkPort()
+        return 'ok'
+
+    def xmlrpc_PortStatus(self, dump):
+        return self.proto.port_open_status
+
     def xmlrpc_preparestop(self, dump):
         self.proto.prepareStop()
 
@@ -3414,9 +3474,6 @@ if __name__ == '__main__':
         if sys.argv[1].lower() == '-server' or sys.argv[1].lower() == '-product':
 
 ##            print 'starting KADP...'
-##            print 'adding UPNP portmapping...'
-            import uc
-            uc.addUPNPPortMapping([{'proto':'UDP','port':KPORT},])
             lport = KPORT
             nodeid = None
             bip = ''
