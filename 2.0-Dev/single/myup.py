@@ -235,6 +235,6 @@ def changePortMapping(mapping_list,method='add'):
 
 
 if __name__ == '__main__':
-    changePortMapping('TCP',50210,50210,'test3','del')
+    changePortMapping([{'port':50210,'proto':'UDP','desc':"testFromScript"}],'add')
 
 

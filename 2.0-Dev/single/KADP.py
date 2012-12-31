@@ -3258,7 +3258,7 @@ class tXMLSvr(XMLRPC):
         #return 'ok'
 
     def xmlrpc_checkPort(self, dump):
-        print "xml is checking port"
+##        print "xml is checking port"
         self.proto.checkPort()
         return 'ok'
 
