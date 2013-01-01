@@ -976,6 +976,8 @@ def readConfigFile():
         GlobalConfig['ServerPort']=8000
         GlobalConfig['mDNS_interface']='AUTO'
         GlobalConfig['ToolSize']=32
+        GlobalConfig['RunUPNPAtStartup']=True
+        GlobalConfig['EnableLTBNET']=True
 
         return
 
@@ -985,10 +987,19 @@ def readConfigFile():
         GlobalConfig['mDNS_interface']='AUTO'
 
     try:
+        GlobalConfig['RunUPNPAtStartup']=config.getboolean('settings','RunUPNPAtStartup')
+    except:
+        GlobalConfig['RunUPNPAtStartup']=True
+
+    try:
+        GlobalConfig['EnableLTBNET']=config.getboolean('settings','EnableLTBNET')
+    except:
+        GlobalConfig['EnableLTBNET']=True
+
+    try:
         GlobalConfig['RunWebserverAtStartup']=config.getboolean('settings','RunWebserverAtStartup')
     except:
         GlobalConfig['RunWebserverAtStartup']=False
-
 
     try:
         GlobalConfig['ServerPort']=config.getint('settings','ServerPort')
@@ -1375,10 +1386,13 @@ def writeConfigFile(lastpos):
     config.set('settings','installdefaultconfig',unicode(GlobalConfig['InstallDefaultConfig']))
     config.set('settings','ShareRoot',unicode(GlobalConfig['ShareRoot']))
     config.set('settings','LTBNETRoot',unicode(GlobalConfig['LTBNETRoot']))
-    (lport,nodeids)=GlobalConfig['kadp_ctrl'].getinfo(False)
+    if 'kadp_ctrl' in GlobalConfig:
+        (lport,nodeids)=GlobalConfig['kadp_ctrl'].getinfo(False)
+        config.set('settings','LTBNETID',nodeids)
     config.set('settings','LTBNETPort',unicode(GlobalConfig['LTBNETPort']))
-    config.set('settings','LTBNETID',nodeids)
     config.set('settings','RunWebserverAtStartup',unicode(GlobalConfig['RunWebserverAtStartup']))
+    config.set('settings','RunUPNPAtStartup',unicode(GlobalConfig['RunUPNPAtStartup']))
+    config.set('settings','EnableLTBNET',unicode(GlobalConfig['EnableLTBNET']))
     config.set('settings','ServerPort',unicode(GlobalConfig['ServerPort']))
     config.set('settings','mDNS_interface',unicode(GlobalConfig['mDNS_interface']))
     config.set('settings','toolsize',unicode(GlobalConfig['ToolSize']))
@@ -1496,34 +1510,56 @@ def UpdateOpenedFileList(filename,ftype,zfile=''):
             i+=1
 
 
-
-
-def VersionCheck(os):
+def VersionCheck():
+    """
+    Get latest version from offical website
+    return (internal_ver(float),text_ver(unicode),whatsnew(unicode)
+    """
     try:
-        f=urllib.urlopen("http://code.google.com/p/litebook-project/wiki/UrlChecking")
+        f=urllib2.urlopen('http://code.google.com/p/litebook-project/wiki/LatestVer')
     except:
-        return False
+        return (False,False,False)
+    iver=False
+    tver=False
+    wtsnew=False
+    p1=re.compile('##########(.+)##########')
+    p2=re.compile('----------(.+)----------')
+    p3=re.compile('@@@@@@@@(.+)@@@@@@@@')
     for line in f:
-        if line.find('litebookwin')<>-1:
-            line=line.strip()
-            p=re.compile('<.*?>',re.S)
-            line=p.sub('',line)
-            info=line.split(' ')
-            found_1=False
-            found_2=False
-            for word in info:
-                if word.find('litebook'+os+'latestversion')<>-1:
-                    latest_ver=word.split('----')[1]
-                    found_1=True
-                if word.find('litebook'+os+'downloadurl')<>-1 :
-                    download_url=word.split('----')[1]
-                    found_2=True
-            if found_1==False or found_2==False:
-                f.close()
-                return False
-            else:
-                f.close()
-                return (latest_ver,'http://'+download_url)
+        if line.find('##########') != -1:
+            iver=float(p1.search(line).group(1))
+            tver=p2.search(line).group(1).decode('utf-8')
+            wtsnew=p3.search(line).group(1).decode('utf-8')
+            wtsnew=wtsnew.replace('\\n','\n')
+            break
+    return (iver,tver,wtsnew)
+
+##def VersionCheck(os):
+##    try:
+##        f=urllib.urlopen("http://code.google.com/p/litebook-project/wiki/UrlChecking")
+##    except:
+##        return False
+##    for line in f:
+##        if line.find('litebookwin')<>-1:
+##            line=line.strip()
+##            p=re.compile('<.*?>',re.S)
+##            line=p.sub('',line)
+##            info=line.split(' ')
+##            found_1=False
+##            found_2=False
+##            for word in info:
+##                if word.find('litebook'+os+'latestversion')<>-1:
+##                    latest_ver=word.split('----')[1]
+##                    found_1=True
+##                if word.find('litebook'+os+'downloadurl')<>-1 :
+##                    download_url=word.split('----')[1]
+##                    found_2=True
+##            if found_1==False or found_2==False:
+##                f.close()
+##                return False
+##            else:
+##                f.close()
+##                return (latest_ver,'http://'+download_url)
 
 def htmname2uni(htm):
     if htm[1]=='#':
@@ -2374,6 +2410,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
     u'生成EPUB文件':'self.Menu704()',
     u'启用WEB服务器':'self.Menu705()',
     u'检测端口是否开启':'self.Menu706()',
+    u'使用UPNP添加端口映射':'self.Menu707()',
     u'显示章节侧边栏':'self.Menu510(None)',
     u'搜索LTBNET':'self.Menu113(None)',
     u'下载管理器':'self.Menu114(None)',
@@ -2508,6 +2545,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         wxglade_tmp_menu.Append(704, u"生成EPUB文件"+KeyMenuList[u'生成EPUB文件'], u"生成EPUB文件", wx.ITEM_NORMAL)
         wxglade_tmp_menu.Append(705, u"启用WEB服务器"+KeyMenuList[u'启用WEB服务器'], u"是否启用WEB服务器", wx.ITEM_CHECK)
         wxglade_tmp_menu.Append(706, u'检测端口是否开启'+KeyMenuList[u'检测端口是否开启'], u'检测端口是否开启', wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(707, u'使用UPNP添加端口映射'+KeyMenuList[u'使用UPNP添加端口映射'], u'使用UPNP添加端口映射', wx.ITEM_NORMAL)
+
         self.frame_1_menubar.Append(wxglade_tmp_menu, u"工具(&T)")
 
 
@@ -2570,6 +2609,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.Bind(wx.EVT_MENU, self.Menu704, id=704)
         self.Bind(wx.EVT_MENU, self.Menu705, id=705)
         self.Bind(wx.EVT_MENU, self.Menu706, id=706)
+        self.Bind(wx.EVT_MENU, self.Menu707, id=707)
         self.Bind(wx.EVT_MENU, self.Tool41, id=701)
         self.Bind(wx.EVT_MENU, self.Tool43, id=702)
         self.Bind(wx.EVT_MENU, self.Tool42, id=703)
@@ -2745,8 +2785,9 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.__set_properties()
         self.__do_layout()
         #add UPNP mapping via thread, otherwise it will block, and it takes long time
-        upnp_t = ThreadAddUPNPMapping(self)
-        upnp_t.start()
+        if GlobalConfig['RunUPNPAtStartup']:
+            self.upnp_t = ThreadAddUPNPMapping(self)
+            self.upnp_t.start()
         #starting web server if configured
         self.server=None
         try:
@@ -2796,59 +2837,61 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                 self.mDNS.registerService(self.mDNS_svc)
 
         #start KADP
-        kadp_ip='127.0.0.1'
-        if MYOS == 'Windows':
-            kadp_exe = cur_file_dir()+"\kadp\KADP.exe"
-            cmd = [
-                kadp_exe,
-                '-product',
-                str(GlobalConfig['LTBNETPort']),
-                GlobalConfig['LTBNETID'],
-                '0',
-                '1',
-            ]
-        else:
-            cmd = [
-                'python',
-                cur_file_dir()+"/KADP.py",
-                '-product',
-                str(GlobalConfig['LTBNETPort']),
-                GlobalConfig['LTBNETID'],
-                '0',
-                '1',
-            ]
-            #following is the test code
-##            kadp_ip='218.21.123.99'
-##            cmd = [
-##                'python',
-##                cur_file_dir()+"/KADP.py",
-##                '-server',
-##                kadp_ip,
-##                '50200',
-##                '11110111100000009999',
-##                '/root/kconf-21',
-##                '0',
-##            ]
-        GlobalConfig['kadp_ctrl'] = xmlrpclib.Server('http://'+kadp_ip+':50201/')
-        if hasattr(sys.stderr, 'fileno'):
-            childstderr = sys.stderr
-        elif hasattr(sys.stderr, '_file') and hasattr(sys.stderr._file, 'fileno'):
-            childstderr = sys.stderr._file
-        else:
-            # Give up and point child stderr at nul
-            childStderrPath = 'nul'
-            childstderr = file(childStderrPath, 'a')
-        #childstderr = file('nul', 'a')
-        if MYOS == 'Windows':
-            self.KADP_Process = subprocess.Popen(cmd, stdin=childstderr,stdout=childstderr,stderr=childstderr,creationflags = win32process.CREATE_NO_WINDOW)
-        else:
-            self.KADP_Process = subprocess.Popen(cmd)
-        self.KPUB_thread = kpub.KPUB(GlobalConfig['ShareRoot'],rloc_base_url=u'http://SELF:'+str(GlobalConfig['ServerPort'])+'/')
-        self.KPUB_thread.start()
-        #create download manager
-        self.DownloadManager = download_manager.DownloadManager(self,GlobalConfig['ShareRoot'])
-        #create LTBNET search dialog
-        self.lsd = ltbsearchdiag.LTBSearchDiag(self,self.DownloadManager.addTask,'http://'+kadp_ip+':50201/')
+        self.KPUB_thread=None
+        if GlobalConfig['EnableLTBNET']:
+            kadp_ip='127.0.0.1'
+            if MYOS == 'Windows':
+                kadp_exe = cur_file_dir()+"\kadp\KADP.exe"
+                cmd = [
+                    kadp_exe,
+                    '-product',
+                    str(GlobalConfig['LTBNETPort']),
+                    GlobalConfig['LTBNETID'],
+                    '0',
+                    '1',
+                ]
+            else:
+                cmd = [
+                    'python',
+                    cur_file_dir()+"/KADP.py",
+                    '-product',
+                    str(GlobalConfig['LTBNETPort']),
+                    GlobalConfig['LTBNETID'],
+                    '0',
+                    '1',
+                ]
+                #following is the test code
+    ##            kadp_ip='218.21.123.99'
+    ##            cmd = [
+    ##                'python',
+    ##                cur_file_dir()+"/KADP.py",
+    ##                '-server',
+    ##                kadp_ip,
+    ##                '50200',
+    ##                '11110111100000009999',
+    ##                '/root/kconf-21',
+    ##                '0',
+    ##            ]
+            GlobalConfig['kadp_ctrl'] = xmlrpclib.Server('http://'+kadp_ip+':50201/')
+            if hasattr(sys.stderr, 'fileno'):
+                childstderr = sys.stderr
+            elif hasattr(sys.stderr, '_file') and hasattr(sys.stderr._file, 'fileno'):
+                childstderr = sys.stderr._file
+            else:
+                # Give up and point child stderr at nul
+                childStderrPath = 'nul'
+                childstderr = file(childStderrPath, 'a')
+            #childstderr = file('nul', 'a')
+            if MYOS == 'Windows':
+                self.KADP_Process = subprocess.Popen(cmd, stdin=childstderr,stdout=childstderr,stderr=childstderr,creationflags = win32process.CREATE_NO_WINDOW)
+            else:
+                self.KADP_Process = subprocess.Popen(cmd)
+            self.KPUB_thread = kpub.KPUB(GlobalConfig['ShareRoot'],rloc_base_url=u'http://SELF:'+str(GlobalConfig['ServerPort'])+'/')
+            self.KPUB_thread.start()
+            #create download manager
+            self.DownloadManager = download_manager.DownloadManager(self,GlobalConfig['ShareRoot'])
+            #create LTBNET search dialog
+            self.lsd = ltbsearchdiag.LTBSearchDiag(self,self.DownloadManager.addTask,'http://'+kadp_ip+':50201/')
 
         splash_frame.Close()
         #print "splash_frame clsoed"
@@ -3071,6 +3114,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         mbar.SetLabel(704,u"生成EPUB文件"+KeyMenuList[u'生成EPUB文件'])
         mbar.SetLabel(705,u"启用WEB服务器"+KeyMenuList[u'启用WEB服务器'])
         mbar.SetLabel(706,u'检测端口是否开启'+KeyMenuList[u'检测端口是否开启'])
+        mbar.SetLabel(707,u'使用UPNP添加端口映射'+KeyMenuList[u'使用UPNP添加端口映射'])
 
         mbar.SetLabel(401,u"简明帮助(&B)"+KeyMenuList[u'简明帮助'])
         mbar.SetLabel(404,u"版本更新内容"+KeyMenuList[u'版本更新内容'])
@@ -3639,12 +3683,21 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 
     def chkPort(self,AlertOnOpen=True):
         global GlobalConfig
+        if not 'kadp_ctrl' in GlobalConfig:return
         GlobalConfig['kadp_ctrl'].checkPort(False)
         Tchkreport=ThreadChkPort(self,AlertOnOpen)
         Tchkreport.start()
 
     def Menu706(self,evt):
         self.chkPort()
+
+    def Menu707(self,evt):
+        if self.upnp_t.isAlive():
+            return
+        else:
+            self.upnp_t = ThreadAddUPNPMapping(self)
+            self.upnp_t.start()
+
 
     def AlertMsg(self,evt):
         dlg = wx.MessageDialog(self, evt.txt,u"注意！",wx.OK|wx.ICON_INFORMATION)
@@ -4409,7 +4462,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.clk_thread.stop()
         self.display_pos_thread.stop()
         self.auto_count_thread.stop()
-        self.KPUB_thread.stop()
+        if self.KPUB_thread != None: self.KPUB_thread.stop()
         time.sleep(1)
         GlobalConfig['CurFontData']=self.text_ctrl_1.GetFont()
         GlobalConfig['CurFColor']=self.text_ctrl_1.GetFColor()
@@ -4431,24 +4484,25 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             self.mDNS.close()
         #stop KADP
 ##        print "start to stop KADP"
-        kadp_ctrl = GlobalConfig['kadp_ctrl']
-##        kadp_ctrl.preparestop(False)
-##        print "start to kill KADP"
-##        self.KADP_Process.kill()
-##        print "finish stop KADP"
+        if 'kadp_ctrl' in GlobalConfig:
+            kadp_ctrl = GlobalConfig['kadp_ctrl']
+    ##        kadp_ctrl.preparestop(False)
+    ##        print "start to kill KADP"
+    ##        self.KADP_Process.kill()
+    ##        print "finish stop KADP"
 
-        try:
-            kadp_ctrl.stopall(False)
-        except:
             try:
-                self.KADP_Process.kill()
+                kadp_ctrl.stopall(False)
             except:
-                pass
+                try:
+                    self.KADP_Process.kill()
+                except:
+                    pass
 
-##            if MYOS != 'Windows':
-##                os.kill(self.KADP_Process.pid, signal.SIGKILL)
-##            else:
-##                os.kill(self.KADP_Process.pid, signal.CTRL_C_EVENT)
+    ##            if MYOS != 'Windows':
+    ##                os.kill(self.KADP_Process.pid, signal.SIGKILL)
+    ##            else:
+    ##                os.kill(self.KADP_Process.pid, signal.CTRL_C_EVENT)
         writeKeyConfig()
         event.Skip()
 
@@ -5003,7 +5057,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         event.Skip()
 
     def DisplayVerCheck(self,event):
-        dlg=VerCheckDialog(event.imsg,event.iurl)
+        dlg=VerCheckDialog(self,event.imsg)
+        #event.imsg,event.iurl
         dlg.ShowModal()
 
     def UpdateLastFileMenu(self):
@@ -6453,18 +6508,18 @@ class VersionCheckThread():
 
 
     def run(self,notify):
-        global I_Version,MYOS
+        global I_Version
         upgrade=False
         osd={'Windows':'win','Linux':'linux','Darwin':'mac'}
-        r=VersionCheck(osd[MYOS])
+        (iver,tver,wtsn)=VersionCheck()
         url=''
-        if not r:
+        if not iver:
             msg=u'版本检查过程中出错！'
         else:
-            ver_f=float(r[0])
+            ver_f=iver
             if ver_f>I_Version:
-                msg=u'LiteBook ver'+r[0]+u' 已经发布！'
-                url=r[1]
+                msg=u'LiteBook ver'+tver+u' 已经发布！\n'+wtsn
+                url='http://code.google.com/p/litebook-project/downloads/list'
                 upgrade=True
             else:
                 msg=u'你使用的LiteBook已经是最新版本了。'
@@ -6473,7 +6528,6 @@ class VersionCheckThread():
             return
         else:
             evt=VerCheckEvent(imsg = msg, iurl = url)
-            #print "dididi"
             wx.PostEvent(self.win, evt)
 
 
@@ -6560,53 +6614,92 @@ class PreviewFrame(wx.Frame):
 # end of class PreviewFrame
 
 class VerCheckDialog(wx.Dialog):
-    def __init__(self,msg,url):
-        #begin wxGlade: VerCheckDialog.__init__
-        #kwds["style"] = wx.DEFAULT_DIALOG_STYLE
-        wx.Dialog.__init__(self,None,-1)
-        if url<>'':
-            self.label_1 = hl.HyperLinkCtrl(self, wx.ID_ANY,msg,URL=url)
-        else:
-            self.label_1 = wx.StaticText(self, -1, msg)
-        self.button_1 = wx.Button(self, -1, " OK ")
-        self.Bind(wx.EVT_BUTTON,self.OnOK,self.button_1)
-        self.__set_properties()
-        self.__do_layout()
-        # end wxGlade
+    def __init__(self,parent,msg):
+        wx.Dialog.__init__(self, parent,-1,u'版本检查结果')
+        sizer = wx.BoxSizer(wx.VERTICAL)
 
-    def __set_properties(self):
-        # begin wxGlade: VerCheckDialog.__set_properties
-        self.SetTitle(u"检查更新")
-        # end wxGlade
+        txtctrl = wx.TextCtrl(self,-1,size=(300,200),style=wx.TE_MULTILINE|wx.TE_READONLY )
+        sizer.Add(txtctrl, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL,5)
+        txtctrl.SetValue(msg)
 
-    def __do_layout(self):
-        # begin wxGlade: VerCheckDialog.__do_layout
-        sizer_1 = wx.BoxSizer(wx.VERTICAL)
-        sizer_2 = wx.BoxSizer(wx.VERTICAL)
-        sizer_3 = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_2_copy = wx.BoxSizer(wx.VERTICAL)
-        sizer_3_copy = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_2_copy.Add((200, 40), 0, wx.EXPAND, 0)
-        sizer_3_copy.Add((20, 20), 1, wx.EXPAND, 0)
-        sizer_3_copy.Add(self.label_1, 0, 0, 0)
-        sizer_3_copy.Add((20, 20), 1, wx.EXPAND, 0)
-        sizer_2_copy.Add(sizer_3_copy, 1, wx.EXPAND, 0)
-        sizer_1.Add(sizer_2_copy, 1, wx.EXPAND, 0)
-        sizer_2.Add((200, 20), 0, wx.EXPAND, 0)
-        sizer_3.Add((20, 20), 1, wx.EXPAND, 0)
-        sizer_3.Add(self.button_1, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 0)
-        sizer_3.Add((20, 20), 1, wx.EXPAND, 0)
-        sizer_2.Add(sizer_3, 1, wx.EXPAND, 0)
-        sizer_2.Add((200, 20), 0, wx.EXPAND, 0)
-        sizer_1.Add(sizer_2, 1, wx.EXPAND, 0)
-        self.SetSizer(sizer_1)
-        sizer_1.Fit(self)
-        self.Layout()
-        # end wxGlade
+        line = wx.StaticLine(self, -1, size=(20,-1), style=wx.LI_HORIZONTAL)
+        sizer.Add(line, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT|wx.TOP, 5)
 
-# end of class VerCheckDialog
+        btnsizer = wx.StdDialogButtonSizer()
+
+        btn_ok = wx.Button(self,wx.ID_OK,label=u'确定')
+        btn_ok.SetDefault()
+        btnsizer.AddButton(btn_ok)
+
+        btn_download = wx.Button(self,wx.ID_APPLY,label=u'下载')
+        btnsizer.AddButton(btn_download)
+        btnsizer.Realize()
+
+        sizer.Add(btnsizer, 1, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+
+
+        self.SetSizer(sizer)
+        sizer.Fit(self)
+
+        self.Bind(wx.EVT_BUTTON,self.OnOK,btn_ok)
+        self.Bind(wx.EVT_BUTTON,self.OnDown,btn_download)
+        self.SetTitle
+
     def OnOK(self,event):
         self.Destroy()
+
+    def OnDown(self,evt):
+        import webbrowser
+        webbrowser.open('http://code.google.com/p/litebook-project/downloads/list')
+
+##class VerCheckDialog(wx.Dialog):
+##    def __init__(self,msg,url):
+##        #begin wxGlade: VerCheckDialog.__init__
+##        #kwds["style"] = wx.DEFAULT_DIALOG_STYLE
+##        wx.Dialog.__init__(self,None,-1)
+##        if url<>'':
+##            self.label_1 = hl.HyperLinkCtrl(self, wx.ID_ANY,msg,URL=url)
+##        else:
+##            self.label_1 = wx.StaticText(self, -1, msg)
+##        self.button_1 = wx.Button(self, -1, " OK ")
+##        self.Bind(wx.EVT_BUTTON,self.OnOK,self.button_1)
+##        self.__set_properties()
+##        self.__do_layout()
+##        # end wxGlade
+##
+##    def __set_properties(self):
+##        # begin wxGlade: VerCheckDialog.__set_properties
+##        self.SetTitle(u"检查更新")
+##        # end wxGlade
+##
+##    def __do_layout(self):
+##        # begin wxGlade: VerCheckDialog.__do_layout
+##        sizer_1 = wx.BoxSizer(wx.VERTICAL)
+##        sizer_2 = wx.BoxSizer(wx.VERTICAL)
+##        sizer_3 = wx.BoxSizer(wx.HORIZONTAL)
+##        sizer_2_copy = wx.BoxSizer(wx.VERTICAL)
+##        sizer_3_copy = wx.BoxSizer(wx.HORIZONTAL)
+##        sizer_2_copy.Add((200, 40), 0, wx.EXPAND, 0)
+##        sizer_3_copy.Add((20, 20), 1, wx.EXPAND, 0)
+##        sizer_3_copy.Add(self.label_1, 0, 0, 0)
+##        sizer_3_copy.Add((20, 20), 1, wx.EXPAND, 0)
+##        sizer_2_copy.Add(sizer_3_copy, 1, wx.EXPAND, 0)
+##        sizer_1.Add(sizer_2_copy, 1, wx.EXPAND, 0)
+##        sizer_2.Add((200, 20), 0, wx.EXPAND, 0)
+##        sizer_3.Add((20, 20), 1, wx.EXPAND, 0)
+##        sizer_3.Add(self.button_1, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 0)
+##        sizer_3.Add((20, 20), 1, wx.EXPAND, 0)
+##        sizer_2.Add(sizer_3, 1, wx.EXPAND, 0)
+##        sizer_2.Add((200, 20), 0, wx.EXPAND, 0)
+##        sizer_1.Add(sizer_2, 1, wx.EXPAND, 0)
+##        self.SetSizer(sizer_1)
+##        sizer_1.Fit(self)
+##        self.Layout()
+##        # end wxGlade
+##
+### end of class VerCheckDialog
+##    def OnOK(self,event):
+##        self.Destroy()
 
 class FileHistoryDialog(wx.Dialog,wx.lib.mixins.listctrl.ColumnSorterMixin):
     def __init__(self, *args, **kwds):
@@ -7150,6 +7243,8 @@ class NewOptionDialog(wx.Dialog):
         self.text_ctrl_ltbroot = wx.TextCtrl(self.notebook_1_pane_ltbnet, -1, "", size=(200,-1))
         self.label_ltbport = wx.StaticText(self.notebook_1_pane_ltbnet, -1, u"LTBNET端口(重启后生效)：")
         self.spin_ctrl_ltbport = wx.SpinCtrl(self.notebook_1_pane_ltbnet, -1, "", min=1, max=65536)
+        self.checkbox_upnp = wx.CheckBox(self.notebook_1_pane_ltbnet, -1, u"是否在启动时使用UPNP添加端口映射")
+        self.checkbox_ltbnet = wx.CheckBox(self.notebook_1_pane_ltbnet, -1, u"是否启用LTBNET（重启后生效）")
         self.button_12 = wx.Button(self.notebook_1_pane_3, -1, u"选择")
         self.button_ltbroot = wx.Button(self.notebook_1_pane_ltbnet, -1, u"选择")
         self.label_18 = wx.StaticText(self.notebook_1_pane_3, -1, u"同时下载的线程个数（需插件支持；不能超过50）：")
@@ -7356,6 +7451,8 @@ class NewOptionDialog(wx.Dialog):
         #set initial value for LTBNET
         self.spin_ctrl_ltbport.SetValue(GlobalConfig['LTBNETPort'])
         self.text_ctrl_ltbroot.SetValue(unicode(GlobalConfig['LTBNETRoot']))
+        self.checkbox_upnp.SetValue(GlobalConfig['RunUPNPAtStartup'])
+        self.checkbox_ltbnet.SetValue(GlobalConfig['EnableLTBNET'])
 
         # end wxGlade
 
@@ -7529,6 +7626,8 @@ class NewOptionDialog(wx.Dialog):
         #LTBNET
         sizer_ltbnet_all = wx.BoxSizer(wx.VERTICAL)
         sizer_ltbnet = wx.StaticBoxSizer(self.staticbox_ltbnet, wx.VERTICAL)
+        sizer_ltbnet.Add(self.checkbox_ltbnet,0,wx.EXPAND,0)
+        sizer_ltbnet.Add(self.checkbox_upnp,0,wx.EXPAND,0)
         sizer_ltbroot = wx.BoxSizer(wx.HORIZONTAL)
         sizer_ltbroot.Add(self.label_ltbroot, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         sizer_ltbroot.Add(self.text_ctrl_ltbroot, 0, 0, 0)
@@ -7538,6 +7637,9 @@ class NewOptionDialog(wx.Dialog):
         sizer_ltbport.Add(self.label_ltbport,0,wx.ALIGN_CENTER_VERTICAL,0)
         sizer_ltbport.Add(self.spin_ctrl_ltbport,0,0,0)
         sizer_ltbnet.Add(sizer_ltbport,0,wx.EXPAND,0)
+##        sizer_upnp = wx.BoxSizer(wx.HORIZONTAL)
+##        sizer_upnp.Add(self.checkbox_upnp,0,wx.ALIGN_CENTER_VERTICAL,0)
+##        sizer_ltbnet.Add(sizer_upnp,0,wx.EXPAND,0)
         #sizer_32.Add(sizer_ltbroot, 1, wx.EXPAND, 0)
         #sizer_ltbnet_all.Add(sizer_ltbnet,0,wx.EXPAND,0)
 
@@ -7694,6 +7796,8 @@ class NewOptionDialog(wx.Dialog):
         #save LTBNET config
         GlobalConfig['LTBNETPort'] = self.spin_ctrl_ltbport.GetValue()
         GlobalConfig['LTBNETRoot'] = self.text_ctrl_ltbroot.GetValue()
+        GlobalConfig['RunUPNPAtStartup'] = self.checkbox_upnp.GetValue()
+        GlobalConfig['EnableLTBNET'] = self.checkbox_ltbnet.GetValue()
 
         self.Destroy()
 
