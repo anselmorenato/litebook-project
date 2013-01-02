@@ -2785,6 +2785,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.__set_properties()
         self.__do_layout()
         #add UPNP mapping via thread, otherwise it will block, and it takes long time
+        self.upnp_t=None
         if GlobalConfig['RunUPNPAtStartup']:
             self.upnp_t = ThreadAddUPNPMapping(self)
             self.upnp_t.start()
@@ -2838,6 +2839,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 
         #start KADP
         self.KPUB_thread=None
+        self.DownloadManager=None
+        self.lsd=None
         if GlobalConfig['EnableLTBNET']:
             kadp_ip='127.0.0.1'
             if MYOS == 'Windows':
@@ -2892,6 +2895,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             self.DownloadManager = download_manager.DownloadManager(self,GlobalConfig['ShareRoot'])
             #create LTBNET search dialog
             self.lsd = ltbsearchdiag.LTBSearchDiag(self,self.DownloadManager.addTask,'http://'+kadp_ip+':50201/')
+            wx.CallLater(10000,self.chkPort,False)
 
         splash_frame.Close()
         #print "splash_frame clsoed"
@@ -2901,7 +2905,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         tlist={'paper':61,'book':62,'vbook':63}
         self.ViewMenu.Check(mlist[GlobalConfig['showmode']],True)
         self.frame_1_toolbar.ToggleTool(tlist[GlobalConfig['showmode']],True)
-        wx.CallLater(10000,self.chkPort,False)
+
 
 
 
@@ -3294,6 +3298,11 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         search LTBNET
         """
         #lsd = ltbsearchdiag.LTBSearchDiag(self,self.DownloadManager.addTask,'http://127.0.0.1:50201')
+        if self.lsd==None:
+            dlg=wx.MessageDialog(self,u'LTBNET没有启动，无法搜索！',u'注意',wx.ICON_INFORMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+            return
         self.lsd.Show()
 
     def Menu114(self,evt):
@@ -3301,6 +3310,11 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         Download Manager
         """
         #global GlobalConfig
+        if self.DownloadManager==None:
+            dlg=wx.MessageDialog(self,u'LTBNET没有启动，无法下载！',u'注意',wx.ICON_INFORMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+            return
         self.DownloadManager.Show()
 
     def Menu202(self, event): # wxGlade: MyFrame.<event_handler>
@@ -3683,7 +3697,14 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
 
     def chkPort(self,AlertOnOpen=True):
         global GlobalConfig
-        if not 'kadp_ctrl' in GlobalConfig:return
+        if not 'kadp_ctrl' in GlobalConfig:
+            dlg=wx.MessageDialog(self,u'LTBNET没有启动，无法检测！',u'注意',wx.ICON_INFORMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+            return
+        if AlertOnOpen==True:
+            evt = UpdateStatusBarEvent(FieldNum = 3, Value =u'正在检测端口是否开启...')
+            wx.PostEvent(self, evt)
         GlobalConfig['kadp_ctrl'].checkPort(False)
         Tchkreport=ThreadChkPort(self,AlertOnOpen)
         Tchkreport.start()
@@ -3692,9 +3713,11 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.chkPort()
 
     def Menu707(self,evt):
-        if self.upnp_t.isAlive():
+        if self.upnp_t != None and self.upnp_t.isAlive():
             return
         else:
+            evt = UpdateStatusBarEvent(FieldNum = 3, Value =u'正在通过UPNP添加端口映射...')
+            wx.PostEvent(self, evt)
             self.upnp_t = ThreadAddUPNPMapping(self)
             self.upnp_t.start()
 
@@ -7241,10 +7264,10 @@ class NewOptionDialog(wx.Dialog):
         self.label_ltbroot = wx.StaticText(self.notebook_1_pane_ltbnet, -1, u"LTBNET共享目录：")
         self.text_ctrl_1 = wx.TextCtrl(self.notebook_1_pane_3, -1, "")
         self.text_ctrl_ltbroot = wx.TextCtrl(self.notebook_1_pane_ltbnet, -1, "", size=(200,-1))
-        self.label_ltbport = wx.StaticText(self.notebook_1_pane_ltbnet, -1, u"LTBNET端口(重启后生效)：")
+        self.label_ltbport = wx.StaticText(self.notebook_1_pane_ltbnet, -1, u"LTBNET端口(重启litebook后生效)：")
         self.spin_ctrl_ltbport = wx.SpinCtrl(self.notebook_1_pane_ltbnet, -1, "", min=1, max=65536)
         self.checkbox_upnp = wx.CheckBox(self.notebook_1_pane_ltbnet, -1, u"是否在启动时使用UPNP添加端口映射")
-        self.checkbox_ltbnet = wx.CheckBox(self.notebook_1_pane_ltbnet, -1, u"是否启用LTBNET（重启后生效）")
+        self.checkbox_ltbnet = wx.CheckBox(self.notebook_1_pane_ltbnet, -1, u"是否启用LTBNET（重启litebook后生效）")
         self.button_12 = wx.Button(self.notebook_1_pane_3, -1, u"选择")
         self.button_ltbroot = wx.Button(self.notebook_1_pane_ltbnet, -1, u"选择")
         self.label_18 = wx.StaticText(self.notebook_1_pane_3, -1, u"同时下载的线程个数（需插件支持；不能超过50）：")
@@ -9224,11 +9247,19 @@ class ThreadAddUPNPMapping(threading.Thread):
         {'port':GlobalConfig['ServerPort'],'proto':'TCP','desc':"LITEBOOK"},
         {'port':GlobalConfig['LTBNETPort'],'proto':'UDP','desc':"LITEBOOK"},
         ]
+        r=False
         try:
-            myup.changePortMapping(ml)
+            r=myup.changePortMapping(ml)
         except:
+            pass
+        if r==False:
             evt=AlertMsgEvt(txt=u'UPNP端口映射设置失败！请手动设置宽带路由器并添加相应的端口映射。')
-            wx.PostEvent(self.win, evt)
+        else:
+            evt=AlertMsgEvt(txt=u'UPNP端口映射设置完成')
+        wx.PostEvent(self.win, evt)
+        evt = UpdateStatusBarEvent(FieldNum = 3, Value =u'')
+        wx.PostEvent(self.win, evt)
+        return
 
 class ThreadChkPort(threading.Thread):
     def __init__(self,win,alertOnOpen=True):
@@ -9240,17 +9271,26 @@ class ThreadChkPort(threading.Thread):
         global GlobalConfig
         for x in range(30):
             time.sleep(1)
-            pstatus=GlobalConfig['kadp_ctrl'].PortStatus(False)
+            try:
+                pstatus=GlobalConfig['kadp_ctrl'].PortStatus(False)
+            except:
+                continue
             if pstatus==-1:
                 evt=AlertMsgEvt(txt=u'LTBNET端口未打开！请设置宽带路由器并添加相应的端口映射。')
+                wx.PostEvent(self.win, evt)
+                evt = UpdateStatusBarEvent(FieldNum = 3, Value =u'')
                 wx.PostEvent(self.win, evt)
                 return
             elif pstatus==1:
                 if self.aOO==True:
                     evt=AlertMsgEvt(txt=u'LTBNET端口已打开！')
                     wx.PostEvent(self.win, evt)
+                evt = UpdateStatusBarEvent(FieldNum = 3, Value =u'')
+                wx.PostEvent(self.win, evt)
                 return
         evt=AlertMsgEvt(txt=u'LTBNET端口未打开！请设置宽带路由器并添加相应的端口映射。')
+        wx.PostEvent(self.win, evt)
+        evt = UpdateStatusBarEvent(FieldNum = 3, Value =u'')
         wx.PostEvent(self.win, evt)
         return
 
@@ -9285,27 +9325,42 @@ if __name__ == "__main__":
     app = wx.PySimpleApp(False)
     #app = wx.PySimpleApp(0)
     fname=None
-    if len(sys.argv)>1:
-        if sys.argv[1]=='-reset':
-            print u"此操作将把当前配置恢复为缺省配置，可以解决某些启动问题，但是会覆盖当前设置，是否继续？(Y/n)"
-            inc=raw_input()
-            if inc=='Y':
-                try:
-                    if MYOS == 'Windows':
-                        os.remove(os.environ['APPDATA'].decode('gbk')+u"\\litebook.ini")
-                        os.remove(os.environ['APPDATA'].decode('gbk')+u"\\litebook_key.ini")
-                    else:
+    if MYOS != 'Windows':
+        if len(sys.argv)>1:
+            if sys.argv[1]=='-reset':
+                print u"此操作将把当前配置恢复为缺省配置，可以解决某些启动问题，但是会覆盖当前设置，是否继续？(Y/n)"
+                inc=raw_input()
+                if inc=='Y':
+                    try:
                         os.remove(unicode(os.environ['HOME'],'utf-8')+u"/.litebook_key.ini")
                         os.remove(unicode(os.environ['HOME'],'utf-8')+u"/.litebook.ini")
-                except:
-                    pass
-        else:
-            fname=sys.argv[1]
-            fname=os.path.abspath(fname)
+                    except:
+                        pass
+            else:
+                fname=sys.argv[1]
+                fname=os.path.abspath(fname)
 
-            if not os.path.exists(fname):
-                print fname,u'不存在!'
-                sys.exit()
+                if not os.path.exists(fname):
+                    print fname,u'不存在!'
+                    sys.exit()
+    else:
+        if len(sys.argv)>1:
+            if sys.argv[1].lower()=='-reset':
+                dlg=wx.MessageDialog(None,u"此操作将把当前配置恢复为缺省配置，可以解决某些启动问题，但是会覆盖当前设置，是否继续？",u"恢复到LiteBook的缺省设置",wx.YES_NO|wx.NO_DEFAULT)
+                if dlg.ShowModal()==wx.ID_YES:
+                    try:
+                        os.remove(os.environ['APPDATA'].decode('gbk')+u"\\litebook.ini")
+                        os.remove(os.environ['APPDATA'].decode('gbk')+u"\\litebook_key.ini")
+                    except:
+                        pass
+            else:
+                fname=sys.argv[1]
+                fname=os.path.abspath(fname)
+                if not os.path.exists(fname):
+                    dlg = wx.MessageDialog(None,fname+u' 不存在',u"错误！",wx.OK|wx.ICON_ERROR)
+                    dlg.ShowModal()
+                    dlg.Destroy()
+                    sys.exit()
     readConfigFile()
     #create share_root if it doesn't exist
     if not os.path.isdir(GlobalConfig['ShareRoot']):

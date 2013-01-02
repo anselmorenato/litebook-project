@@ -153,10 +153,9 @@ def sendSOAP(hostName,serviceType,controlURL,actionName,actionArguments):
                                 if re.compile('<\/.*:envelope>').search(soapResponse.lower()) != None:
                                         break
                 sock.close()
-##                print soapResponse
                 (header,body) = soapResponse.split('\r\n\r\n',1)
-                if not header.upper().startswith('HTTP/1.') and ' 200 ' in header.split('\r\n')[0]:
-                        print 'SOAP request failed with error code:',header.split('\r\n')[0].split(' ',1)[1]
+                if not header.upper().startswith('HTTP/1.') or not ' 200 ' in header.split('\r\n')[0]:
+                    raise RuntimeError('SOAP request failed with error code:',header.split('\r\n')[0].split(' ',1)[1])
 ##                        errorMsg = self.extractSingleTag(body,'errorDescription')
 ##                        if errorMsg:
 ##                                print 'SOAP error message:',errorMsg

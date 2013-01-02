@@ -7,8 +7,8 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{C271CABE-D1DE-46B3-A92B-2CFD5DE732D5}
 AppName=LiteBook v3
-AppVerName=LiteBook v3.0 beta2
-OutputBaseFilename=LiteBook_v3.0b2_Win_setup
+AppVerName=LiteBook v3.0 beta3
+OutputBaseFilename=LiteBook_v3.0b3_Win_setup
 AppPublisher=Hu Jun
 AppPublisherURL=http://sites.google.com/site/litebooksite/
 AppSupportURL=http://sites.google.com/site/litebooksite/
