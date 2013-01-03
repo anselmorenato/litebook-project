@@ -12,9 +12,11 @@
 #-------------------------------------------------------------------------------
 #!/usr/bin/env python
 import platform
+import sys
 MYOS = platform.system()
 osarch=platform.architecture()
 if osarch[1]=='ELF' and MYOS == 'Linux':
+    sys.path.append('..')
     if osarch[0]=='64bit':
         from lxml_linux_64 import html
     elif osarch[0]=='32bit':
