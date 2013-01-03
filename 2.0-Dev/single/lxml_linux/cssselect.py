@@ -5,7 +5,7 @@ See the `CSSSelector` class for details.
 """
 
 import re
-from lxml import etree
+from lxml_linux import etree
 
 __all__ = ['SelectorSyntaxError', 'ExpressionError',
            'CSSSelector']
@@ -32,10 +32,10 @@ class CSSSelector(etree.XPath):
         >>> root = etree.XML("<a><b><c/><tag><child>TEXT</child></tag></b></a>")
         >>> [ el.tag for el in select(root) ]
         ['child']
-    
+
     To use CSS namespaces, you need to pass a prefix-to-namespace
     mapping as ``namespaces`` keyword argument::
-    
+
         >>> rdfns = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'
         >>> select_ns = cssselect.CSSSelector('root > rdf|Description',
         ...                                   namespaces={'rdf': rdfns})
@@ -74,7 +74,7 @@ class _UniToken(_unicode):
         obj = _unicode.__new__(cls, contents)
         obj.pos = pos
         return obj
-        
+
     def __repr__(self):
         return '%s(%s, %r)' % (
             self.__class__.__name__,
@@ -451,7 +451,7 @@ class Or(object):
     def __repr__(self):
         return '%s(%r)' % (
             self.__class__.__name__,
-            self.items)    
+            self.items)
 
     def xpath(self):
         paths = [item.xpath() for item in self.items]
@@ -496,7 +496,7 @@ class CombinedSelector(object):
         # when sub is a descendant in any way of xpath
         xpath.join('/descendant::', sub.xpath())
         return xpath
-    
+
     def _xpath_child(self, xpath, sub):
         # when sub is an immediate child of xpath
         xpath.join('/', sub.xpath())
@@ -842,7 +842,7 @@ def parse_series(s):
     else:
         b = int(b)
     return (a, b)
-    
+
 
 ############################################################
 ## Tokenizing
@@ -936,7 +936,7 @@ def tokenize_escaped_string(s, pos):
         if '\\' in result:
             result = unescape_string_literal(result)
         return result, next+1
-    
+
 _illegal_symbol = re.compile(r'[^\w\\-]', re.UNICODE)
 
 def tokenize_symbol(s, pos):
