@@ -11,8 +11,19 @@
 # Created:     02/01/2013
 #-------------------------------------------------------------------------------
 #!/usr/bin/env python
-
-import lxml.html
+import platform
+MYOS = platform.system()
+osarch=platform.architecture()
+if osarch[1]=='ELF' and MYOS == 'Linux':
+    if osarch[0]=='64bit':
+        from lxml_linux_64 import html
+    elif osarch[0]=='32bit':
+        from lxml_linux import html
+elif MYOS == 'Darwin':
+    from lxml_osx import html
+else:
+    from lxml import html
+#import lxml.html
 import urlparse
 import urllib2
 import time
@@ -218,7 +229,7 @@ def GetSearchResults(key,useproxy=False,proxyserver='',proxyport=0,proxyuser='',
     page=get_search_result(SearchURL,key,useproxy,proxyserver,proxyport,proxyuser,proxypass)
     if page==None:
         return None
-    doc=lxml.html.document_fromstring(page)
+    doc=html.document_fromstring(page)
     rtable=doc.xpath('//*[@id="searchhight"]/table') #get the main table, you could use chrome inspect element to get the xpath
     if len(rtable)!=0:
         row_list=rtable[0].findall('tr') #get the row list
@@ -290,7 +301,7 @@ def GetBook(url,bkname='',win=None,evt=None,useproxy=False,proxyserver='',proxyp
     fs=up.read()
 
     up.close()
-    doc=lxml.html.document_fromstring(fs)
+    doc=html.document_fromstring(fs)
     r=doc.xpath('//*[@id="defaulthtml4"]/table') #get the main table, you could use chrome inspect element to get the xpath
     row_list=r[0].findall('tr') #get the row list
     clist=[]
@@ -353,5 +364,5 @@ def GetBook(url,bkname='',win=None,evt=None,useproxy=False,proxyserver='',proxyp
 if __name__ == '__main__':
     pass
     #GetBook('http://www.ranwen.net/files/article/17/17543/index.html')
-    GetSearchResults(u'')
+    GetSearchResults(u'修真世界')
 
