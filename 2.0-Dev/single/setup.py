@@ -11,7 +11,7 @@ APP = ['litebook.py']
 DATA_FILES = []
 OPTIONS = {'arch':'i386','argv_emulation': True,
             'packages':['lxml',],
-            'includes':['readline','twisted','netifaces',],
+            'includes':['readline','twisted','netifaces','lxml.html'],
             'iconfile':'l2.icns',
             'plist':{'CFBundleName':'litebook','CFBundleShortVersionString':'3.0','CFBundleGetInfoString':'litebook 3.0','CFBundleExecutable':'litebook',},
           }

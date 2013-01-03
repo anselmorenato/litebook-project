@@ -47,7 +47,7 @@ Source: "D:\hujun\litebook\tobuild\svn3\single\dist\lib\*"; DestDir: "{app}\lib"
 Source: "D:\hujun\litebook\tobuild\svn3\single\dist\UnRAR2\*"; DestDir: "{app}\UnRAR2"; Flags: ignoreversion recursesubdirs createallsubdirs
 ;Source: "D:\hujun\litebook\tobuild\svn3\single\dist\helpdoc\*"; DestDir: "{app}\helpdoc"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "D:\hujun\litebook\tobuild\svn3\single\dist\background\*"; DestDir: "{app}\background"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "D:\hujun\litebook\tobuild\svn3\single\dist\plugin\*"; DestDir: "{app}\plugin"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "D:\hujun\litebook\tobuild\svn3\single\dist\plugin\*.py"; DestDir: "{app}\plugin"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "D:\hujun\litebook\tobuild\svn3\single\dist\templates\*"; DestDir: "{app}\templates"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "vcredist_x86.exe"; DestDir: "{tmp}"; Check: NeedInstallVC9SP1
 
