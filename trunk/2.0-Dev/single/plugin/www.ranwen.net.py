@@ -20,7 +20,9 @@ if osarch[1]=='ELF' and MYOS == 'Linux':
     if osarch[0]=='64bit':
         from lxml_linux_64 import html
     elif osarch[0]=='32bit':
+#        from lxml_linux import etree
         from lxml_linux import html
+
 elif MYOS == 'Darwin':
     from lxml_osx import html
 else:
