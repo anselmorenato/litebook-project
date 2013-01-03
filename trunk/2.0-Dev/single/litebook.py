@@ -609,6 +609,7 @@ def readPlugin():
         flist=glob.glob(cur_file_dir()+"/plugin/*.py")
     else:
         flist=glob.glob(os.path.dirname(AnyToUnicode(os.path.abspath(sys.argv[0])))+u"\\plugin\\*.py")
+        print flist
     i=0
     for f in flist:
         if MYOS != 'Windows':
@@ -621,9 +622,13 @@ def readPlugin():
             fpath=fpath.encode('gbk')
         try:
             PluginList[bname]=imp.load_source(str(i),fpath)
-        except:
+        except Exception as inst:
+##            print traceback.format_exc()
+##            print inst
             return False
         i+=1
+##    for k in PluginList.keys():
+##        print k
 
 def InstallDefaultConfig():
     global ThemeList,KeyConfigList

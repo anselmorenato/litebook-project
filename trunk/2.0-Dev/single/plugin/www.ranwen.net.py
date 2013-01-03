@@ -1,45 +1,39 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
 
+#-------------------------------------------------------------------------------
+# Name:        litebook plugin for www.ranwen.net
+# Purpose:
+#
+# Author:
+#
+# Created:     02/01/2013
+#-------------------------------------------------------------------------------
+#!/usr/bin/env python
+
+import lxml.html
+import urlparse
 import urllib2
-import urllib
-import re
-import math
-import thread
-import wx
 import time
+import re
+import wx
+import thread
 import threading
-from HTMLParser import HTMLParser
 import htmlentitydefs
+import urllib
 
-
-yilook_base_url="http://www.yi-see.com/"
-yilook_search_url="http://www.yi-see.com/search.php"
-
-##try:
-##    tr
-##except:
-##    tr=[]
-
-
-Description=u"""支持的网站: http://www.yilook.com/
-插件版本：4.0
-发布时间: 2012-07-08
+Description=u"""支持的网站: http://www.ranwen.net/
+插件版本：1.0
+发布时间: 2013-01-02
 简介：
     - 支持多线程下载
-    - 空关键字也会返回结果
+    - 关键字不能为空
     - 支持HTTP代理
 作者：litebook.author@gmail.com
 """
 
-def isfull(l):
-    xx=0
-    n=len(l)
-    while xx<n:
-        if l[xx]==-1: return False
-        xx+=1
-    return True
+SearchURL='http://www.ranwen.net/modules/article/search.php'
 
 def myopen(url,post_data=None,useproxy=False,proxyserver='',proxyport=0,proxyuser='',proxypass=''):
     interval=10 #number of seconds to wait after fail download attampt
@@ -53,7 +47,6 @@ def myopen(url,post_data=None,useproxy=False,proxyserver='',proxyport=0,proxyuse
             'host' : proxyserver,
             'port' : proxyport
             }
-        print proxy_info
         proxy_support = urllib2.ProxyHandler({"http" : \
         "http://%(user)s:%(pass)s@%(host)s:%(port)d" % proxy_info})
         opener = urllib2.build_opener(proxy_support, urllib2.HTTPHandler)
@@ -79,50 +72,6 @@ def myopen(url,post_data=None,useproxy=False,proxyserver='',proxyport=0,proxyuse
             return fp.read()
         except:
             return None
-
-
-def ch2num(ch):
-    if not isinstance(ch,unicode):
-        ch=ch.decode("gbk")
-    chnum_str=u'(零|一|二|三|四|五|六|七|八|九|十|百|千|万|0|1|2|3|4|5|6|7|8|9)'
-    ch_ten_str=u'(十|百|千|万)'
-    ch_ten_dict={u'十':u'0',u'百':u'00',u'千':u'000',u'万':u'0000',}
-    ch_dict={u'零':u'0',u'一':u'1',u'二':u'2',u'三':u'3',u'四':u'4',u'五':u'5',u'六':u'6',u'七':u'7',u'八':u'8',u'九':u'9',}
-    p=re.compile(u'第'+chnum_str+u'+(章|节|部|卷)',re.L|re.U)
-    m_list=p.finditer(ch)
-#    mid_str=m.string[m.start():m.end()]
-    rr=[]
-    #print m_list
-    for pr in m_list:
-        mid_str=pr.string[pr.start():pr.end()]
-        mid_str=mid_str[1:-1]
-        if mid_str[0]==u'十':
-            if len(mid_str)<>1:
-                mid_str=mid_str.replace(u'十',u'1',1)
-            else:
-                rr.append(10)
-                break
-        if mid_str[-1:]==u'万':
-            try:
-                mid_str+=ch_ten_dict[mid_str[-2:-1]]+u'0000'
-            except:
-                mid_str+=u'0000'
-        else:
-            try:
-                mid_str+=ch_ten_dict[mid_str[-1:]]
-            except:
-                pass
-        p=re.compile(ch_ten_str,re.L|re.U)
-        mid_str=p.sub('',mid_str)
-        for key,val in ch_dict.items():
-            mid_str=mid_str.replace(key,val)
-        rr.append(long(mid_str))
-    i=0
-    x=0
-    while i<len(rr):
-       x+=rr[i]*math.pow(10,5*(3-i))
-       i+=1
-    return long(x)
 
 
 def htmname2uni(htm):
@@ -205,8 +154,34 @@ def htm2txt(inf):
 
     return f_str
 
+def isfull(l):
+    xx=0
+    n=len(l)
+    while xx<n:
+        if l[xx]==-1: return False
+        xx+=1
+    return True
 
 
+
+class DThread:
+
+    def __init__(self,url,i,useproxy=False,proxyserver='',proxyport=0,proxyuser='',proxypass='',tr=[],cv=None):
+        self.url=url
+        self.proxyserver=proxyserver
+        self.proxyport=proxyport
+        self.proxyuser=proxyuser
+        self.proxypass=proxypass
+        self.useproxy=useproxy
+        self.i=i
+        self.tr=tr
+        self.cv=cv
+        thread.start_new_thread(self.run, ())
+
+    def run(self):
+        self.cv.acquire()
+        self.tr[self.i]=myopen(self.url,post_data=None,useproxy=self.useproxy,proxyserver=self.proxyserver,proxyport=self.proxyport,proxyuser=self.proxyuser,proxypass=self.proxypass)
+        self.cv.release()
 
 def get_search_result(url,key,useproxy=False,proxyserver='',proxyport=0,proxyuser='',proxypass=''):
     #get search result web from url by using key as the keyword
@@ -226,7 +201,7 @@ def get_search_result(url,key,useproxy=False,proxyserver='',proxyport=0,proxyuse
         urllib2.install_opener(opener)
     if isinstance(key,unicode):
         key=key.encode("GBK")
-    post_data=urllib.urlencode({u"key":key})
+    post_data=urllib.urlencode({u"searchkey":key,u'searchType':'articlename'})
     myrequest=urllib2.Request(url,post_data)
     #spoof user-agent as IE8 on win7
     myrequest.add_header("User-Agent","Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1; Trident/4.0)")
@@ -236,111 +211,66 @@ def get_search_result(url,key,useproxy=False,proxyserver='',proxyport=0,proxyuse
     except Exception as inst:
         return None
 
-
-class DSRP_yilook(HTMLParser):
-    #this class is used to Decode Search Result Page from www.xsxs520.com
-    #the decoded result is put into self.rlist
-
-    def __init__(self):
-        HTMLParser.__init__(self)
-        self.rlist=[]
-        self.mybegin=False
-        self.pos=None
-        self.item={}
-        self.begineval=False
-        self.i=0
-
-
-    def handle_starttag(self,tag,attrs):
-        if self.mybegin:
-            if tag=='td':
-                if self.pos==None:
-                    self.pos=0
-                else:
-                    self.pos+=1
-
-
-    def handle_endtag(self,tag):
-        if not self.mybegin and tag=='form':
-            self.mybegin=True
-        else:
-            if self.mybegin and tag=='tr':
-                #print "i am here"
-                self.pos=None
-        if self.mybegin and tag=='table' and self.begineval:
-            self.mybegin=False
-
-
-
-    def handle_data(self,data):
-
-        if not isinstance(data,unicode):
-            data=data.decode("gbk")
-        if self.mybegin and self.pos<>None:
-##            r=re.compile('\s+')
-##            data=r.sub('',data)
-            if data<>'' and data<>'':
-                if self.pos==0:
-                    self.begineval=True
-                    self.item['bookname']=data
-                    r=re.compile('[\'\"].+\.html?',re.U)
-                    try:
-                        url=r.findall(self.get_starttag_text())[0][1:]
-                    except:
-                        return
-                    self.item['book_index_url']=yilook_base_url+url
-                if self.pos==1:
-                    self.item['authorname']=data
-                if self.pos==2:
-                    self.item['booksize']=''
-                    self.item['bookstatus']=''
-                    self.item['lastupdatetime']=''
-                    if self.item['bookname']<>u'更多书目':
-                        self.rlist.append(self.item)
-                    self.item={}
-                #print self.rlist
-
-class DBIP_yilook(HTMLParser):
-    #this class is used to Decode Book Index Page from www.yilook.com
-    #the decoded result is put into self.rlist
-
-    def __init__(self):
-        HTMLParser.__init__(self)
-        self.rlist={}
-        self.srlist=[]
-
-    def handle_data(self,data):
-        data=data.decode('GBK')
-        chnum_str=u'(零|一|二|三|四|五|六|七|八|九|十|百|千|万|0|1|2|3|4|5|6|7|8|9)'
-        p=re.compile(u'第'+chnum_str+u'+(章|节|部|卷)',re.L|re.U)
-        if p.match(data)<>None:
-            r=re.compile('[\'\"].+\.html?',re.U)
-            url=r.findall(self.get_starttag_text())[0][1:]
-            url=yilook_base_url+url
-            if not isinstance(url,unicode):
-                url=url.decode('GBK')
-            self.rlist[data]=url
-    def sort_list(self):
-        klist=self.rlist.keys()
-        klist=sorted(klist,cmp=lambda x,y:cmp(ch2num(x),ch2num(y)))
-        nlist={}
-        for k in klist:
-            self.srlist.append([k,self.rlist[k]])
-
-
 def GetSearchResults(key,useproxy=False,proxyserver='',proxyport=0,proxyuser='',proxypass=''):
-
-    page=get_search_result(yilook_search_url,key,useproxy,proxyserver,proxyport,proxyuser,proxypass)
+    global SearchURL
+    if key.strip()=='':return []
+    rlist=[]
+    page=get_search_result(SearchURL,key,useproxy,proxyserver,proxyport,proxyuser,proxypass)
     if page==None:
         return None
-    myp=DSRP_yilook()
-    myp.feed(page)
+    doc=lxml.html.document_fromstring(page)
+    rtable=doc.xpath('//*[@id="searchhight"]/table') #get the main table, you could use chrome inspect element to get the xpath
+    if len(rtable)!=0:
+        row_list=rtable[0].findall('tr') #get the row list
+        row_list=row_list[1:] #remove first row of caption
+        for row in row_list:
+            r={}
+            col_list = row.getchildren() #get col list in each row
+            r['bookname']=col_list[0].xpath('a')[0].text
+            r['book_index_url']=col_list[1].xpath('a')[0].get('href')
+            r['authorname']=col_list[2].xpath('a')[0].text
+            r['booksize']=col_list[3].text
+            r['lastupdatetime']=col_list[4].text
+            r['bookstatus']=col_list[5].xpath('font')[0].text
+            rlist.append(r)
+        return rlist
+    else:#means the search result is a direct hit, the result page is the book portal page
+        #rtable=doc.xpath('//*[@id="content"]/div[2]/div[2]/table')
+        r={}
+        r['bookname']=doc.xpath('//*[@id="content"]/div[2]/div[2]/table/tr/td/table/tbody/tr[1]/td/table/tr[1]/td/h1')[0].text
+        r['bookstatus']=doc.xpath('//*[@id="content"]/div[2]/div[2]/table/tr/td/table/tbody/tr[1]/td/table/tr[2]/td[2]/table/tr[1]/td[4]')[0].text
+        r['lastupdatetime']=doc.xpath('//*[@id="content"]/div[2]/div[2]/table/tr/td/table/tbody/tr[1]/td/table/tr[2]/td[2]/table/tr[1]/td[6]')[0].text
+        r['authorname']=doc.xpath('//*[@id="content"]/div[2]/div[2]/table/tr/td/table/tbody/tr[1]/td/table/tr[2]/td[2]/table/tr[2]/td[6]/a/b')[0].text
+        r['book_index_url']=doc.xpath('//*[@id="content"]/div[2]/div[2]/table/tr/td/table/tbody/tr[1]/td/table/tr[2]/td[2]/table/tr[4]/td/div/b/a[1]')[0].get('href')
+        r['booksize']=''
+##        for k,v in r.items():
+##            print k,v
+        return [r]
+##        burl=''
+##        for e in rtable[0].iter():
+##            print e.tag,e.text
+##            if e.text==u'点击阅读':
+##                p=e.getparent()
+##                burl = p.get('href')
+##                #break
+##        col_list = row.getchildren() #get col list in each row
+##        r['bookname']=key
+##        r['book_index_url']=burl
+##        r['authorname']=''
+##        r['booksize']=''
+##        r['lastupdatetime']=''
+##        r['bookstatus']=''
 
-    return myp.rlist
+
+
+
+##    myp=DSRP_yilook()
+##    myp.feed(page)
+##
+##    return myp.rlist
 
 def GetBook(url,bkname='',win=None,evt=None,useproxy=False,proxyserver='',proxyport=0,proxyuser='',proxypass='',concurrent=10):
     bb=''
-    tr=[]
     cv=threading.Condition()
     if useproxy:
         proxy_info = {
@@ -357,11 +287,20 @@ def GetBook(url,bkname='',win=None,evt=None,useproxy=False,proxyserver='',proxyp
         up=urllib2.urlopen(url)
     except:
         return None
+    fs=up.read()
 
-    mybip=DBIP_yilook()
-    mybip.feed(up.read())
-    mybip.sort_list()
-    ccount=len(mybip.srlist)
+    up.close()
+    doc=lxml.html.document_fromstring(fs)
+    r=doc.xpath('//*[@id="defaulthtml4"]/table') #get the main table, you could use chrome inspect element to get the xpath
+    row_list=r[0].findall('tr') #get the row list
+    clist=[]
+    for r in row_list:
+        for col in r.getchildren(): #get col list in each row
+            for a in col.xpath('div/a'): #use relative xpath to locate <a>
+                chapt_name=a.text,
+                chapt_url=urlparse.urljoin(url,a.get('href'))
+                clist.append({'cname':chapt_name,'curl':chapt_url})
+    ccount=len(clist)
     i=0
     while i<ccount:
         tlist=None
@@ -378,7 +317,7 @@ def GetBook(url,bkname='',win=None,evt=None,useproxy=False,proxyserver='',proxyp
             tr.append(-1)
             x+=1
         while m<n:
-            tlist=DThread(mybip.srlist[(i+m)][1],m,useproxy,proxyserver,proxyport,proxyuser,proxypass,tr,cv)
+            tlist=DThread(clist[(i+m)]['curl'],m,useproxy,proxyserver,proxyport,proxyuser,proxypass,tr,cv)
             m+=1
         isfinished=False
         x=0
@@ -406,23 +345,13 @@ def GetBook(url,bkname='',win=None,evt=None,useproxy=False,proxyserver='',proxyp
     return bb
 
 
-class DThread:
 
-    def __init__(self,url,i,useproxy=False,proxyserver='',proxyport=0,proxyuser='',proxypass='',tr=[],cv=None):
-        self.url=url
-        self.proxyserver=proxyserver
-        self.proxyport=proxyport
-        self.proxyuser=proxyuser
-        self.proxypass=proxypass
-        self.useproxy=useproxy
-        self.i=i
-        self.tr=tr
-        self.cv=cv
-        thread.start_new_thread(self.run, ())
 
-    def run(self):
-        self.cv.acquire()
-        self.tr[self.i]=myopen(self.url,post_data=None,useproxy=self.useproxy,proxyserver=self.proxyserver,proxyport=self.proxyport,proxyuser=self.proxyuser,proxypass=self.proxypass)
-        self.cv.release()
 
+
+
+if __name__ == '__main__':
+    pass
+    #GetBook('http://www.ranwen.net/files/article/17/17543/index.html')
+    GetSearchResults(u'')
 
