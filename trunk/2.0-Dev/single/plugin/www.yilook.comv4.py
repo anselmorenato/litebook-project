@@ -403,7 +403,7 @@ def GetBook(url,bkname='',win=None,evt=None,useproxy=False,proxyserver='',proxyp
 ##    evt.bk=bb
     wx.PostEvent(win,evt)
 
-    return bb
+    return bb,None
 
 
 class DThread:

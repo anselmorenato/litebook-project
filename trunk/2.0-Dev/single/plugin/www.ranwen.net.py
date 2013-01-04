@@ -37,6 +37,7 @@ import thread
 import threading
 import htmlentitydefs
 import urllib
+import Queue
 
 Description=u"""支持的网站: http://www.ranwen.net/
 插件版本：1.0
@@ -169,34 +170,36 @@ def htm2txt(inf):
 
     return f_str
 
-def isfull(l):
-    xx=0
-    n=len(l)
-    while xx<n:
-        if l[xx]==-1: return False
-        xx+=1
-    return True
 
-
-
-class DThread:
-
-    def __init__(self,url,i,useproxy=False,proxyserver='',proxyport=0,proxyuser='',proxypass='',tr=[],cv=None):
-        self.url=url
+class NewDThread:
+    def __init__(self,Q,useproxy=False,proxyserver='',proxyport=0,proxyuser='',proxypass='',tr=[],cv=None):
+        self.Q=Q
         self.proxyserver=proxyserver
         self.proxyport=proxyport
         self.proxyuser=proxyuser
         self.proxypass=proxypass
         self.useproxy=useproxy
-        self.i=i
         self.tr=tr
         self.cv=cv
         thread.start_new_thread(self.run, ())
 
     def run(self):
-        self.cv.acquire()
-        self.tr[self.i]=myopen(self.url,post_data=None,useproxy=self.useproxy,proxyserver=self.proxyserver,proxyport=self.proxyport,proxyuser=self.proxyuser,proxypass=self.proxypass)
-        self.cv.release()
+        while True:
+            try:
+                task=self.Q.get(False)
+            except:
+                return
+            self.cv.acquire()
+            self.tr[task['index']]=myopen(task['url'],post_data=None,useproxy=self.useproxy,
+                        proxyserver=self.proxyserver,proxyport=self.proxyport,
+                        proxyuser=self.proxyuser,proxypass=self.proxypass)
+            self.cv.release()
+            self.Q.task_done()
+
+
+
+
+
 
 def get_search_result(url,key,useproxy=False,proxyserver='',proxyport=0,proxyuser='',proxypass=''):
     #get search result web from url by using key as the keyword
@@ -284,9 +287,15 @@ def GetSearchResults(key,useproxy=False,proxyserver='',proxyport=0,proxyuser='',
 ##
 ##    return myp.rlist
 
-def GetBook(url,bkname='',win=None,evt=None,useproxy=False,proxyserver='',proxyport=0,proxyuser='',proxypass='',concurrent=10):
+def GetBook(url,bkname='',win=None,evt=None,useproxy=False,proxyserver='',
+            proxyport=0,proxyuser='',proxypass='',concurrent=10,
+            mode='new',last_chapter_count=0,):
+    """
+    mode is either 'new' or 'update', default is 'new', update is used to
+    retrie the updated part
+    """
     bb=''
-    cv=threading.Condition()
+    cv=threading.Lock()
     if useproxy:
         proxy_info = {
             'user' : proxyuser,
@@ -316,48 +325,48 @@ def GetBook(url,bkname='',win=None,evt=None,useproxy=False,proxyserver='',proxyp
                 chapt_url=urlparse.urljoin(url,a.get('href'))
                 clist.append({'cname':chapt_name,'curl':chapt_url})
     ccount=len(clist)
-    i=0
-    while i<ccount:
-        tlist=None
-        m=0
-        if ccount-i>=concurrent:
-            n=concurrent
+    if mode=='update':
+        if ccount<=last_chapter_count:
+            return None
         else:
-            n=ccount-i
-        evt.Value=u'正在下载 '+bkname+u' 第'+unicode(i)+u'-'+unicode(i+n)+u'章,共'+unicode(ccount)+u'章'
+            clist=clist[last_chapter_count:]
+            ccount=len(clist)
+    i=0
+    Q=Queue.Queue()
+    tr=[]
+    for c in clist:
+        Q.put({'url':c['curl'],'index':i})
+        tr.append(-1)
+        i+=1
+    tlist=[]
+    for x in range(concurrent):
+        tlist.append(NewDThread(Q,useproxy,proxyserver,proxyport,proxyuser,proxypass,tr,cv))
+    while True:
+        qlen=Q.qsize()
+        if Q.empty():
+            Q.join()
+            break
+        percent=int((float(ccount-qlen)/float(ccount))*100)
+        evt.Value=u'正在下载 '+bkname+u' '+str(percent)+'%'
         wx.PostEvent(win,evt)
-        tr=[]
-        x=0
-        while x<n:
-            tr.append(-1)
-            x+=1
-        while m<n:
-            tlist=DThread(clist[(i+m)]['curl'],m,useproxy,proxyserver,proxyport,proxyuser,proxypass,tr,cv)
-            m+=1
-        isfinished=False
-        x=0
-        while not isfinished:
-            time.sleep(1)
-            isfinished=isfull(tr)
-        x=0
-        if isfinished==-1:return "canceled"
-        while x<n:
-            if tr[x]==None:
-                evt.status='nok'
-                return None
-            else:
-                bb+=tr[x]
-                x+=1
-        i+=n
+        time.sleep(1)
+    i=0
+    bb=''.join(tr)
     if not isinstance(bb,unicode):
         bb=bb.decode('GBK','replace')
         bb=htm2txt(bb)
     evt.Value=bkname+u' 下载完毕!'
     evt.status='ok'
+    bookstate={}
+    bookstate['bookname']=bkname
+    bookstate['index_url']=url
+    bookstate['last_chapter_name']=clist[-1:][0]['cname'][0]
+    bookstate['last_chapter_date']=u'未知'
+    bookstate['chapter_count']=ccount
 ##    evt.bk=bb
     wx.PostEvent(win,evt)
 
-    return bb
+    return bb,bookstate
 
 
 
@@ -366,7 +375,6 @@ def GetBook(url,bkname='',win=None,evt=None,useproxy=False,proxyserver='',proxyp
 
 
 if __name__ == '__main__':
-    pass
-    #GetBook('http://www.ranwen.net/files/article/17/17543/index.html')
-    GetSearchResults(u'修真世界')
+    GetBook('http://www.ranwen.net/files/article/17/17543/index.html')
+    #GetSearchResults(u'修真世界')
 
