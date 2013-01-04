@@ -609,7 +609,6 @@ def readPlugin():
         flist=glob.glob(cur_file_dir()+"/plugin/*.py")
     else:
         flist=glob.glob(os.path.dirname(AnyToUnicode(os.path.abspath(sys.argv[0])))+u"\\plugin\\*.py")
-        print flist
     i=0
     for f in flist:
         if MYOS != 'Windows':
@@ -4482,7 +4481,12 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             self.Iconize()
 
     def OnClose(self, event):
-        global OnDirectSeenPage,GlobalConfig,writeKeyConfig,MYOS
+        global OnDirectSeenPage,GlobalConfig,writeKeyConfig,MYOS,SqlCon
+        try:
+            SqlCon.commit()
+            SqlCon.close()
+        except:
+            pass
         self.Hide()
         if MYOS == 'Linux':
             print "closing..."
@@ -5108,7 +5112,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             self.Bind(wx.EVT_MENU, self.OpenLastFile, id=i)
 
     def DownloadFinished(self,event):
-        global OnScreenFileList,GlobalConfig,OnDirectSeenPage
+        global OnScreenFileList,GlobalConfig,OnDirectSeenPage,SqlCur,SqlCon
         if event.status=='nok':
             dlg = wx.MessageDialog(self, event.name+u'下载失败！',
                                u'出错了！',
@@ -5143,8 +5147,10 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         dlg.ShowModal()
         try:
             rr=dlg.chosen
+            subscr=dlg.subscr
         except:
             rr=None
+            subscr=False
         dlg.Destroy()
         if rr==u'直接观看':
             OnDirectSeenPage=True
@@ -5189,7 +5195,20 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
                             err_dlg.Destroy()
                             return False
         dlg.Destroy()
+        if subscr and event.bookstate != None:
+            bkstate=event.bookstate
+            sqlstr="insert into subscr values('%s','%s','%s','%s',%s,'%s')" % (
+                      bkstate['bookname'],bkstate['index_url'],
+                      bkstate['last_chapter_name'],bkstate['last_chapter_date'],
+                      bkstate['chapter_count'],
+                      savefilename
+                      )
+            print sqlstr
+            SqlCur.execute(sqlstr)
+            SqlCon.commit()
         self.text_ctrl_1.SetFocus()
+
+
     def SearchSidebar(self,evt):
         self.UpdateSearchSidebar(evt.GetString().strip())
 
@@ -7104,9 +7123,9 @@ class DownloadThread:
 
     def run(self):
         evt2=DownloadUpdateAlert(Value='',FieldNum=3)
-        self.bk=self.plugin.GetBook(self.url,bkname=self.bookname,win=self.win,evt=evt2,useproxy=GlobalConfig['useproxy'],proxyserver=GlobalConfig['proxyserver'],proxyport=GlobalConfig['proxyport'],proxyuser=GlobalConfig['proxyuser'],proxypass=GlobalConfig['proxypass'],concurrent=GlobalConfig['numberofthreads'])
+        self.bk,bkstate=self.plugin.GetBook(self.url,bkname=self.bookname,win=self.win,evt=evt2,useproxy=GlobalConfig['useproxy'],proxyserver=GlobalConfig['proxyserver'],proxyport=GlobalConfig['proxyport'],proxyuser=GlobalConfig['proxyuser'],proxypass=GlobalConfig['proxypass'],concurrent=GlobalConfig['numberofthreads'])
         if self.bk<>None:
-            evt1=DownloadFinishedAlert(name=self.bookname,status='ok',bk=self.bk)
+            evt1=DownloadFinishedAlert(name=self.bookname,status='ok',bk=self.bk,bookstate=bkstate)
         else:
             evt1=DownloadFinishedAlert(name=self.bookname,status='nok')
         wx.PostEvent(self.win,evt1)
@@ -7139,10 +7158,15 @@ class MyChoiceDialog(wx.Dialog):
         self.choice_1 = wx.Choice(self, -1, choices=mychoices)
         self.button_1 = wx.Button(self, -1, u"确定")
         self.button_2 = wx.Button(self, -1, u"取消")
+        self.checkbox_subscr = wx.CheckBox(self, -1, u"加入订阅")
         self.Bind(wx.EVT_BUTTON, self.OnOK, self.button_1)
         self.Bind(wx.EVT_BUTTON, self.OnCancell, self.button_2)
+        self.Bind(wx.EVT_CHOICE,self.OnChoice,self.choice_1)
         self.choice_1.Bind(wx.EVT_CHAR,self.OnKey)
         self.choice_1.Select(default)
+        if default==0:
+            self.checkbox_subscr.SetValue(False)
+            self.checkbox_subscr.Disable()
         self.tit=title
         self.__set_properties()
         self.__do_layout()
@@ -7159,6 +7183,7 @@ class MyChoiceDialog(wx.Dialog):
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_1.Add(self.label_1, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5)
         sizer_1.Add(self.choice_1, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 5)
+        sizer_1.Add(self.checkbox_subscr, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 5)
         sizer_2.Add(self.button_1, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 5)
         sizer_2.Add(self.button_2, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 5)
         sizer_1.Add(sizer_2, 1, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 5)
@@ -7173,7 +7198,15 @@ class MyChoiceDialog(wx.Dialog):
     def OnOK(self,event):
         self.sitename=self.choice_1.GetString(self.choice_1.GetSelection())
         self.chosen=self.choice_1.GetStringSelection()
+        self.subscr=self.checkbox_subscr.GetValue()
         self.Hide()
+
+    def OnChoice(self,evt):
+        if self.choice_1.GetStringSelection() == u'另存为...':
+            self.checkbox_subscr.Enable()
+        else:
+            self.checkbox_subscr.SetValue(False)
+            self.checkbox_subscr.Disable()
 
     def OnKey(self,event):
         key=event.GetKeyCode()
@@ -9314,19 +9347,48 @@ if __name__ == "__main__":
             SqlCon = sqlite3.connect(unicode(os.environ['HOME'],'utf-8')+u"/.litebook.bookdb")
     except:
         print unicode(os.environ['HOME'],'utf-8')+u"/litebook.bookdb is not a sqlite file!"
-    sqlstr="select * from book_history"
+    SqlCur=SqlCon.cursor()
+    found=True
+    sqlstr="select name from sqlite_master where type='table' and name='book_history'"
     try:
-        SqlCon.execute(sqlstr)
-        SqlCur=SqlCon.cursor()
+        SqlCur.execute(sqlstr)
     except:
+        found=False
+    if SqlCur.fetchall() == []:
+        found=False
+    if found==False:
         sqlstr = """CREATE TABLE `book_history` (
           `name` varchar(512) NOT NULL,
           `type` varchar(20) NOT NULL,
           `zfile` varchar(512) default NULL,
           `date` float unsigned NOT NULL
-        ) ;"""
+        ) ;
+        """
+        SqlCur.execute(sqlstr)
+
+    sqlstr="select name from sqlite_master where type='table' and name='subscr'"
+    found=True
+    try:
+        SqlCur.execute(sqlstr)
+    except:
+        found=False
+    if SqlCur.fetchall() == []:
+        found=False
+    if found == False:
+        print "insert a new table"
+        sqlstr = """
+        CREATE TABLE `subscr` (
+          `bookname` varchar(512) NOT NULL,
+          `index_url` varchar(512) PRIMARY KEY,
+          `last_chapter_name` varchar(512) default NULL,
+          `last_chapter_date` varchar(128) NOT NULL,
+          `chapter_count` int unsigned NOT NULL,
+          `save_path` varchar(512) NOT NULL
+        ) ;
+        """
         SqlCon.execute(sqlstr)
-        SqlCur=SqlCon.cursor()
+
+
     app = wx.PySimpleApp(False)
     #app = wx.PySimpleApp(0)
     fname=None
