@@ -1,4 +1,4 @@
-#summary litebook在线搜索和下载功能介绍
+#summary litebook在线搜索和下载功能介绍(3.0新增订阅功能)
 #labels Featured
 
 = litebook在线搜索和下载功能介绍 =
@@ -10,6 +10,7 @@ litebook从ver1.70 beta起开始加入在线搜索和下载的功能，其原理
   * 把这本小说所有的章节都下载下来，然后拼成一个文本文件
 
 此功能具备如下特点：
+  * 从3.0开始支持订阅功能，能够检查网址的更新并下载更新的章节
   * 每个小说网站的支持都是通过一个插件的形式来实现
   * 插件可以直接用python编写，编写完之后把脚本文件拷贝到plugin子目录下即可生效
   * 支持HTTP代理(需插件支持)
@@ -19,23 +20,15 @@ litebook从ver1.70 beta起开始加入在线搜索和下载的功能，其原理
 
 = 使用说明 =
 
-  * 首先在“文件”菜单中选择“搜索小说网站”，也可以使用快捷键 Alt+C
-http://lh6.ggpht.com/_Ve6FsAYCHZk/S6xDnHcl54I/AAAAAAAAAFE/Tux6grEAQbQ/s800/litebook-webmenu.png
+  # 首先在“文件”菜单中选择“搜索小说网站”，也可以使用快捷键 Alt+C
+  # 然后在弹出的对话框中选择要搜索的网站以及输入关键字
+  # 在搜索结果对话框中选择你要下载的小说，然后点击“下载”按钮
+  # 在下载过程中，你可以继续看别的小说，下载是在后台进行的，底部的状态栏中会显示当前进程
+  # 下载结束后，会有弹出对话框提醒（你也可以在选项中设置直接保存而不提醒），你有两个选择：
+    * 直接观看
+    * 另存为文件后打开。你可以在加入订阅上打勾把这本书加入订阅列表
+  # 关于本功能的设置，请参见选项对话框中的下载设置页
 
-  * 然后在弹出的对话框中选择要搜索的网站以及输入关键字
-http://lh3.ggpht.com/_Ve6FsAYCHZk/S6xDvnw4L-I/AAAAAAAAAFI/Pp1w9iy1cbY/s800/litebook-websearch.png
- 
-  * 在搜索结果对话框中选择你要下载的小说，然后点击“下载”按钮
-http://lh6.ggpht.com/_Ve6FsAYCHZk/S6xDv5yKj5I/AAAAAAAAAFM/1hE2qCHo9QE/s800/litebook-websearchresult.png
-
-  * 在下载过程中，你可以继续看别的小说，下载是在后台进行的，底部的状态栏中会显示当前进程
-http://lh6.ggpht.com/_Ve6FsAYCHZk/S6xDm44eZ8I/AAAAAAAAAE8/Xspvva8K47Y/s800/litebook-webdownloading.png
-
-  * 下载结束后，会有弹出对话框提醒（你也可以在选项中设置直接保存而不提醒）
-http://lh6.ggpht.com/_Ve6FsAYCHZk/S6xDmmG7xhI/AAAAAAAAAE4/kZWgoakip4E/s800/litebook-webdownloadfinished.png
-
-  * 你也可以选择直接观看，结果如下：
-http://lh3.ggpht.com/_Ve6FsAYCHZk/S6xDmoJoG-I/AAAAAAAAAE0/1HIkc7Jktww/s800/litebook-webdownloadfinished2.png
-
-  * 关于本功能的设置，请参见选项对话框中的下载设置页
-http://lh5.ggpht.com/_Ve6FsAYCHZk/S6xDnLUUFpI/AAAAAAAAAFA/P3l_44GVMvs/s800/litebook-webdownloadoption.png
+= 订阅使用说明 =
+  * “文件”菜单里选择“管理订阅”打开订阅管理对话框，其中列出当前所有订阅。
+  * 在列表中选中某项订阅后，点击“更新”按钮更新订阅，更新的章节会自动添加本地的小说中
