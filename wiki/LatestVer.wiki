@@ -2,6 +2,6 @@
 ----------3.0 正式版----------
 @@@@@@@@
 更新内容：\n
-- 更新了在线搜索和下载的插件系统，支持订阅功能. http://code.google.com/p/litebook-project/wiki/WebSearchDownloadIntro\n
+- 更新了在线搜索和下载的插件系统，支持订阅功能. \n
 - 加入帮助文件\n
 @@@@@@@@
