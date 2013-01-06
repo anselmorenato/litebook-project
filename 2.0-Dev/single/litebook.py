@@ -7146,6 +7146,7 @@ class WebSubscrDialog(wx.Dialog):
         self.button_2 = wx.Button(self, -1, u" 取消 ")
         self.button_del = wx.Button(self, -1, u" 删除 ")
         self.button_read = wx.Button(self, -1, u" 阅读 ")
+        self.button_selall = wx.Button(self, -1, u" 全选 ")
 
 
         self.tasklist={}
@@ -7155,6 +7156,7 @@ class WebSubscrDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnCancell, self.button_2)
         self.Bind(wx.EVT_BUTTON, self.OnDel, self.button_del)
         self.Bind(wx.EVT_BUTTON, self.OnRead, self.button_read)
+        self.Bind(wx.EVT_BUTTON, self.OnSelAll, self.button_selall)
         self.Bind(wx.EVT_CLOSE,self.OnCancell)
         self.Bind(EVT_UPD,self.UpdateFinish)
         self.Bind(wx.EVT_ACTIVATE,self.OnWinAct)
@@ -7175,6 +7177,7 @@ class WebSubscrDialog(wx.Dialog):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_1.Add(self.list_ctrl_1, 1, wx.EXPAND, 0)
+        sizer_2.Add(self.button_selall, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
         sizer_2.Add(self.button_1, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
         sizer_2.Add(self.button_del, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
         sizer_2.Add(self.button_read, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
@@ -7183,6 +7186,13 @@ class WebSubscrDialog(wx.Dialog):
         self.SetSizer(sizer_1)
         sizer_1.Fit(self)
         self.Layout()
+
+    def OnSelAll(self,evt):
+        item=-1
+        while True:
+            item=self.list_ctrl_1.GetNextItem(item)
+            if item==-1:return
+            self.list_ctrl_1.Select(item)
 
     def OnItemActive(self,evt):
         item=evt.GetIndex()
@@ -7287,6 +7297,13 @@ class WebSubscrDialog(wx.Dialog):
             item=self.list_ctrl_1.GetNextSelected(item)
             if item == -1: return
             url=self.list_ctrl_1.GetItem(item,2).GetText()
+            bkname=self.list_ctrl_1.GetItem(item,0).GetText()
+            if url in self.tasklist.keys():
+                dlg=wx.MessageDialog(self,bkname+u"正在更新中.",u'注意',
+                                            style=wx.OK|wx.ICON_INFORMATION)
+                dlg.ShowModal()
+                dlg.Destroy()
+                continue
             self.tasklist[url]=UpdateThread(self,url,
                                     PluginList[self.sublist[url]['plugin_name']]
                                             ,self.sublist[url]['bookname'],
@@ -7320,6 +7337,8 @@ class WebSubscrDialog(wx.Dialog):
     def UpdateFinish(self,evt):
         item=-1
         bkstate=evt.bookstate
+        if bkstate['index_url'] in self.tasklist.keys():
+            del self.tasklist[bkstate['index_url']]
         while True:
             item=self.list_ctrl_1.GetNextItem(item)
             if item==-1:break
@@ -7394,7 +7413,7 @@ class UpdateThread:
                             plugin_name=self.plugin_name,
                             )
         else:
-            evt1=UpdateEvt(name=self.bookname,status='nok')
+            evt1=UpdateEvt(name=self.bookname,status='nok',bookstate=bkstate)
         wx.PostEvent(self.win,evt1)
 
 class DownloadThread:
