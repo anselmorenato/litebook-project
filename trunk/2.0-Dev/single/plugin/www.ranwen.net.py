@@ -238,7 +238,7 @@ def GetBook(url,bkname='',win=None,evt=None,useproxy=False,proxyserver='',
     try:
         up=urllib2.urlopen(url)
     except:
-        return None
+        return None,{'index_url':url}
     fs=up.read()
 
     up.close()
