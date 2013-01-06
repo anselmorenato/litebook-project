@@ -7,8 +7,8 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{C271CABE-D1DE-46B3-A92B-2CFD5DE732D5}
 AppName=LiteBook v3
-AppVerName=LiteBook v3.0 beta3
-OutputBaseFilename=LiteBook_v3.0b3_Win_setup
+AppVerName=LiteBook v3.0
+OutputBaseFilename=LiteBook_v3.0_Win_setup
 AppPublisher=Hu Jun
 AppPublisherURL=http://sites.google.com/site/litebooksite/
 AppSupportURL=http://sites.google.com/site/litebooksite/
@@ -45,7 +45,7 @@ Source: "D:\hujun\litebook\tobuild\svn3\single\dist\kadp\*"; DestDir: "{app}\kad
 Source: "D:\hujun\litebook\tobuild\svn3\single\dist\jieba\*"; DestDir: "{app}\jieba"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "D:\hujun\litebook\tobuild\svn3\single\dist\lib\*"; DestDir: "{app}\lib"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "D:\hujun\litebook\tobuild\svn3\single\dist\UnRAR2\*"; DestDir: "{app}\UnRAR2"; Flags: ignoreversion recursesubdirs createallsubdirs
-;Source: "D:\hujun\litebook\tobuild\svn3\single\dist\helpdoc\*"; DestDir: "{app}\helpdoc"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "D:\hujun\litebook\tobuild\svn3\single\dist\helpdoc\*"; DestDir: "{app}\helpdoc"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "D:\hujun\litebook\tobuild\svn3\single\dist\background\*"; DestDir: "{app}\background"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "D:\hujun\litebook\tobuild\svn3\single\dist\plugin\*.py"; DestDir: "{app}\plugin"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "D:\hujun\litebook\tobuild\svn3\single\dist\templates\*"; DestDir: "{app}\templates"; Flags: ignoreversion recursesubdirs createallsubdirs
