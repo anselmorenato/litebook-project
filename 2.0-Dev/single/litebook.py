@@ -328,8 +328,8 @@ BookMarkList=[]
 ThemeList=[]
 BookDB=[]
 Ticking=True
-Version='3.0 beta3 '+MYOS
-I_Version=2.95 # this is used to check updated version
+Version='3.0 '+MYOS
+I_Version=3.00 # this is used to check updated version
 lb_hash='3de03ac38cc1c2dc0547ee09f866ee7b'
 
 def cur_file_dir():
