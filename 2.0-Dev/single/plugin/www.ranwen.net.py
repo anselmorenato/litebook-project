@@ -38,6 +38,7 @@ import threading
 import htmlentitydefs
 import urllib
 import Queue
+from datetime import datetime
 
 Description=u"""支持的网站: http://www.ranwen.net/
 插件版本：1.0
@@ -105,70 +106,17 @@ def htmname2uni(htm):
             return htm
 
 def htm2txt(inf):
-    """ filter out all html tags/JS script in input string, return a clean string"""
-    f_str=inf
-    #conver <p> to "\n"
-    p=re.compile('<\s*p\s*>',re.I)
-    f_str=p.sub('\n',f_str)
-
-
-    #conver <br> to "\n"
-    p=re.compile('<br.*?>',re.I)
-    f_str=p.sub('\n',f_str)
-
-    #conver "\n\r" to "\n"
-    p=re.compile('\n\r',re.S)
-    f_str=p.sub('\n',f_str)
-
-    #this is used to remove protection of http://www.jjwxc.net
-    p=re.compile('<font color=.*?>.*?</font>',re.I|re.S)
-    f_str=p.sub('',f_str)
-
-    #this is used to remove protection of HJSM
-    p=re.compile("<\s*span\s*class='transparent'\s*>.*?<\s*/span\s*>",re.I|re.S)
-    f_str=p.sub('',f_str)
-
-    #remove <script xxxx>xxxx</script>
-    p=re.compile('<script.*?>.*?</script>',re.I|re.S)
-    f_str=p.sub('',f_str)
-
-    #remove <style></style>
-    p=re.compile('<style>.*?</style>',re.I|re.S)
-    f_str=p.sub('',f_str)
-
-    #remove <option>
-    p=re.compile('<option.*?>.*?</option>',re.I|re.S)
-    f_str=p.sub('',f_str)
-
-    #remove <xxx>
-    p=re.compile('<.*?>',re.S)
-    f_str=p.sub('',f_str)
-
-    #remove <!-- -->
-    p=re.compile('<!--.*?-->',re.S)
-    f_str=p.sub('',f_str)
-
-    #conver &nbsp; into space
-    p=re.compile('&nbsp;',re.I)
-    f_str=p.sub(' ',f_str)
-
-    #convert html codename like "&quot;" into real character
-    p=re.compile("&#?\w{1,9};")
-    str_list=p.findall(f_str)
-    e_list=[]
-    for x in str_list:
-        if x not in e_list:
-            e_list.append(x)
-    for x in e_list:
-        f_str=f_str.replace(x,htmname2uni(x))
-
-    #convert more than 10 newline in a row into one newline
-    f_str=f_str.replace("\r\n","\n")
-    p=re.compile('\n{5,}?')
-    f_str=p.sub('-----',f_str)
-
-
-    return f_str
+    """ extract the text context"""
+    doc=html.document_fromstring(inf)
+    content=doc.xpath('//*[@id="bgdiv"]/table[2]/tbody/tr[1]/td/table/tbody/tr')
+    htmls=html.tostring(content[0],False)
+    htmls=htmls.replace('<br>','\n')
+    htmls=htmls.replace('<p>','\n')
+    htmls=htmls.replace('&#160;',' ')
+    p=re.compile('\n{2,}') #replace more than 2 newlines in a row into one newline
+    htmls=p.sub('\n',htmls)
+    newdoc=html.document_fromstring(htmls)
+    return newdoc.text_content()
 
 
 class NewDThread:
@@ -190,9 +138,10 @@ class NewDThread:
             except:
                 return
             self.cv.acquire()
-            self.tr[task['index']]=myopen(task['url'],post_data=None,useproxy=self.useproxy,
+            self.tr[task['index']]=htm2txt(myopen(task['url'],post_data=None,
+                        useproxy=self.useproxy,
                         proxyserver=self.proxyserver,proxyport=self.proxyport,
-                        proxyuser=self.proxyuser,proxypass=self.proxypass)
+                        proxyuser=self.proxyuser,proxypass=self.proxypass))
             self.cv.release()
             self.Q.task_done()
 
@@ -264,28 +213,7 @@ def GetSearchResults(key,useproxy=False,proxyserver='',proxyport=0,proxyuser='',
 ##        for k,v in r.items():
 ##            print k,v
         return [r]
-##        burl=''
-##        for e in rtable[0].iter():
-##            print e.tag,e.text
-##            if e.text==u'点击阅读':
-##                p=e.getparent()
-##                burl = p.get('href')
-##                #break
-##        col_list = row.getchildren() #get col list in each row
-##        r['bookname']=key
-##        r['book_index_url']=burl
-##        r['authorname']=''
-##        r['booksize']=''
-##        r['lastupdatetime']=''
-##        r['bookstatus']=''
-
-
-
-
-##    myp=DSRP_yilook()
-##    myp.feed(page)
-##
-##    return myp.rlist
+    return []
 
 def GetBook(url,bkname='',win=None,evt=None,useproxy=False,proxyserver='',
             proxyport=0,proxyuser='',proxypass='',concurrent=10,
@@ -327,7 +255,8 @@ def GetBook(url,bkname='',win=None,evt=None,useproxy=False,proxyserver='',
     ccount=len(clist)
     if mode=='update':
         if ccount<=last_chapter_count:
-            return None
+
+            return '',{'index_url':url}
         else:
             clist=clist[last_chapter_count:]
             ccount=len(clist)
@@ -351,21 +280,24 @@ def GetBook(url,bkname='',win=None,evt=None,useproxy=False,proxyserver='',
         wx.PostEvent(win,evt)
         time.sleep(1)
     i=0
-    bb=''.join(tr)
+    bb=u''
+    for c in clist:
+        bb+=c['cname'][0]
+        bb+=tr[i]
+        i+=1
+
+
     if not isinstance(bb,unicode):
-        bb=bb.decode('GBK','replace')
-        bb=htm2txt(bb)
+        bb=bb.decode('GBK','ignore')
     evt.Value=bkname+u' 下载完毕!'
     evt.status='ok'
     bookstate={}
     bookstate['bookname']=bkname
     bookstate['index_url']=url
     bookstate['last_chapter_name']=clist[-1:][0]['cname'][0]
-    bookstate['last_chapter_date']=u'未知'
+    bookstate['last_update']=datetime.today().strftime('%y-%m-%d %H:%M')
     bookstate['chapter_count']=ccount
-##    evt.bk=bb
     wx.PostEvent(win,evt)
-
     return bb,bookstate
 
 

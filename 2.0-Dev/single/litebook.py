@@ -97,6 +97,7 @@ import hashlib
 import urllib
 import threading
 
+
 try:
     from agw import hyperlink as hl
 except ImportError: # if it's not there locally, try the wxPython lib.
@@ -117,6 +118,7 @@ except ImportError: # if it's not there locally, try the wxPython lib.
 (DownloadFinishedAlert,EVT_DFA)=wx.lib.newevent.NewEvent()
 (DownloadUpdateAlert,EVT_DUA)=wx.lib.newevent.NewEvent()
 (AlertMsgEvt,EVT_AME)=wx.lib.newevent.NewEvent()
+(UpdateEvt,EVT_UPD)=wx.lib.newevent.NewEvent()
 
 
 
@@ -1641,8 +1643,8 @@ def htm2txt(inf):
 
     #convert more than 5 newline in a row into one newline
     f_str=f_str.replace("\r\n","\n")
-    p=re.compile('\n{5,}?')
-    f_str=p.sub('-----',f_str)
+    p=re.compile('\n{5,}')
+    f_str=p.sub('\n',f_str)
 
 
     return f_str
@@ -2418,6 +2420,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
     u'显示章节侧边栏':'self.Menu510(None)',
     u'搜索LTBNET':'self.Menu113(None)',
     u'下载管理器':'self.Menu114(None)',
+    u'管理订阅':'self.Menu115(None)',
     }
 
     def __init__(self,parent,openfile=None):
@@ -2493,9 +2496,12 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         wxglade_tmp_menu.Append(109, u"以往打开文件历史", u"显示曾经打开的所有文件列表", wx.ITEM_NORMAL)
         wxglade_tmp_menu.AppendSeparator()
         wxglade_tmp_menu.Append(110, u"搜索小说网站(&S)"+KeyMenuList[u'搜索小说网站'], u"搜索小说网站", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(115, u"管理订阅"+KeyMenuList[u'管理订阅'], u"管理订阅", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.Append(111, u"重新载入插件"+KeyMenuList[u'重新载入插件'], u"重新载入插件", wx.ITEM_NORMAL)
+        wxglade_tmp_menu.AppendSeparator()
+
         wxglade_tmp_menu.Append(113, u"搜索LTBNET"+KeyMenuList[u'搜索LTBNET'], u"搜索LTBNET", wx.ITEM_NORMAL)
         wxglade_tmp_menu.Append(114, u"下载管理器"+KeyMenuList[u'下载管理器'], u"下载管理器", wx.ITEM_NORMAL)
-        wxglade_tmp_menu.Append(111, u"重新载入插件"+KeyMenuList[u'重新载入插件'], u"重新载入插件", wx.ITEM_NORMAL)
         wxglade_tmp_menu.AppendSeparator()
         wxglade_tmp_menu.Append(112, u"清空缓存(&O)"+KeyMenuList[u'清空缓存'], u"清空缓存目录", wx.ITEM_NORMAL)
         wxglade_tmp_menu.AppendSeparator()
@@ -2585,6 +2591,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.Bind(wx.EVT_MENU, self.Menu112, id=112)
         self.Bind(wx.EVT_MENU, self.Menu113, id=113)
         self.Bind(wx.EVT_MENU, self.Menu114, id=114)
+        self.Bind(wx.EVT_MENU, self.Menu115, id=115)
         self.Bind(wx.EVT_MENU, self.Menu202, id=202)
         self.Bind(wx.EVT_MENU, self.Menu203, id=203)
         self.Bind(wx.EVT_MENU, self.Menu204, id=204)
@@ -2910,6 +2917,8 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         self.ViewMenu.Check(mlist[GlobalConfig['showmode']],True)
         self.frame_1_toolbar.ToggleTool(tlist[GlobalConfig['showmode']],True)
 
+        self.websubscrdlg=None
+
 
 
 
@@ -3091,6 +3100,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         mbar.SetLabel(112,u"清空缓存"+KeyMenuList[u'清空缓存'])
         mbar.SetLabel(113, u"搜索LTBNET"+KeyMenuList[u'搜索LTBNET'])
         mbar.SetLabel(114, u"下载管理器"+KeyMenuList[u'下载管理器'])
+        mbar.SetLabel(115, u"管理订阅"+KeyMenuList[u'管理订阅'])
         mbar.SetLabel(106,u"选项(&O)"+KeyMenuList[u'选项'])
         mbar.SetLabel(107,u"退出(&X)"+KeyMenuList[u'退出'])
         mbar.SetLabel(202,u"拷贝(&C)"+KeyMenuList[u'拷贝'])
@@ -3320,6 +3330,14 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             dlg.Destroy()
             return
         self.DownloadManager.Show()
+
+    def Menu115(self,evt):
+        if self.websubscrdlg==None:
+            self.websubscrdlg=WebSubscrDialog(self)
+            self.websubscrdlg.ShowModal()
+        else:
+            self.websubscrdlg.ShowModal()
+
 
     def Menu202(self, event): # wxGlade: MyFrame.<event_handler>
         self.text_ctrl_1.CopyText()
@@ -5197,13 +5215,13 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
         dlg.Destroy()
         if subscr and event.bookstate != None:
             bkstate=event.bookstate
-            sqlstr="insert into subscr values('%s','%s','%s','%s',%s,'%s')" % (
+            sqlstr="insert into subscr values('%s','%s','%s','%s',%s,'%s','%s')" % (
                       bkstate['bookname'],bkstate['index_url'],
-                      bkstate['last_chapter_name'],bkstate['last_chapter_date'],
+                      bkstate['last_chapter_name'],bkstate['last_update'],
                       bkstate['chapter_count'],
-                      savefilename
+                      savefilename,
+                      event.plugin_name
                       )
-            print sqlstr
             SqlCur.execute(sqlstr)
             SqlCon.commit()
         self.text_ctrl_1.SetFocus()
@@ -6987,6 +7005,7 @@ class web_search_result_dialog(wx.Dialog):
         self.button_1 = wx.Button(self, -1, u" 下载(后台) ")
         self.button_2 = wx.Button(self, -1, u" 取消 ")
 
+
         dlg = wx.ProgressDialog(u"搜索中",
                        u"搜索进行中...",
                        maximum = 100,
@@ -7028,8 +7047,9 @@ class web_search_result_dialog(wx.Dialog):
             i=0
 
             for x in sr:
-                if x<>None or x<>-1:
-                    for m in x:m['sitename']=srm[i]
+                if x != None and x != -1:
+                    for m in x:
+                        m['sitename']=srm[i]
                     self.rlist+=x
                 i+=1
 
@@ -7095,7 +7115,7 @@ class web_search_result_dialog(wx.Dialog):
             return
         siten=self.list_ctrl_1.GetItem(item,5).GetText()
 
-        self.GetParent().DT=DownloadThread(self.GetParent(),self.rlist[self.list_ctrl_1.GetItemData(item)]['book_index_url'],PluginList[siten+'.py'],self.list_ctrl_1.GetItemText(item))
+        self.GetParent().DT=DownloadThread(self.GetParent(),self.rlist[self.list_ctrl_1.GetItemData(item)]['book_index_url'],PluginList[siten+'.py'],self.list_ctrl_1.GetItemText(item),siten+'.py')
         self.Destroy()
 
     def OnCancell(self, event):
@@ -7109,11 +7129,280 @@ class web_search_result_dialog(wx.Dialog):
             event.Skip()
 
 
-class DownloadThread:
-    def __init__(self,win,url,plugin,bookname):
+
+class WebSubscrDialog(wx.Dialog):
+    def __init__(self, parent):
+        global PluginList
+        wx.Dialog.__init__(self,parent,-1,pos=(100,-1),style=wx.DEFAULT_DIALOG_STYLE)
+        self.list_ctrl_1 = wx.ListCtrl(self, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
+        self.list_ctrl_1.InsertColumn(0,u'书名',width=200)
+        self.list_ctrl_1.InsertColumn(1,u'状态')
+        self.list_ctrl_1.InsertColumn(2,u'网址')
+        self.list_ctrl_1.InsertColumn(3,u'现有最后章名')
+        self.list_ctrl_1.InsertColumn(4,u'现有章数')
+        self.list_ctrl_1.InsertColumn(5,u'最后更新时间')
+        self.list_ctrl_1.InsertColumn(6,u'本地路径')
+        self.button_1 = wx.Button(self, -1, u" 更新 ")
+        self.button_2 = wx.Button(self, -1, u" 取消 ")
+        self.button_del = wx.Button(self, -1, u" 删除 ")
+        self.button_read = wx.Button(self, -1, u" 阅读 ")
+
+
+        self.tasklist={}
+        self.sublist={}
+
+        self.Bind(wx.EVT_BUTTON, self.OnUpdate, self.button_1)
+        self.Bind(wx.EVT_BUTTON, self.OnCancell, self.button_2)
+        self.Bind(wx.EVT_BUTTON, self.OnDel, self.button_del)
+        self.Bind(wx.EVT_BUTTON, self.OnRead, self.button_read)
+        self.Bind(wx.EVT_CLOSE,self.OnCancell)
+        self.Bind(EVT_UPD,self.UpdateFinish)
+        self.Bind(wx.EVT_ACTIVATE,self.OnWinAct)
+        self.list_ctrl_1.Bind(wx.EVT_CHAR,self.OnKey)
+        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActive, self.list_ctrl_1)
+
+        self.__set_properties()
+        self.__do_layout()
+
+    def __set_properties(self):
+        global SqlCur,SqlCon
+        self.SetTitle(u"管理订阅")
+        self.list_ctrl_1.SetMinSize((1000, 312))
+
+
+    def __do_layout(self):
+        # begin wxGlade: web_search_result_dialog.__do_layout
+        sizer_1 = wx.BoxSizer(wx.VERTICAL)
+        sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_1.Add(self.list_ctrl_1, 1, wx.EXPAND, 0)
+        sizer_2.Add(self.button_1, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
+        sizer_2.Add(self.button_del, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
+        sizer_2.Add(self.button_read, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
+        sizer_2.Add(self.button_2, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
+        sizer_1.Add(sizer_2, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5)
+        self.SetSizer(sizer_1)
+        sizer_1.Fit(self)
+        self.Layout()
+
+    def OnItemActive(self,evt):
+        item=evt.GetIndex()
+        url=self.list_ctrl_1.GetItem(item,2).GetText()
+        self.GetParent().LoadFile([self.sublist[url]['save_path'],])
+        self.Hide()
+
+    def OnRead(self,evt):
+        item=-1
+        item=self.list_ctrl_1.GetNextSelected(item)
+        if item == -1: return
+        url=self.list_ctrl_1.GetItem(item,2).GetText()
+        self.GetParent().LoadFile([self.sublist[url]['save_path'],])
+        self.Hide()
+
+
+
+    def OnDel(self,evt):
+        global SqlCur,SqlCon
+        item=-1
+        while True:
+            item=self.list_ctrl_1.GetNextSelected(item)
+            if item == -1: return
+            bkname=self.list_ctrl_1.GetItem(item,0).GetText()
+            dlg=wx.MessageDialog(self,u"确定要删除订阅："+bkname+u"?",
+                                u"删除订阅确认",
+                                style=wx.YES_NO|wx.NO_DEFAULT|wx.ICON_QUESTION)
+            if dlg.ShowModal()==wx.ID_YES:
+                url=self.list_ctrl_1.GetItem(item,2).GetText()
+                del self.sublist[url]
+                if url in self.tasklist.keys():
+                    del self.tasklist[url]
+                self.list_ctrl_1.DeleteItem(item)
+                sqlstr="delete from subscr where index_url='%s'" % url
+                SqlCur.execute(sqlstr)
+                SqlCon.commit
+
+
+
+
+    def updateList(self):
+        global SqlCur
+        SqlCur.execute("select * from subscr")
+        dblist=[]
+        for row in SqlCur:
+            if row[1] not in self.sublist.keys():
+                bookname=row[0]
+                index_url=row[1]
+                lc_name=row[2]
+                lc_date=row[3]
+                chapter_count=row[4]
+                save_path=row[5]
+                plugin_name=row[6]
+                self.sublist[index_url]={'bookname':bookname,'last_chapter':lc_name,
+                                         'last_update':lc_date,'save_path':save_path,
+                                         'plugin_name':plugin_name,
+                                         'ccount':chapter_count
+                                        }
+                index=self.list_ctrl_1.InsertStringItem(sys.maxint,bookname)
+                self.list_ctrl_1.SetStringItem(index,2,index_url)
+                self.list_ctrl_1.SetStringItem(index,3,lc_name)
+                self.list_ctrl_1.SetStringItem(index,4,str(chapter_count))
+                self.list_ctrl_1.SetStringItem(index,5,lc_date)
+                self.list_ctrl_1.SetStringItem(index,6,save_path)
+        self.list_ctrl_1.SetColumnWidth(3,wx.LIST_AUTOSIZE)
+        self.list_ctrl_1.SetColumnWidth(4,wx.LIST_AUTOSIZE_USEHEADER)
+        self.list_ctrl_1.SetColumnWidth(5,wx.LIST_AUTOSIZE)
+
+
+
+
+    def loadDB(self):
+        global SqlCur
+        SqlCur.execute("select * from subscr")
+        self.sublist.clear()
+        for row in SqlCur:
+            bookname=row[0]
+            index_url=row[1]
+            lc_name=row[2]
+            lc_date=row[3]
+            chapter_count=row[4]
+            save_path=row[5]
+            plugin_name=row[6]
+            self.sublist[index_url]={'bookname':bookname,'last_chapter':lc_name,
+                                     'last_update':lc_date,'save_path':save_path,
+                                     'plugin_name':plugin_name,
+                                     'ccount':chapter_count
+                                    }
+            index=self.list_ctrl_1.InsertStringItem(sys.maxint,bookname)
+            self.list_ctrl_1.SetStringItem(index,2,index_url)
+            self.list_ctrl_1.SetStringItem(index,3,lc_name)
+            self.list_ctrl_1.SetStringItem(index,4,str(chapter_count))
+            self.list_ctrl_1.SetStringItem(index,5,lc_date)
+            self.list_ctrl_1.SetStringItem(index,6,save_path)
+            #self.list_ctrl_1.SetItemData(index,plugin_name)
+            #self.itemDataMap[index]=(filename,filedate_data)
+
+    def OnUpdate(self, event):
+        global PluginList
+        item=-1
+        while True:
+            item=self.list_ctrl_1.GetNextSelected(item)
+            if item == -1: return
+            url=self.list_ctrl_1.GetItem(item,2).GetText()
+            self.tasklist[url]=UpdateThread(self,url,
+                                    PluginList[self.sublist[url]['plugin_name']]
+                                            ,self.sublist[url]['bookname'],
+                                            self.sublist[url]['plugin_name'],
+                                            self.sublist[url]['ccount']
+                                            )
+            self.list_ctrl_1.SetStringItem(item,1,u'更新中')
+            self.list_ctrl_1.Refresh()
+
+    def UpdateItem(self,index,newstate,url):
+        """
+        update the list labels of given item
+        """
+        global SqlCur,SqlCon
+        self.list_ctrl_1.SetStringItem(index,0,newstate['bookname'])
+        self.list_ctrl_1.SetStringItem(index,2,url)
+        self.list_ctrl_1.SetStringItem(index,3,newstate['last_chapter'])
+        self.list_ctrl_1.SetStringItem(index,4,str(newstate['ccount']))
+        self.list_ctrl_1.SetStringItem(index,5,newstate['last_update'])
+        self.list_ctrl_1.SetStringItem(index,6,newstate['save_path'])
+        sqlstr="update subscr set bookname='%s',last_chapter_name='%s', \
+                last_update='%s',chapter_count=%s where index_url='%s' " % \
+                (newstate['bookname'],newstate['last_chapter'],
+                    newstate['last_update'],newstate['ccount'],url)
+        SqlCur.execute(sqlstr)
+        SqlCon.commit()
+
+
+
+
+    def UpdateFinish(self,evt):
+        item=-1
+        bkstate=evt.bookstate
+        while True:
+            item=self.list_ctrl_1.GetNextItem(item)
+            if item==-1:break
+            if self.list_ctrl_1.GetItem(item,2).GetText()==bkstate['index_url']:
+                break
+        if item==-1:
+            return False #corresponding task is not found in the list
+        if evt.status != 'ok':
+            self.list_ctrl_1.SetStringItem(item,1,u'更新失败')
+            return False
+        elif evt.bk=='':
+            self.list_ctrl_1.SetStringItem(item,1,u'没有更新')
+            self.sublist[bkstate['index_url']]['last_update']=datetime.today().strftime('%y-%m-%d %H:%M')
+        else:
+            self.list_ctrl_1.SetStringItem(item,1,u'新增%s章' % bkstate['chapter_count'])
+            self.sublist[bkstate['index_url']]['last_chapter']=bkstate['last_chapter_name']
+            self.sublist[bkstate['index_url']]['ccount']+=bkstate['chapter_count']
+            self.sublist[bkstate['index_url']]['last_update']=datetime.today().strftime('%y-%m-%d %H:%M')
+            encoding=DetectFileCoding(self.sublist[bkstate['index_url']]['save_path'])
+            fp=codecs.open(self.sublist[bkstate['index_url']]['save_path'],encoding=encoding,mode='a')
+            fp.write(evt.bk)
+            fp.close()
+        self.UpdateItem(item,self.sublist[bkstate['index_url']],bkstate['index_url'])
+
+
+
+    def OnWinAct(self,evt):
+        if evt.GetActive():
+            self.updateList()
+
+    def OnCancell(self, event):
+        self.Hide()
+
+    def OnKey(self,event):
+        key=event.GetKeyCode()
+        if key==wx.WXK_ESCAPE:
+            self.Hide()
+        else:
+            event.Skip()
+
+
+class UpdateThread:
+    def __init__(self,win,url,plugin,bookname,plugin_name=None,last_chcount=0):
         self.win=win
         self.url=url
         self.plugin=plugin
+        self.plugin_name=plugin_name
+        self.bookname=bookname
+        self.last_chcount=last_chcount
+        #self.running=True
+        thread.start_new_thread(self.run, ())
+
+##    def stop(self):
+##        self.running=False
+
+    def run(self):
+        evt2=DownloadUpdateAlert(Value='',FieldNum=3)
+        self.bk,bkstate=self.plugin.GetBook(self.url,bkname=self.bookname,
+                            win=self.win,evt=evt2,
+                            useproxy=GlobalConfig['useproxy'],
+                            proxyserver=GlobalConfig['proxyserver'],
+                            proxyport=GlobalConfig['proxyport'],
+                            proxyuser=GlobalConfig['proxyuser'],
+                            proxypass=GlobalConfig['proxypass'],
+                            concurrent=GlobalConfig['numberofthreads'],
+                            mode='update',
+                            last_chapter_count=self.last_chcount
+                            )
+        if self.bk<>None:
+            evt1=UpdateEvt(name=self.bookname,status='ok',
+                            bk=self.bk,bookstate=bkstate,
+                            plugin_name=self.plugin_name,
+                            )
+        else:
+            evt1=UpdateEvt(name=self.bookname,status='nok')
+        wx.PostEvent(self.win,evt1)
+
+class DownloadThread:
+    def __init__(self,win,url,plugin,bookname,plugin_name=None):
+        self.win=win
+        self.url=url
+        self.plugin=plugin
+        self.plugin_name=plugin_name
         self.bookname=bookname
         #self.running=True
         thread.start_new_thread(self.run, ())
@@ -7125,7 +7414,7 @@ class DownloadThread:
         evt2=DownloadUpdateAlert(Value='',FieldNum=3)
         self.bk,bkstate=self.plugin.GetBook(self.url,bkname=self.bookname,win=self.win,evt=evt2,useproxy=GlobalConfig['useproxy'],proxyserver=GlobalConfig['proxyserver'],proxyport=GlobalConfig['proxyport'],proxyuser=GlobalConfig['proxyuser'],proxypass=GlobalConfig['proxypass'],concurrent=GlobalConfig['numberofthreads'])
         if self.bk<>None:
-            evt1=DownloadFinishedAlert(name=self.bookname,status='ok',bk=self.bk,bookstate=bkstate)
+            evt1=DownloadFinishedAlert(name=self.bookname,status='ok',bk=self.bk,bookstate=bkstate,plugin_name=self.plugin_name)
         else:
             evt1=DownloadFinishedAlert(name=self.bookname,status='nok')
         wx.PostEvent(self.win,evt1)
@@ -9375,15 +9664,15 @@ if __name__ == "__main__":
     if SqlCur.fetchall() == []:
         found=False
     if found == False:
-        print "insert a new table"
         sqlstr = """
         CREATE TABLE `subscr` (
           `bookname` varchar(512) NOT NULL,
           `index_url` varchar(512) PRIMARY KEY,
           `last_chapter_name` varchar(512) default NULL,
-          `last_chapter_date` varchar(128) NOT NULL,
+          `last_update` varchar(128) NOT NULL,
           `chapter_count` int unsigned NOT NULL,
-          `save_path` varchar(512) NOT NULL
+          `save_path` varchar(512) NOT NULL,
+          `plugin_name` varchar(128) NOT NULL
         ) ;
         """
         SqlCon.execute(sqlstr)
