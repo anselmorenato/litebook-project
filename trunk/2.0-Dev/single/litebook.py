@@ -2820,7 +2820,7 @@ class MyFrame(wx.Frame,wx.lib.mixins.listctrl.ColumnSorterMixin):
             self.server_thread = threading.Thread(target=self.server.serve_forever)
             # Exit the server thread when the main thread terminates
             self.server_thread.setDaemon(True)
-            GlobalConfig['RunWebserverAtStartup'] = True #always start web service for LTBNET
+            #GlobalConfig['RunWebserverAtStartup'] = True #always start web service for LTBNET
             if GlobalConfig['RunWebserverAtStartup']:
                 try:
                     self.server_thread.start()
