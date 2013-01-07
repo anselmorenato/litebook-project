@@ -5,16 +5,14 @@
 
   * 从官方网站 ( http://code.google.com/p/litebook-project/) 的SVN中获取最新的源代码，或是在官方网站的 下载页面 下载源码版。
      * 从svn中checkout源码的方法：
-     * svn checkout http ://litebook-project.googlecode.com/svn/trunk/2.0-Dev litebook2
+     * svn checkout http ://litebook-project.googlecode.com/svn/trunk/2.0-Dev/single litebook3
 
   * 确认你的系统中安装有如下python环境：
-     * Python 2.6 或2.7 （不支持python 3.0）
-     * wxpython 2.8.10.1 unicode (ubuntu/debian下参见    http://wiki.wxpython.org/InstallingOnUbuntuOrDebian)
-     * chardet 2.01 ( http://chardet.feedparser.org/)
-       * 下载下来后，解压并用这个命令安装：sudo python setup.py install
-     * rarfile 2.0 ( http://pypi.python.org/pypi/rarfile/2.0)
-       * 下载下来后，解压并用这个命令安装：sudo python setup.py install
+     * python 2.7 （不支持python 3.0）
+     * wxpython 2.8 unicode (ubuntu下sudo apt-get install python-wxgtk2.8)
+     * twisted (ubuntu下sudo apt-get install python-twisted)
+     * netifaces (ubuntu下sudo apt-get install python-netifaces)
      * unrar linux版( http://www.rarlab.com)
        * 放在litebook2所在的目录即可
 
-  * 在Linux下，运行python litebook2_linux.py
+  * 在Linux下，运行python litebook.py
