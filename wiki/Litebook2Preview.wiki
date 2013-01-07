@@ -1,5 +1,5 @@
 #summary litebook 2.0 预览
-#labels Featured,Phase-Design
+#labels Deprecated,Phase-Design
 
 *Note: litebook 2.0测试版已经放入SVN中，欢迎尝鲜。*
 
