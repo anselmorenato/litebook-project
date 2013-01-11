@@ -60,8 +60,11 @@
            evt.status='ok' #如果是下载失败则设置为"nok"
            wx.PostEvent(win,evt)
    *插件中还可以包括一个可选的全局变量Description，类型为unicode，其内容主要是插件的简介，特性介绍，使用注意等内容。这些内容会显示在输入搜索关键字对话框的下方。
+   }}}
 
-   *对HTML页面的解析，litebook内置了lxml，用如下code来import
+== HTML解析 ==
+对HTML页面的解析，litebook内置了lxml，用如下code来import
+{{{
 MYOS = platform.system()
 osarch=platform.architecture()
 if osarch[1]=='ELF' and MYOS == 'Linux':
@@ -74,8 +77,8 @@ elif MYOS == 'Darwin':
    from lxml_osx import html
 else:
    from lxml import html
-   }}}
 
+}}}
 
 == 插件的安装 ==
   * 将写好的python脚本文件(.py)拷贝到plugin的子目录下。
