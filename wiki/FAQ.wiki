@@ -10,7 +10,6 @@
 
 === 启动litebook 时报错怎么办？ ===
   请尝试如下办法：
-      * 如果是Windows 绿色版无法运行，那么请安装Microsoft VC++ 2008 Redistrbute运行库。在微软的网站或是本网站都可以下载。
       *  如果是windows下，点击程序组内的“恢复到缺省配置启动”链接；如果是linux下，执行“python litebook2_linux.py -reset"
       * 删除litebook.ini后重新运行，litebook.ini的位置：
           * Windows版是在C:\Documents and Settings\【USER】\Application Data（注意：这是一个隐藏文件夹）下，这里的【USER】是你Windows的登录名
