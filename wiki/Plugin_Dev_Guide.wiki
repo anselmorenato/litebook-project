@@ -1,8 +1,8 @@
-#summary litebook在线搜索下载插件的开发指南(for 3.0)
+#summary litebook在线搜索下载插件的开发指南(for 3.1)
 
 <wiki:toc/>
 
-= litebook在线搜索下载插件的开发指南(for 3.0) =
+= litebook在线搜索下载插件的开发指南(for 3.1) =
 
 本文介绍了开发litebook在线搜索及下载插件（以下简称插件）所需要了解的信息
 
@@ -34,7 +34,7 @@
         *lastupdatetime：最后更新时间，用途仅为显示，可以为空字符串
         *如果搜索失败的话，则返回[]
   
-    * GetBook(url,bkname='',win=None,evt=None,useproxy=False,proxyserver='',proxyport=0,proxyuser='',proxypass='',concurrent=10,mode='new',last_chapter_count=0)
+    * GetBook(url,bkname='',win=None,evt=None,useproxy=False,proxyserver='',proxyport=0,proxyuser='',proxypass='',concurrent=10,mode='new',last_chapter_count=0,dmode='down',sevt=None,control=[])
       *传入参数说明：
          *book_index_page_url: 小说目录页的URL
          *win: litebook主窗口
@@ -45,7 +45,11 @@
          *proxypass: HTTP代理服务器认证口令，类型unicode
          *concurrent：同时下载的线程数
          *mode：下载模式，类型str，可以为'new'或'update'。'new'代表全部下载, 'update'代表只下载更新的章节
-        *last_chapter_count：上次下载的章节总数，类型int，当mode 为'update'时，此参数用来判断是否有更新的章节
+         *last_chapter_count：上次下载的章节总数，类型int，当mode 为'update'时，此参数用来判断是否有更新的章节
+         *dmode：下载模式，类型str，当dmode 为'down'时，为普通下载；如果dmode为'stream'的话则代表边下载边看
+         *sevt：当下载模式为"stream"，这个是用来回传下载章节的事件，sevt.value是单一章节的内容（应该以章节名开头）
+         *control: 控制变量，当其为非空的话，停止下载
+
      *此函数返回一个tuple,包含两个值：
          1. 整合后的小说内容，类型为unicode （如果mode是'update'的话，则只包括更新章节的内容）
          2. 一个dict，包含如下key:
